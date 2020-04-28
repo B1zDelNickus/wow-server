@@ -17,7 +17,12 @@ rootProject.name = rootProject.projectDir.name
 
 include(
     "common",
+
     "login-server",
     "game-server",
-    "chat-server"
+    "chat-server",
+
+    "login-server-app"
 )
+
+project(":login-server-app").projectDir = file("dockers/login-server-app")
