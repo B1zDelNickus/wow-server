@@ -16,7 +16,8 @@ pluginManagement {
 rootProject.name = rootProject.projectDir.name
 
 include(
-    "common",
+    "jdbc-utils",
+    "network-utils",
 
     "login-server",
     "game-server",
@@ -24,5 +25,8 @@ include(
 
     "login-server-app"
 )
+
+project(":jdbc-utils").projectDir = file("common/jdbc-utils")
+project(":network-utils").projectDir = file("common/network-utils")
 
 project(":login-server-app").projectDir = file("dockers/login-server-app")
