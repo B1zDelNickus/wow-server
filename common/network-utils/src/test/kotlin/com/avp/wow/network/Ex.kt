@@ -27,14 +27,14 @@ class Ex : StringSpec({
             )*/
             //ServerConfig("*", 2323, "Test Connection", LoginConnectionFactory()),
             ServerConfig("127.0.0.1", 2324, "Test Connection 2", LoginConnectionFactory()),
-            context = coroutineContext//Dispatchers.IO//
+            context = Dispatchers.IO//coroutineContext//
         )
 
         nio.connect()
 
         /*delay(3000)
 
-        println("###")
+        println("###")*/
 
         val socket = aSocket(ActorSelectorManager(Dispatchers.IO))
             .tcp()
@@ -56,7 +56,9 @@ class Ex : StringSpec({
 
         val output3 = socket3.openWriteChannel(autoFlush = true)
         output3.write("Aloha!\r\n")
-        output3.write("exit\r\n")*/
+        output3.write("exit\r\n")
+
+        delay(3000)
 
         nio.shutdown()
 
@@ -70,7 +72,7 @@ class NioServer(
     context: CoroutineContext? = null
 ) : CoroutineScope {
 
-    private val log = KotlinLogging.logger(this::javaClass.name)
+    private val log = KotlinLogging.logger(this::class.java.name)
 
     override val coroutineContext by lazy { context ?: Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()).asCoroutineDispatcher() }
 
@@ -126,7 +128,7 @@ class NioServer(
 
                             log.info { "Socket accepted: ${socket.remoteAddress} to '${cfg.connectionName}'" }
 
-                            val conn = cfg.factory.create(socket)
+                            val conn = cfg.factory.create(socket, this@NioServer)
                                 .apply { initialized() }
 
                             launch { conn.apply { startDispatching() } }
@@ -236,7 +238,14 @@ class NioServer(
 
     }
 
-    fun shutdown() {
+    /**
+     * @return Number of active connections.
+     */
+    fun getActiveConnections(): Int {
+        return 0
+    }
+
+    fun shutdown() = runBlocking(coroutineContext) {
         /*try {
             context.cancel()
         } catch (e: Exception) {
@@ -258,13 +267,66 @@ class NioServer(
 
         log.info { "Closing ServerChannels..." }
         try {
-            for (key in selector.provider.openSelector().selectedKeys()) {
-                key.cancel()
-            }
+            selector.provider.openSelector()
+                .keys()
+                .forEach { it.cancel() }
+            /*connections.values.forEach { conn ->
+                conn.socket.close()
+            }*/
             log.info { "ServerChannel closed." }
         } catch (e: java.lang.Exception) {
             log.error(e) {"Error during closing ServerChannel, $e" }
         }
+
+        notifyServerClose()
+
+        /**
+         * Wait 5s
+         */
+        try {
+            Thread.sleep(1000)
+        } catch (t: Throwable) {
+            log.warn(t) { "Nio thread was interrupted during shutdown" }
+        }
+
+        log.info { " Active connections: " + getActiveConnections() }
+
+        /**
+         * DC all
+         */
+        log.info { "Forced Disconnecting all connections..." }
+        closeAll()
+        log.info { " Active connections: " + getActiveConnections() }
+
+        /**
+         * Wait 5s
+         */
+        try {
+            Thread.sleep(1000)
+        } catch (t: Throwable) {
+            log.warn(t) { "Nio thread was interrupted during shutdown" }
+        }
+
+    }
+
+    /**
+     * Calls onServerClose method for all active connections.
+     */
+    private fun notifyServerClose() {
+        connections.values
+            .forEach { conn ->
+                conn.onServerClose()
+            }
+    }
+
+    /**
+     * Close all active connections.
+     */
+    private fun closeAll() {
+        connections.values
+            .forEach { conn ->
+                conn.close(true)
+            }
     }
 
     /**
@@ -296,9 +358,7 @@ class NioServer(
         {
             //dcPool.execute(DisconnectionTask(con))
             launch {
-
-                // discon
-
+                con.onDisconnect()
             }
         }
     }
@@ -321,20 +381,21 @@ data class ServerConfig(
 interface ConnectionFactory {
 
     @Throws(IOException::class)
-    fun create(socket: Socket): Connection
+    fun create(socket: Socket, nio: NioServer): Connection
 
 }
 
 class LoginConnectionFactory : ConnectionFactory {
 
-    override fun create(socket: Socket): Connection {
-        return LoginConnection(socket)
+    override fun create(socket: Socket, nio: NioServer): Connection {
+        return LoginConnection(socket, nio)
     }
 
 }
 
 abstract class Connection(
-    protected val socket: Socket,
+    val socket: Socket,
+    private val nio: NioServer,
     readBufferSize: Int = DEFAULT_R_BUFFER_SIZE,
     writeBufferSize: Int = DEFAULT_W_BUFFER_SIZE
 ) {
@@ -430,11 +491,14 @@ abstract class Connection(
                 return
             }
             isForcedClosing = forced
-            //getDispatcher().closeConnection(this)
-            /*try {
-                log.info { "CLosing socket from: ${socket.remoteAddress}" }
+
+            nio.closeConnection(this)
+
+            try {
+                log.info { "Closing socket from: ${socket.remoteAddress}" }
                 socket.close()
-            } catch (ignored: IOException) { }*/
+                log.info { "###: ${socket.isClosed}" }
+            } catch (ignored: IOException) { }
         }
     }
 
@@ -499,17 +563,17 @@ abstract class Connection(
      * This method is called by Dispatcher when connection is ready to be closed.
      * @return time in ms after witch onDisconnect() method will be called.
      */
-    protected abstract fun getDisconnectionDelay(): Long
+    abstract fun getDisconnectionDelay(): Long
 
     /**
      * This method is called by Dispatcher to inform that this connection was closed and should be cleared. This method is called only once.
      */
-    protected abstract fun onDisconnect()
+    abstract fun onDisconnect()
 
     /**
      * This method is called by NioServer to inform that NioServer is shouting down. This method is called only once.
      */
-    protected abstract fun onServerClose()
+    abstract fun onServerClose()
 
     companion object {
 
@@ -519,12 +583,12 @@ abstract class Connection(
     }
 }
 
-class LoginConnection(socket: Socket) : Connection(socket = socket) {
+class LoginConnection(socket: Socket, nio: NioServer) : Connection(socket = socket, nio = nio) {
 
     override suspend fun dispatch() {
         val line = inputChannel.readUTF8Line()
-        println("${socket.remoteAddress}: $line")
-        outputChannel.write("$line\r\n")
+        log.info {"Msg received from ${socket.remoteAddress}: $line" }
+        //outputChannel.write("$line\r\n")
         log.info { "Dispatched from: ${socket.remoteAddress}" }
     }
 
@@ -545,11 +609,11 @@ class LoginConnection(socket: Socket) : Connection(socket = socket) {
     }
 
     override fun onDisconnect() {
-        TODO("Not yet implemented")
+        // some pkt and service actions
     }
 
     override fun onServerClose() {
-        TODO("Not yet implemented")
+        close(forced = true)
     }
 
     companion object {
