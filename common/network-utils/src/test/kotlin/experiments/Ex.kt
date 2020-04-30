@@ -1,4 +1,4 @@
-package com.avp.wow.network
+package experiments
 
 import io.kotlintest.specs.StringSpec
 import io.ktor.network.selector.ActorSelectorManager
@@ -27,7 +27,7 @@ class Ex : StringSpec({
             )*/
             //ServerConfig("*", 2323, "Test Connection", LoginConnectionFactory()),
             ServerConfig("127.0.0.1", 2324, "Test Connection 2", LoginConnectionFactory()),
-            context = Dispatchers.IO//coroutineContext//
+            context = coroutineContext//Dispatchers.IO//
         )
 
         nio.connect()
@@ -36,7 +36,7 @@ class Ex : StringSpec({
 
         println("###")*/
 
-        val socket = aSocket(ActorSelectorManager(Dispatchers.IO))
+        /*val socket = aSocket(ActorSelectorManager(Dispatchers.IO))
             .tcp()
             .connect(InetSocketAddress("127.0.0.1", 2324))
 
@@ -56,7 +56,7 @@ class Ex : StringSpec({
 
         val output3 = socket3.openWriteChannel(autoFlush = true)
         output3.write("Aloha!\r\n")
-        output3.write("exit\r\n")
+        output3.write("exit\r\n")*/
 
         delay(3000)
 
@@ -87,7 +87,7 @@ class NioServer(
     private val pendingClose = arrayListOf<Connection>()
 
     @Throws(Error::class)
-    fun connect() = launch { // GlobalScope.launch(coroutineContext) { TODO "difference???"
+    fun connect() =  GlobalScope.launch(coroutineContext) { // launch { // TODO "difference???"
 
         log.info { "Connecting to servers..." }
 

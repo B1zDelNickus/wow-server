@@ -1,4 +1,4 @@
-package com.avp.wow.network
+package experiments
 
 import io.kotlintest.specs.StringSpec
 import io.ktor.network.selector.ActorSelectorManager

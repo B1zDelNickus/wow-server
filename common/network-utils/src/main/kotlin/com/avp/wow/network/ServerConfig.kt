@@ -4,5 +4,5 @@ data class ServerConfig(
     val hostName: String,
     val port: Int,
     val connectionName: String,
-    val factory: ConnectionFactory
+    val factory: IConnectionFactory
 )
