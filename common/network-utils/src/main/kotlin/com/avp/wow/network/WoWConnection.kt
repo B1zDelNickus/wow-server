@@ -6,11 +6,14 @@ import kotlinx.coroutines.*
 import mu.KotlinLogging
 import java.io.IOException
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 @KtorExperimentalAPI
 abstract class WoWConnection(
     val socket: Socket,
-    protected val nioServer: NioServer
+    protected val nioServer: NioServer,
+    readBufferSize: Int,
+    writeBufferSize: Int
 ) {
 
     protected val log = KotlinLogging.logger(this::class.java.name)
@@ -19,6 +22,21 @@ abstract class WoWConnection(
 
     protected val inputChannel by lazy { socket.openReadChannel() }
     protected val outputChannel by lazy { socket.openWriteChannel(autoFlush = true) }
+
+    protected val readBuffer by lazy {
+        ByteBuffer.allocate(readBufferSize)
+            .apply {
+                order(ByteOrder.BIG_ENDIAN)
+            }!!
+    }
+
+    protected val writeBuffer by lazy {
+        ByteBuffer.allocate(writeBufferSize)
+            .apply {
+                flip()
+                order(ByteOrder.BIG_ENDIAN)
+            }!!
+    }
 
     /**
      * IP address of this Connection.
@@ -63,13 +81,13 @@ abstract class WoWConnection(
     /**
      * Dispatching channel read operations
      */
-    protected abstract suspend fun dispatch()
+    protected abstract suspend fun dispatchRead()
 
-    suspend fun startDispatching() {
-        log.info { "Starting dispatcher job" }
+    suspend fun startReadDispatching() {
+        log.info { "Starting read dispatcher job" }
         while (isActive) {
             try {
-                dispatch()
+                dispatchRead()
                 synchronized(guard) {}
                 /**
                  * Just small delay gap for performance optimization
@@ -77,10 +95,33 @@ abstract class WoWConnection(
                 delay(10)
             } catch (ignored: CancellationException) {
             } catch (e: Exception) {
-                log.error { "Dispatch error: ${e.message}" }
+                log.error(e) { "Dispatch error: ${e.message}" }
             }
         }
-        log.info { "Closing dispatcher job" }
+        log.info { "Closing read dispatcher job" }
+    }
+
+    /**
+     * Dispatching channel write operations
+     */
+    protected abstract suspend fun dispatchWrite()
+
+    suspend fun startWriteDispatching() {
+        log.info { "Starting write dispatcher job" }
+        while (isActive) {
+            try {
+                dispatchWrite()
+                synchronized(guard) {}
+                /**
+                 * Just small delay gap for performance optimization
+                 */
+                delay(10)
+            } catch (ignored: CancellationException) {
+            } catch (e: Exception) {
+                log.error(e) { "Dispatch error: ${e.message}" }
+            }
+        }
+        log.info { "Closing write dispatcher job" }
     }
 
     /**

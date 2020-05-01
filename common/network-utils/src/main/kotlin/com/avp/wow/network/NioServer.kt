@@ -3,12 +3,10 @@ package com.avp.wow.network
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.aSocket
-import io.ktor.network.sockets.isClosed
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.*
 import mu.KotlinLogging
 import java.net.InetSocketAddress
-import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.CoroutineContext
 
@@ -77,32 +75,35 @@ class NioServer(
                      */
                     launch {
 
-                        try {
+                        /**
+                         * Accept socket connection from clients
+                         */
+                        val socket = server.accept()
 
-                            /**
-                             * Accept socket connection from clients
-                             */
-                            val socket = server.accept()
+                        log.info { "Socket accepted: ${socket.remoteAddress} to '${cfg.connectionName}'" }
 
-                            log.info { "Socket accepted: ${socket.remoteAddress} to '${cfg.connectionName}'" }
+                        /**
+                         * Create connection object and pass it to NIO server infrastructure
+                         */
+                        cfg.factory.create(socket = socket, nio = this@NioServer)
+                            .also { conn ->
+                                /**
+                                 * Add new connection to nio's all-connections pool
+                                 */
+                                connections.add(conn)
 
-                            /**
-                             * Create connection object and pass it to NIO server infrastructure
-                             */
-                            cfg.factory.create(socket = socket, nio = this@NioServer)
-                                .also { conn ->
-                                    /**
-                                     * Add new connection to nio's all-connections pool
-                                     */
-                                    connections.add(conn)
-                                    conn.initialized()
-                                    /**
-                                     * Run ReadWrite Dispatcher coroutine
-                                     */
-                                    launch { conn.startDispatching() }
-                                }
-                        } catch (ignored: CancellationException) {
-                        }
+                                /**
+                                 * Run Read Dispatcher coroutine
+                                 */
+                                launch { conn.startReadDispatching() }
+
+                                /**
+                                 * Run Write Dispatcher coroutine
+                                 */
+                                launch { conn.startWriteDispatching() }
+
+                                conn.initialized()
+                            }
 
                     }
 
@@ -110,8 +111,6 @@ class NioServer(
 
                 log.info { "Connected to servers: \n${serverConfigs.joinToString("\n") { "\t\t### address: ${it.hostName}:${it.port} | name: ${it.connectionName} ###" }}" }
 
-            } catch (ignored: CancellationException) {
-                ///
             } catch (e: Exception) {
                 log.error(e) { "Error occurred while connecting servers: ${e.message}" }
                 throw Error("Error initialize NioServer")
@@ -124,13 +123,10 @@ class NioServer(
          */
         localScope.launch {
 
-            try {
-                processPendingClosing = true
+            processPendingClosing = true
 
-                while (processPendingClosing) {
-                    processPendingClose()
-                }
-            } catch (ignored: CancellationException) {
+            while (processPendingClosing) {
+                processPendingClose()
             }
 
         }
@@ -199,14 +195,7 @@ class NioServer(
 
         log.info { "NIO server has been stopped." }
 
-        try {
-            localScope.cancel()
-        } // TODO needed actually??
-        catch (jce: CancellationException) {
-            log.error(jce) { "Job cancelled: ${jce.message}" }
-        } catch (e: Exception) {
-            log.error(e) { "Error: ${e.message}" }
-        }
+        localScope.cancel()
     }
 
     /**
@@ -245,7 +234,7 @@ class NioServer(
      * Connection will be closed [onlyClose()] and onDisconnect() method will be executed on another thread [DisconnectionThreadPool] after getDisconnectionDelay() time in ms. This method may only be called by current Dispatcher Thread.
      * @param con
      */
-    private fun closeConnectionImpl(connection: WoWConnection) {
+    fun closeConnectionImpl(connection: WoWConnection) {
         if (connection.onlyClose()) {
             localScope.launch {
                 connection.onDisconnect()
