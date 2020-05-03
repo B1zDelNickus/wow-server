@@ -30,7 +30,7 @@ abstract class LoginClientPacket(
      * Send new AionServerPacket to connection that is owner of this packet. This method is equvalent to: getConnection().sendPacket(msg);
      * @param msg
      */
-    protected open fun sendPacket(msg: ClientServerPacket) {
+    protected open fun sendPacket(msg: LoginServerPacket) {
         connection?.sendPacket(msg)
             ?: throw IllegalStateException("Connection was not sat properly")
     }

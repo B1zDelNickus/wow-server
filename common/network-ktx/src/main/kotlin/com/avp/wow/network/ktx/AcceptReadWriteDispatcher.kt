@@ -1,8 +1,8 @@
 package com.avp.wow.network.ktx
 
-import io.ktor.network.selector.ActorSelectorManager
 import kotlinx.coroutines.CoroutineScope
 import java.nio.channels.SelectionKey
+import java.util.*
 
 class AcceptReadWriteDispatcher(
     name: String,
@@ -12,11 +12,16 @@ class AcceptReadWriteDispatcher(
     scope = scope
 ) {
 
+    /**
+     * List of connections that should be closed by this `Dispatcher` as soon as possible.
+     */
+    private val pendingClose = ArrayList<KtxConnection>()
+
     override fun dispatch() {
 
         val selected = selector.select()
 
-        // processPendingClose()
+        processPendingClose()
 
         if (selected != 0) {
 
@@ -26,18 +31,10 @@ class AcceptReadWriteDispatcher(
 
                     when (key.readyOps()) {
 
-                        SelectionKey.OP_ACCEPT -> {
-                            accept(key)
-                        }
-                        SelectionKey.OP_READ -> {
-
-                        }
-                        SelectionKey.OP_WRITE -> {
-
-                        }
-                        SelectionKey.OP_READ or SelectionKey.OP_WRITE -> {
-
-                        }
+                        SelectionKey.OP_ACCEPT -> accept(key)
+                        SelectionKey.OP_READ -> read(key)
+                        SelectionKey.OP_WRITE -> write(key)
+                        SelectionKey.OP_READ or SelectionKey.OP_WRITE -> key.also { read(it); if (it.isValid) write(it) }
 
                     }
 
@@ -48,6 +45,26 @@ class AcceptReadWriteDispatcher(
         }
 
 
+    }
+
+    /**
+     * Add connection to pendingClose list, so this connection will be closed by this `Dispatcher` as soon as possible.
+     * @see com.aionemu.commons.network.Dispatcher.closeConnection
+     */
+    override fun closeConnection(con: KtxConnection) {
+        synchronized(pendingClose) { pendingClose.add(con) }
+    }
+
+    /**
+     * Process Pending Close connections.
+     */
+    private fun processPendingClose() {
+        synchronized(pendingClose) {
+            for (connection in pendingClose) {
+                closeConnectionImpl(connection)
+            }
+            pendingClose.clear()
+        }
     }
 
 }

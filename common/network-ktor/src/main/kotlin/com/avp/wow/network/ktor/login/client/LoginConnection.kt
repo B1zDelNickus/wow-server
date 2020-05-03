@@ -35,7 +35,7 @@ class LoginConnection(
     /**
      * Server Packet "to send" Queue
      */
-    private val sendMsgQueue = FastList<ClientServerPacket>()
+    private val sendMsgQueue = FastList<LoginServerPacket>()
 
     /**
      * Crypt to encrypt/decrypt packets
@@ -104,7 +104,7 @@ class LoginConnection(
      * Sends AionServerPacket to this client.
      * @param bp AionServerPacket to be sent.
      */
-    fun sendPacket(bp: ClientServerPacket) {
+    fun sendPacket(bp: LoginServerPacket) {
         synchronized(guard) {
             /**
              * Connection is already closed or waiting for last (close packet) to be sent
@@ -299,9 +299,7 @@ class LoginConnection(
         sendPacket(SpInit(this, blowfishKey))
     }
 
-    override fun getDisconnectionDelay(): Long {
-        TODO("Not yet implemented")
-    }
+    override val getDisconnectionDelay = 0L
 
     override fun onDisconnect() {
         /**

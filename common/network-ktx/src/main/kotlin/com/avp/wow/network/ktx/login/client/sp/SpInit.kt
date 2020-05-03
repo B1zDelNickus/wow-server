@@ -1,7 +1,7 @@
-package com.avp.wow.network.ktor.login.client.sp
+package com.avp.wow.network.ktx.login.client.sp
 
-import com.avp.wow.network.ktor.login.client.LoginServerPacket
-import com.avp.wow.network.ktor.login.client.LoginConnection
+import com.avp.wow.network.ktx.login.client.LoginConnection
+import com.avp.wow.network.ktx.login.client.LoginServerPacket
 import io.ktor.util.KtorExperimentalAPI
 import javax.crypto.SecretKey
 

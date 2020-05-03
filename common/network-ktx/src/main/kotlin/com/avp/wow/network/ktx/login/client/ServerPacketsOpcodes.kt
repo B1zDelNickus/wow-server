@@ -1,10 +1,8 @@
-package com.avp.wow.network.ktor.login.client
+package com.avp.wow.network.ktx.login.client
 
-import com.avp.wow.network.ktor.login.client.sp.SpInit
-import io.ktor.util.KtorExperimentalAPI
+import com.avp.wow.network.ktx.login.client.sp.SpInit
 import kotlin.reflect.KClass
 
-@KtorExperimentalAPI
 object ServerPacketsOpcodes {
 
     private val idSet = mutableSetOf<Int>()

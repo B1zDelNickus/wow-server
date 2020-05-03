@@ -11,14 +11,14 @@ abstract class BaseConnection(
 
     protected val log = KotlinLogging.logger(this::class.java.name)
 
-    protected val readBuffer by lazy {
+    val readBuffer by lazy {
         ByteBuffer.allocate(readBufferSize)
             .apply {
                 order(ByteOrder.BIG_ENDIAN)
             }!!
     }
 
-    protected val writeBuffer by lazy {
+    val writeBuffer by lazy {
         ByteBuffer.allocate(writeBufferSize)
             .apply {
                 flip()
@@ -97,14 +97,14 @@ abstract class BaseConnection(
      * @param data
      * @return True if data was processed correctly, False if some error occurred and connection should be closed NOW.
      */
-    protected abstract fun processData(data: ByteBuffer): Boolean
+    abstract fun processData(data: ByteBuffer): Boolean
 
     /**
      * This method will be called by Dispatcher, and will be repeated till return false.
      * @param data
      * @return True if data was written to buffer, False indicating that there are not any more data to write.
      */
-    protected abstract fun writeData(data: ByteBuffer): Boolean
+    abstract fun writeData(data: ByteBuffer): Boolean
 
     /**
      * Called when AConnection object is fully initialized and ready to process and send packets. It may be used as hook for sending first packet etc.
@@ -115,7 +115,7 @@ abstract class BaseConnection(
      * This method is called by Dispatcher when connection is ready to be closed.
      * @return time in ms after witch onDisconnect() method will be called.
      */
-    abstract fun getDisconnectionDelay(): Long
+    abstract val getDisconnectionDelay: Long
 
     /**
      * This method is called by Dispatcher to inform that this connection was closed and should be cleared. This method is called only once.

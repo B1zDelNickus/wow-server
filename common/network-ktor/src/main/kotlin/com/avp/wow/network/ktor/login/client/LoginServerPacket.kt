@@ -5,7 +5,7 @@ import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-abstract class ClientServerPacket : BaseServerPacket() {
+abstract class LoginServerPacket : BaseServerPacket() {
 
     init {
         opCode = ServerPacketsOpcodes.getOpcode(this::class)

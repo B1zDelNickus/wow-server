@@ -1,9 +1,7 @@
 package com.avp.wow.network.packet
 
 import com.avp.wow.network.utils.PrintUtils
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 abstract class BaseServerPacket : BasePacket {
 
     constructor() : super(type = Companion.PacketType.SERVER)

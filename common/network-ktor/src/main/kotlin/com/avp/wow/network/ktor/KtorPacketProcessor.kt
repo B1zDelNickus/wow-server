@@ -1,6 +1,6 @@
 package com.avp.wow.network.ktor
 
-import com.avp.wow.network.packet.BaseClientPacket
+import com.avp.wow.network.ktor.packet.BaseClientPacket
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,7 +10,7 @@ import mu.KotlinLogging
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
-class KtorPacketProcessor<T : WoWConnection>(
+class KtorPacketProcessor<T : KtorConnection>(
     context: CoroutineContext = Dispatchers.IO
 ) {
 
