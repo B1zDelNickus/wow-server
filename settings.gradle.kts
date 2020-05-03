@@ -17,7 +17,10 @@ rootProject.name = rootProject.projectDir.name
 
 include(
     "jdbc-utils",
-    "network-utils",
+
+    "network-core",
+    "network-ktor",
+    "network-ktx",
 
     "login-server",
     "game-server",
@@ -27,6 +30,8 @@ include(
 )
 
 project(":jdbc-utils").projectDir = file("common/jdbc-utils")
-project(":network-utils").projectDir = file("common/network-utils")
+project(":network-core").projectDir = file("common/network-core")
+project(":network-ktor").projectDir = file("common/network-ktor")
+project(":network-ktx").projectDir = file("common/network-ktx")
 
 project(":login-server-app").projectDir = file("dockers/login-server-app")
