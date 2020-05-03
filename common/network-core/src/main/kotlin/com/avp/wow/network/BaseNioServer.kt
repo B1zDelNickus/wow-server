@@ -1,17 +1,14 @@
 package com.avp.wow.network
 
-import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 
-@KtorExperimentalAPI
 abstract class BaseNioServer {
 
     protected val log = KotlinLogging.logger(this::class.java.name)
 
-    abstract val scope: CoroutineScope
+    protected abstract val scope: CoroutineScope
 
     /**
      * @return Number of active connections.
@@ -24,7 +21,7 @@ abstract class BaseNioServer {
 
         log.info { "Stopping NIO server..." }
 
-        //stopIO()
+        closeChannels()
 
         /**
          * Sending DC packets for active clients
@@ -60,8 +57,6 @@ abstract class BaseNioServer {
 
         log.info { "Active connections: $getActiveConnections" }
 
-        //closeConnections()
-
         /**
          * Wait 1s for coroutines to execute close operations
          */
@@ -71,11 +66,13 @@ abstract class BaseNioServer {
             log.warn(t) { "Nio thread was interrupted during shutdown" }
         }
 
-        log.info { "NIO server has been stopped." }
+        log.info { "NIO server was stopped successfully." }
 
         scope.cancel("shutdown nio")
 
     }
+
+    abstract fun closeChannels()
 
     /**
      * Calls onServerClose method for all active connections.

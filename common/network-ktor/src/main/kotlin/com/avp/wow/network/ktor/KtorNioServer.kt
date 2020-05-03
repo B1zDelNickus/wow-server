@@ -1,8 +1,6 @@
 package com.avp.wow.network.ktor
 
 import com.avp.wow.network.BaseNioServer
-import com.avp.wow.network.ServerConfig
-import com.avp.wow.network.WoWConnection
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.aSocket
@@ -17,20 +15,19 @@ import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
 class KtorNioServer(
-    private val serverConfigs: List<ServerConfig> = emptyList(),
+    private val serverConfigs: List<KtorServerConfig> = emptyList(),
     context: CoroutineContext = Dispatchers.IO
 ) : BaseNioServer() {
 
     override val scope by lazy { CoroutineScope(SupervisorJob() + context) }
-    private val coroutineContext by lazy { scope.coroutineContext }
 
     private val servers = CopyOnWriteArrayList<ServerSocket>()
-    private val connections = CopyOnWriteArrayList<WoWConnection>()
+    private val connections = CopyOnWriteArrayList<KtorConnection>()
 
     /**
      * List of connections that should be closed by this `Dispatcher` as soon as possible.
      */
-    private val pendingClose = CopyOnWriteArrayList<WoWConnection>()
+    private val pendingClose = CopyOnWriteArrayList<KtorConnection>()
 
     private var processPendingClosing = false
 
@@ -135,6 +132,8 @@ class KtorNioServer(
         }
     }
 
+    override fun closeChannels() = Unit
+
     /*override fun shutdown() {
 
         log.info { "Stopping NIO server..." }
@@ -237,7 +236,7 @@ class KtorNioServer(
      * Connection will be closed [onlyClose()] and onDisconnect() method will be executed on another thread [DisconnectionThreadPool] after getDisconnectionDelay() time in ms. This method may only be called by current Dispatcher Thread.
      * @param con
      */
-    fun closeConnectionImpl(connection: WoWConnection) {
+    fun closeConnectionImpl(connection: KtorConnection) {
         if (connection.onlyClose()) {
             scope.launch {
                 connection.onDisconnect()
@@ -245,13 +244,13 @@ class KtorNioServer(
         }
     }
 
-    fun closeConnection(connection: WoWConnection) {
+    fun closeConnection(connection: KtorConnection) {
         synchronized(pendingClose) {
             pendingClose.add(connection)
         }
     }
 
-    fun removeConnection(connection: WoWConnection) {
+    fun removeConnection(connection: KtorConnection) {
         connections.remove(connection)
     }
 

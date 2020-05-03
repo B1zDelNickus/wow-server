@@ -1,6 +1,6 @@
 package com.avp.wow.network.ktor.login.client
 
-import com.avp.wow.network.ktor.PacketProcessor
+import com.avp.wow.network.ktor.KtorPacketProcessor
 import com.avp.wow.network.ktor.KtorConnection
 import com.avp.wow.network.ktor.KtorNioServer
 import com.avp.wow.network.ktor.login.client.sp.SpInit
@@ -30,7 +30,7 @@ class LoginConnection(
     var state =
         State.DEFAULT
 
-    private val processor = PacketProcessor<LoginConnection>()
+    private val processor = KtorPacketProcessor<LoginConnection>()
 
     /**
      * Server Packet "to send" Queue

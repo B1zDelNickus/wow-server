@@ -21,7 +21,7 @@ class KtorNioServerTests : StringSpec({
         val host = "127.0.0.1"
         val port = 2323
 
-        val loginServerConfig = ServerConfig(
+        val loginServerConfig = KtorServerConfig(
             hostName = host,
             port = port,
             connectionName = "Test Login Connection",

@@ -10,7 +10,7 @@ import mu.KotlinLogging
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
-class PacketProcessor<T : WoWConnection>(
+class KtorPacketProcessor<T : WoWConnection>(
     context: CoroutineContext = Dispatchers.IO
 ) {
 

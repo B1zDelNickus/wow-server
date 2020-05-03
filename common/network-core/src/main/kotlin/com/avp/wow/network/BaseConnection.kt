@@ -1,11 +1,9 @@
 package com.avp.wow.network
 
-import io.ktor.util.KtorExperimentalAPI
 import mu.KotlinLogging
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-@KtorExperimentalAPI
 abstract class BaseConnection(
     readBufferSize: Int,
     writeBufferSize: Int
