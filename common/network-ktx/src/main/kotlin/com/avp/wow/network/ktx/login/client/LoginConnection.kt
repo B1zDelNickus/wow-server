@@ -3,6 +3,7 @@ package com.avp.wow.network.ktx.login.client
 import com.avp.wow.network.ktx.Dispatcher
 import com.avp.wow.network.ktx.KtxConnection
 import com.avp.wow.network.ktx.KtxPacketProcessor
+import com.avp.wow.network.ktx.login.client.sp.SpInit
 import com.avp.wow.network.ktx.login.factories.LoginPacketFactory
 import com.avp.wow.network.ncrypt.CryptEngine
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
@@ -183,7 +184,7 @@ class LoginConnection(
         /**
          * Send Init packet
          */
-        //sendPacket(SpInit(this, blowfishKey))
+        sendPacket(SpInit(this, blowfishKey))
     }
 
     override val getDisconnectionDelay = 0L

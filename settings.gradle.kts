@@ -21,6 +21,7 @@ include(
     "network-core",
     "network-ktor",
     "network-ktx",
+    "network-client",
 
     "login-server",
     "game-server",
@@ -33,5 +34,6 @@ project(":jdbc-utils").projectDir = file("common/jdbc-utils")
 project(":network-core").projectDir = file("common/network-core")
 project(":network-ktor").projectDir = file("common/network-ktor")
 project(":network-ktx").projectDir = file("common/network-ktx")
+project(":network-client").projectDir = file("common/network-client")
 
 project(":login-server-app").projectDir = file("dockers/login-server-app")

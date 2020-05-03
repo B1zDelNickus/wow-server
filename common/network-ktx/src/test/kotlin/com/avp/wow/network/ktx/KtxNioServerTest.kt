@@ -1,5 +1,8 @@
 package com.avp.wow.network.ktx
 
+import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_HOST
+import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_PORT
+import com.avp.wow.network.client.buildWowClient
 import com.avp.wow.network.ktx.login.client.LoginConnectionFactory
 import com.avp.wow.network.ncrypt.KeyGen
 import io.kotlintest.specs.StringSpec
@@ -18,8 +21,8 @@ class KtxNioServerTest : StringSpec({
         val server = KtxNioServer(
             serverConfigs = listOf(
                 KtxServerConfig(
-                    hostName = "127.0.0.1",
-                    port = 2233,
+                    hostName = DEFAULT_LOGIN_SERVER_HOST,
+                    port = DEFAULT_LOGIN_SERVER_PORT,
                     connectionName = "Test Login Connection",
                     factory = LoginConnectionFactory()
                 )
@@ -29,6 +32,14 @@ class KtxNioServerTest : StringSpec({
         )
 
         server.connect()
+
+        delay(100)
+
+        buildWowClient {
+
+
+
+        }
 
         delay(2000)
 
