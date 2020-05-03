@@ -132,12 +132,38 @@ class KtxNioServer(
         }
     }
 
+    /**
+     * Calls onServerClose method for all active connections.
+     */
     override fun notifyServerClose() {
-        TODO("Not yet implemented")
+        if (readWriteDispatchers != null) {
+            for (d in readWriteDispatchers!!) {
+                for (key in d.selector.keys()) {
+                    (key.attachment() as? KtxConnection)?.onServerClose()
+                }
+            }
+        } else {
+            for (key in acceptDispatcher.selector.keys()) {
+                (key.attachment() as? KtxConnection)?.onServerClose()
+            }
+        }
     }
 
+    /**
+     * Close all active connections.
+     */
     override fun closeAll() {
-        TODO("Not yet implemented")
+        if (readWriteDispatchers != null) {
+            for (d in readWriteDispatchers!!) {
+                for (key in d.selector.keys()) {
+                    (key.attachment() as? KtxConnection)?.close(true)
+                }
+            }
+        } else {
+            for (key in acceptDispatcher.selector.keys()) {
+                (key.attachment() as? KtxConnection)?.close(true)
+            }
+        }
     }
 
 }

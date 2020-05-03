@@ -15,4 +15,8 @@ class AcceptDispatcher(
         }
     }
 
+    override fun closeConnection(con: KtxConnection) {
+        TODO("Not supported operation")
+    }
+
 }
