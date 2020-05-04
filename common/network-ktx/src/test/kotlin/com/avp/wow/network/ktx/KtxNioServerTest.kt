@@ -1,15 +1,20 @@
 package com.avp.wow.network.ktx
 
+import com.avp.wow.network.KtorConnectionConfig
+import com.avp.wow.network.KtxConnectionConfig
 import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_HOST
 import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_PORT
-import com.avp.wow.network.client.buildWowClient
-import com.avp.wow.network.ktx.login.client.LoginConnectionFactory
+import com.avp.wow.network.client.KtorNioClient
+import com.avp.wow.network.client.login.LoginServerConnectionFactory
+import com.avp.wow.network.ktx.login.client.LoginClientConnectionFactory
 import com.avp.wow.network.ncrypt.KeyGen
 import io.kotlintest.specs.StringSpec
+import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 
+@KtorExperimentalAPI
 class KtxNioServerTest : StringSpec({
 
     "test" {
@@ -20,11 +25,11 @@ class KtxNioServerTest : StringSpec({
 
         val server = KtxNioServer(
             serverConfigs = listOf(
-                KtxServerConfig(
+                KtxConnectionConfig(
                     hostName = DEFAULT_LOGIN_SERVER_HOST,
                     port = DEFAULT_LOGIN_SERVER_PORT,
-                    connectionName = "Test Login Connection",
-                    factory = LoginConnectionFactory()
+                    connectionName = "Test Login Clients Connection",
+                    factory = LoginClientConnectionFactory()
                 )
             ),
             readWriteThreads = 8,
@@ -33,15 +38,30 @@ class KtxNioServerTest : StringSpec({
 
         server.connect()
 
-        delay(100)
+        delay(10_000)
 
-        buildWowClient {
-
-
-
+        runBlocking {
+            while (!server.isUp) {}
         }
 
-        delay(2000)
+        /*buildWowClient {
+
+
+
+        }*/
+
+        val client = KtorNioClient(
+            loginServerConfig = KtorConnectionConfig(
+                hostName = DEFAULT_LOGIN_SERVER_HOST,
+                port = DEFAULT_LOGIN_SERVER_PORT,
+                connectionName = "Test Login Server Connection",
+                factory = LoginServerConnectionFactory()
+            )
+        )
+
+        client.connect()
+
+        delay(3_000)
 
         server.shutdown()
 

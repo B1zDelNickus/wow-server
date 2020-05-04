@@ -2,6 +2,8 @@ package com.avp.wow.network.client
 
 import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_HOST
 import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_PORT
+import com.avp.wow.network.client.factories.LoginServerInputPacketFactory
+import com.avp.wow.network.ncrypt.CryptEngine
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
@@ -15,6 +17,7 @@ import mu.KotlinLogging
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+/*
 @KtorExperimentalAPI
 class SimpleWowClient(
     private val host: String,
@@ -23,7 +26,9 @@ class SimpleWowClient(
 
     private val log = KotlinLogging.logger(this::class.java.name)
 
-    val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private val cryptEngine = CryptEngine()
 
     fun connect() {
         scope.launch {
@@ -37,22 +42,50 @@ class SimpleWowClient(
             val input = socket.openReadChannel()
             val output = socket.openWriteChannel(autoFlush = true)
 
-            val rb = ByteBuffer.allocate(9000 * 2)
+            val readBuffer = ByteBuffer.allocate(9000 * 2)
                 .apply {
                     order(ByteOrder.BIG_ENDIAN)
-                }
+                }!!
 
             scope.launch {
+                var isActive = true
+                while (isActive) {
 
-                while (true) {
+                    when (input.readAvailable(readBuffer)) {
+                        -1 -> {
+                            try {
+                                socket.close()
+                                socket.dispose()
+                                log.info { "Disconnected from server" }
+                            } catch (e: Exception) {}
+                            isActive = false
+                        }
+                        0 -> Unit
+                        else -> {
+                            //log.debug { "Received packet with len: ${rb.remaining()}" }
 
-                    val code = input.readAvailable(rb)
+                            readBuffer.flip()
 
-                    if (code != 0) {
-                        log.debug { "Received packet with len: ${rb.remaining()}" }
-                        //println("server: $line")
+                            while (readBuffer.remaining() > 2 && readBuffer.remaining() >= readBuffer.getShort(
+                                    readBuffer.position())) {
+                                */
+/**
+                                 * got full message
+                                 *//*
 
-                        rb.clear()
+                                if (!parse(readBuffer)) {
+                                    //nioServer.closeConnectionImpl(this)
+                                    break
+                                }
+                            }
+
+                            when {
+                                readBuffer.hasRemaining() -> readBuffer.compact()
+                                else -> readBuffer.clear()
+                            }
+
+                            readBuffer.clear()
+                        }
                     }
 
                 }
@@ -60,6 +93,63 @@ class SimpleWowClient(
             }
 
         }
+    }
+
+    private fun parse(buf: ByteBuffer): Boolean {
+        var sz: Short = 0
+        try {
+            sz = buf.short
+            if (sz > 1) {
+                sz = (sz - 2).toShort()
+            }
+            val b = buf.slice().limit(sz.toInt()) as ByteBuffer
+            b.order(ByteOrder.LITTLE_ENDIAN)
+            */
+/**
+             * read message fully
+             *//*
+
+            buf.position(buf.position() + sz)
+            return processData(b)
+        } catch (e: IllegalArgumentException) {
+            log.warn(e) { "Error on parsing input from client - account: " + this + " packet size: " + sz + " real size:" + buf.remaining() }
+            return false
+        }
+
+    }
+
+    fun processData(data: ByteBuffer): Boolean {
+
+        if (!decrypt(data)) {
+            return false
+        }
+
+        val pck = LoginServerInputPacketFactory.define(data*/
+/*, this*//*
+)
+
+        */
+/**
+         * Execute packet only if packet exist (!= null) and read was ok.
+         *//*
+
+        if (pck != null */
+/*&& pck.read()*//*
+) {
+            log.debug { "Received packet $pck from server" }
+            //processor.executePacket(pck)
+        }
+
+        return true
+    }
+
+    private fun decrypt(buf: ByteBuffer): Boolean {
+        val size = buf.remaining()
+        val offset = buf.arrayOffset() + buf.position()
+        val ret = cryptEngine.decrypt(buf.array(), offset, size)
+            ?: throw IllegalArgumentException("Crypt Engine was not initialized properly")
+        if (!ret) { log.warn { "Wrong checksum from client: $this" } }
+        return ret
     }
 
 }
@@ -73,4 +163,4 @@ inline fun buildWowClient(
     .apply {
         configure()
         connect()
-    }
+    }*/

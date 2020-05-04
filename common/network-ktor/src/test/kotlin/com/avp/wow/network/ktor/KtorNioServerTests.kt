@@ -1,15 +1,16 @@
 package com.avp.wow.network.ktor
 
-import com.avp.wow.network.ServerConfig
-import com.avp.wow.network.helpers.SimpleTcpClient
-import com.avp.wow.network.ktor.login.client.LoginConnectionFactory
+import com.avp.wow.network.KtorConnectionConfig
+import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_HOST
+import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_PORT
+import com.avp.wow.network.client.KtorNioClient
+import com.avp.wow.network.client.login.LoginServerConnectionFactory
+import com.avp.wow.network.ktor.login.client.LoginClientConnectionFactory
 import com.avp.wow.network.ncrypt.KeyGen
 import io.kotlintest.specs.StringSpec
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 @KtorExperimentalAPI
 class KtorNioServerTests : StringSpec({
@@ -18,17 +19,17 @@ class KtorNioServerTests : StringSpec({
 
         KeyGen.init()
 
-        val host = "127.0.0.1"
-        val port = 2323
+        val host = DEFAULT_LOGIN_SERVER_HOST
+        val port = DEFAULT_LOGIN_SERVER_PORT
 
-        val loginServerConfig = KtorServerConfig(
+        val loginServerConfig = KtorConnectionConfig(
             hostName = host,
             port = port,
             connectionName = "Test Login Connection",
-            factory = LoginConnectionFactory()
+            factory = LoginClientConnectionFactory()
         )
 
-        val client = SimpleTcpClient(host, port, true, Dispatchers.IO)
+        //val client = SimpleTcpClient(host, port, true, Dispatchers.IO)
 
         val server = KtorNioServer(
             serverConfigs = listOf(
@@ -39,9 +40,18 @@ class KtorNioServerTests : StringSpec({
 
         server.connect()
 
-        delay(1000)
+        delay(3000)
 
-        client.apply {
+        KtorNioClient(
+            loginServerConfig = KtorConnectionConfig(
+                hostName = DEFAULT_LOGIN_SERVER_HOST,
+                port = DEFAULT_LOGIN_SERVER_PORT,
+                connectionName = "Test Login Server Connection",
+                factory = LoginServerConnectionFactory()
+            )
+        ).apply { connect() }
+
+        /*client.apply {
             connect()
             executeSequence {
                 //sendPkt(CM
@@ -82,7 +92,7 @@ class KtorNioServerTests : StringSpec({
                 }
 
             }
-        }
+        }*/
 
         /*client.send("test")
         delay(100)

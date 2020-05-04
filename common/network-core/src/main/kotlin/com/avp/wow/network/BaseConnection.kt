@@ -127,4 +127,6 @@ abstract class BaseConnection(
      */
     abstract fun onServerClose()
 
+    abstract fun enableEncryption(blowfishKey: ByteArray)
+
 }

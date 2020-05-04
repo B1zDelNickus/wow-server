@@ -1,7 +1,7 @@
 package com.avp.wow.network.ktor.login.client.tp
 
-import com.avp.wow.network.ktor.login.client.LoginClientPacket
-import com.avp.wow.network.ktor.login.client.LoginConnection
+import com.avp.wow.network.ktor.login.client.LoginClientInputPacket
+import com.avp.wow.network.ktor.login.client.LoginClientConnection
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.delay
 import java.nio.ByteBuffer
@@ -9,8 +9,8 @@ import java.nio.ByteBuffer
 @KtorExperimentalAPI
 class CpTestSlowExecutePkt(
     buffer: ByteBuffer,
-    client: LoginConnection
-) : LoginClientPacket(
+    client: LoginClientConnection
+) : LoginClientInputPacket(
     opCode = OP_CODE,
     client = client,
     buffer = buffer

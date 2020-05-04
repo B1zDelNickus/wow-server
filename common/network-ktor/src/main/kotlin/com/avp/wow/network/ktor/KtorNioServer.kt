@@ -1,6 +1,8 @@
 package com.avp.wow.network.ktor
 
-import com.avp.wow.network.BaseNioServer
+import com.avp.wow.network.BaseNioService
+import com.avp.wow.network.KtorConnection
+import com.avp.wow.network.KtorConnectionConfig
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.aSocket
@@ -15,9 +17,9 @@ import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
 class KtorNioServer(
-    private val serverConfigs: List<KtorServerConfig> = emptyList(),
+    private val serverConfigs: List<KtorConnectionConfig> = emptyList(),
     context: CoroutineContext = Dispatchers.IO
-) : BaseNioServer() {
+) : BaseNioService() {
 
     override val scope by lazy { CoroutineScope(SupervisorJob() + context) }
 

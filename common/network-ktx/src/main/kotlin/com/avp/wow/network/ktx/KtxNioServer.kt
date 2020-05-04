@@ -1,6 +1,6 @@
 package com.avp.wow.network.ktx
 
-import com.avp.wow.network.BaseNioServer
+import com.avp.wow.network.*
 import kotlinx.coroutines.*
 import java.net.InetSocketAddress
 import java.nio.channels.SelectionKey
@@ -8,10 +8,10 @@ import java.nio.channels.ServerSocketChannel
 import kotlin.coroutines.CoroutineContext
 
 class KtxNioServer(
-    private val serverConfigs: List<KtxServerConfig> = emptyList(),
+    private val serverConfigs: List<KtxConnectionConfig> = emptyList(),
     private val readWriteThreads: Int = 0,
     context: CoroutineContext = Dispatchers.IO
-) : BaseNioServer() {
+) : BaseNioService() {
 
     override val scope by lazy {
         CoroutineScope(SupervisorJob() + context)
@@ -33,53 +33,60 @@ class KtxNioServer(
 
     private val serverChannelKeys = arrayListOf<SelectionKey>()
 
+    var isUp = false
+
     @Throws(Error::class)
     override fun connect() {
 
-        log.info { "Starting NIO server..." }
+        //scope.launch {
 
-        try {
+            log.info { "Starting NIO server..." }
 
-            initDispatchers()
+            try {
 
-            val serverChannel = ServerSocketChannel.open()
-                .apply { configureBlocking(false) }
+                initDispatchers()
 
-            serverConfigs.forEach { cfg ->
+                val serverChannel = ServerSocketChannel.open()
+                    .apply { configureBlocking(false) }
 
-                val isa = when (cfg.hostName) {
-                    "*" -> {
-                        log.info { "Server listening on all available IPs on Port " + cfg.port.toString() + " for " + cfg.connectionName }
-                        InetSocketAddress(cfg.port)
+                serverConfigs.forEach { cfg ->
+
+                    val isa = when (cfg.hostName) {
+                        "*" -> {
+                            log.info { "Server listening on all available IPs on Port " + cfg.port.toString() + " for " + cfg.connectionName }
+                            InetSocketAddress(cfg.port)
+                        }
+                        else -> {
+                            log.info { "Server listening on IP: " + cfg.hostName + " Port " + cfg.port + " for " + cfg.connectionName }
+                            InetSocketAddress(cfg.hostName, cfg.port)
+                        }
                     }
-                    else -> {
-                        log.info { "Server listening on IP: " + cfg.hostName + " Port " + cfg.port + " for " + cfg.connectionName }
-                        InetSocketAddress(cfg.hostName, cfg.port)
-                    }
+
+                    serverChannel.bind(isa)
+
+                    acceptDispatcher.register(
+                        serverChannel,
+                        SelectionKey.OP_ACCEPT,
+                        Acceptor(cfg.factory, this@KtxNioServer)
+                    ).also { key -> serverChannelKeys += key }
+
                 }
 
-                serverChannel.bind(isa)
+            } catch (e: Exception) {
 
-                acceptDispatcher.register(
-                    serverChannel,
-                    SelectionKey.OP_ACCEPT,
-                    Acceptor(cfg.factory, this)
-                ).also { key -> serverChannelKeys += key }
+                log.error(e) { "Error while NIO server initialization occurred." }
+                throw Error(e)
 
             }
 
-        } catch (e: Exception) {
+            isUp = true
 
-            log.error(e) { "Error while NIO server initialization occurred." }
-            throw Error(e)
-
-        }
-
-        log.info { "NIO server was started successfully." }
+            log.info { "NIO server was started successfully." }
+        //}
 
     }
 
-    private fun initDispatchers() {
+    private /*suspend*/ fun initDispatchers() {
 
         log.info { "Starting accept/read/write dispatchers..." }
 
@@ -104,6 +111,12 @@ class KtxNioServer(
             }
 
         }
+
+        try {
+            Thread.sleep(2_000)
+        } catch (ignored: Exception) {}
+
+        //delay(1_000)
 
         log.info { "Dispatchers were successfully started." }
 

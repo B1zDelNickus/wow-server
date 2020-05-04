@@ -1,5 +1,7 @@
 package com.avp.wow.network.ktx
 
+import com.avp.wow.network.Dispatcher
+import com.avp.wow.network.KtxConnection
 import kotlinx.coroutines.CoroutineScope
 
 class AcceptDispatcher(
