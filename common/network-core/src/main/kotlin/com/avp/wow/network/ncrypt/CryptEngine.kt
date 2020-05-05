@@ -1,6 +1,5 @@
 package com.avp.wow.network.ncrypt
 
-import com.avp.wow.network.ncrypt.BlowfishCipher
 import kotlin.experimental.and
 import kotlin.random.Random
 
@@ -50,8 +49,9 @@ class CryptEngine {
      * Update the key for packet encryption/decryption with the Blowfish Cipher
      * @param newKey new Blowfish Key
      */
-    fun updateKey(newKey: ByteArray) {
+    fun updateKey(newKey: ByteArray, force: Boolean = false) {
         key = newKey
+        if (force) updatedKey = true
     }
 
     /**
@@ -62,6 +62,10 @@ class CryptEngine {
      * @return true, if decrypted packet has valid checksum, false overwise
      */
     fun decrypt(data: ByteArray, offset: Int, length: Int): Boolean {
+        if (!updatedKey) {
+            encryptDecrypt(data, offset, length - 2)
+            return true
+        }
         cipher.decipher(data, offset, length)
         return verifyChecksum(data, offset, length)
     }
@@ -74,21 +78,28 @@ class CryptEngine {
      * @return length of encrypted byte array
      */
     fun encrypt(data: ByteArray, offset: Int, length: Int): Int {
-        var length = length
-        length += 4
+        var len = length
+        len += 4
         // the key is not updated, so the first packet should be encrypted with
         // initial key
         if (!updatedKey) {
-            length += 4
-            length += 8 - length % 8
-            encXORPass(data, offset, length, Random.nextInt())
-            cipher.cipher(data, offset, length)
+            len = encryptDecrypt(data, offset, length) + 2
             cipher.updateKey(key)
             updatedKey = true
         } else {
-            length += 8 - length % 8
-            appendChecksum(data, offset, length)
-            cipher.cipher(data, offset, length)
+            len += 8 - len % 8
+            appendChecksum(data, offset, len)
+            cipher.cipher(data, offset, len)
+        }
+        return len
+    }
+
+    private fun encryptDecrypt(data: ByteArray, offset: Int = 0, length: Int = data.size): Int {
+        println("Offset: $offset, length: $length")
+        for (i in offset until (offset + length + 2)) {
+            val a: Int = data[i].toInt()
+            val b: Int = key[i % key.size].toInt()
+            data[i] = (a xor b).toByte()
         }
         return length
     }

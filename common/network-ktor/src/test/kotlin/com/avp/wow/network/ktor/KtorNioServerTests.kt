@@ -29,8 +29,6 @@ class KtorNioServerTests : StringSpec({
             factory = LoginClientConnectionFactory()
         )
 
-        //val client = SimpleTcpClient(host, port, true, Dispatchers.IO)
-
         val server = KtorNioServer(
             serverConfigs = listOf(
                 loginServerConfig

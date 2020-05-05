@@ -28,6 +28,8 @@ class LoginServerConnection(
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
+    private var cryptEnabled: Boolean = false
+
     var state = State.DEFAULT
 
     var sessionId = 0
@@ -57,13 +59,13 @@ class LoginServerConnection(
      * @return true if success
      */
     private fun decrypt(buf: ByteBuffer): Boolean {
-        /*val size = buf.remaining()
+        val size = buf.remaining()
         val offset = buf.arrayOffset() + buf.position()
         val ret = cryptEngine?.decrypt(buf.array(), offset, size)
-            ?: true // ???? // throw IllegalArgumentException("Crypt Engine was not initialized properly")
+            ?: throw IllegalArgumentException("Crypt Engine was not initialized properly")
         if (!ret) { log.warn { "Wrong checksum from server: $this" } }
-        return ret*/
-        return true
+        return ret
+        //return true
     }
 
     /**
@@ -72,12 +74,12 @@ class LoginServerConnection(
      * @return encrypted packet size.
      */
     fun encrypt(buf: ByteBuffer): Int {
-        /*var size = buf.limit() - 2
+        var size = buf.limit() - 2
         val offset = buf.arrayOffset() + buf.position()
         size = cryptEngine?.encrypt(buf.array(), offset, size)
             ?:  throw IllegalArgumentException("Crypt Engine was not initialized properly")
-        return size*/
-        return buf.limit()
+        return size
+        //return buf.limit()
     }
 
     private suspend fun write() {
@@ -194,7 +196,9 @@ class LoginServerConnection(
                 sz = (sz - 2).toShort()
             }
             val b = buf.slice().limit(sz.toInt()) as ByteBuffer
-            //b.order(ByteOrder.LITTLE_ENDIAN)
+            /*if (cryptEnabled) b.order(ByteOrder.LITTLE_ENDIAN)
+            else b.order(ByteOrder.BIG_ENDIAN)*/
+            b.order(ByteOrder.LITTLE_ENDIAN)
             /**
              * read message fully
              */
@@ -218,9 +222,13 @@ class LoginServerConnection(
 
     override fun processData(data: ByteBuffer): Boolean {
 
+        println(data.array().map { it.toInt() }.joinToString(":"))
+
         if (!decrypt(data)) {
             return false
         }
+
+        println(data.array().map { it.toInt() }.joinToString(":"))
 
         val pck = LoginServerInputPacketFactory.define(data, this)
 
@@ -284,6 +292,7 @@ class LoginServerConnection(
     override fun enableEncryption(blowfishKey: ByteArray) {
         //cryptEngine = CryptEngine()
         cryptEngine!!.updateKey(blowfishKey)
+        cryptEnabled = true
     }
 
     override val getDisconnectionDelay = 0L

@@ -80,13 +80,13 @@ class LoginClientConnection(
      * @return true if success
      */
     private fun decrypt(buf: ByteBuffer): Boolean {
-        /*val size = buf.remaining()
+        val size = buf.remaining()
         val offset = buf.arrayOffset() + buf.position()
         val ret = cryptEngine?.decrypt(buf.array(), offset, size)
             ?: throw IllegalArgumentException("Crypt Engine was not initialized properly")
         if (!ret) { log.warn { "Wrong checksum from client: $this" } }
-        return ret*/
-        return true
+        return ret
+        //return true
     }
 
     /**
@@ -95,12 +95,14 @@ class LoginClientConnection(
      * @return encrypted packet size.
      */
     fun encrypt(buf: ByteBuffer): Int {
-        /*var size = buf.limit() - 2
+        var size = buf.limit() - 2
         val offset = buf.arrayOffset() + buf.position()
+        println(buf.array().map { it.toInt() }.joinToString(":"))
         size = cryptEngine?.encrypt(buf.array(), offset, size)
-            ?: size + 2 // while not encrypted // throw IllegalArgumentException("Crypt Engine was not initialized properly")
-        return size*/
-        return buf.limit()
+            ?: throw IllegalArgumentException("Crypt Engine was not initialized properly")
+        println(buf.array().map { it.toInt() }.joinToString(":"))
+        return size
+        //return buf.limit()
     }
 
     /**
@@ -270,7 +272,7 @@ class LoginClientConnection(
                 sz = (sz - 2).toShort()
             }
             val b = buf.slice().limit(sz.toInt()) as ByteBuffer
-            //b.order(ByteOrder.LITTLE_ENDIAN)
+            b.order(ByteOrder.LITTLE_ENDIAN)
             /**
              * read message fully
              */

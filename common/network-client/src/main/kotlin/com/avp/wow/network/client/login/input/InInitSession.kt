@@ -33,7 +33,6 @@ class InInitSession(
     override suspend fun runImpl() {
         connection?.enableEncryption(blowfishKey!!)
         connection?.sessionId = sessionId
-
         connection?.sendPacket(OutAuthGuard())
     }
 
