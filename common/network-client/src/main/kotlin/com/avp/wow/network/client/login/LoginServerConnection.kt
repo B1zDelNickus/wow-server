@@ -57,12 +57,13 @@ class LoginServerConnection(
      * @return true if success
      */
     private fun decrypt(buf: ByteBuffer): Boolean {
-        val size = buf.remaining()
+        /*val size = buf.remaining()
         val offset = buf.arrayOffset() + buf.position()
         val ret = cryptEngine?.decrypt(buf.array(), offset, size)
             ?: true // ???? // throw IllegalArgumentException("Crypt Engine was not initialized properly")
-        if (!ret) { log.warn { "Wrong checksum from client: $this" } }
-        return ret
+        if (!ret) { log.warn { "Wrong checksum from server: $this" } }
+        return ret*/
+        return true
     }
 
     /**
@@ -71,11 +72,12 @@ class LoginServerConnection(
      * @return encrypted packet size.
      */
     fun encrypt(buf: ByteBuffer): Int {
-        var size = buf.limit() - 2
+        /*var size = buf.limit() - 2
         val offset = buf.arrayOffset() + buf.position()
         size = cryptEngine?.encrypt(buf.array(), offset, size)
             ?:  throw IllegalArgumentException("Crypt Engine was not initialized properly")
-        return size
+        return size*/
+        return buf.limit()
     }
 
     private suspend fun write() {
@@ -193,11 +195,10 @@ class LoginServerConnection(
             }
             val b = buf.slice().limit(sz.toInt()) as ByteBuffer
             //b.order(ByteOrder.LITTLE_ENDIAN)
-            //b.order(ByteOrder.BIG_ENDIAN)
             /**
              * read message fully
              */
-            log.trace { "Pkt size: $sz, real size: ${buf.remaining()}" }
+            log.trace { "Pkt received with size: $sz." }
             buf.position(buf.position() + sz)
             return processData(b)
         } catch (e: IllegalArgumentException) {
@@ -277,10 +278,11 @@ class LoginServerConnection(
         state = State.CONNECTED
         log.info("Connected to server: [$ip]")
         encryptedRSAKeyPair = KeyGen.encryptedRSAKeyPair
+        cryptEngine = CryptEngine()
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
-        cryptEngine = CryptEngine()
+        //cryptEngine = CryptEngine()
         cryptEngine!!.updateKey(blowfishKey)
     }
 

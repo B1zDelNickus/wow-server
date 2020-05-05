@@ -80,12 +80,13 @@ class LoginClientConnection(
      * @return true if success
      */
     private fun decrypt(buf: ByteBuffer): Boolean {
-        val size = buf.remaining()
+        /*val size = buf.remaining()
         val offset = buf.arrayOffset() + buf.position()
         val ret = cryptEngine?.decrypt(buf.array(), offset, size)
             ?: throw IllegalArgumentException("Crypt Engine was not initialized properly")
         if (!ret) { log.warn { "Wrong checksum from client: $this" } }
-        return ret
+        return ret*/
+        return true
     }
 
     /**
@@ -94,11 +95,12 @@ class LoginClientConnection(
      * @return encrypted packet size.
      */
     fun encrypt(buf: ByteBuffer): Int {
-        var size = buf.limit() - 2
+        /*var size = buf.limit() - 2
         val offset = buf.arrayOffset() + buf.position()
         size = cryptEngine?.encrypt(buf.array(), offset, size)
             ?: size + 2 // while not encrypted // throw IllegalArgumentException("Crypt Engine was not initialized properly")
-        return size
+        return size*/
+        return buf.limit()
     }
 
     /**
@@ -268,10 +270,11 @@ class LoginClientConnection(
                 sz = (sz - 2).toShort()
             }
             val b = buf.slice().limit(sz.toInt()) as ByteBuffer
-            b.order(ByteOrder.LITTLE_ENDIAN)
+            //b.order(ByteOrder.LITTLE_ENDIAN)
             /**
              * read message fully
              */
+            log.trace { "Pkt received with size: $sz." }
             buf.position(buf.position() + sz)
             return processData(b)
         } catch (e: IllegalArgumentException) {
@@ -289,6 +292,9 @@ class LoginClientConnection(
         encryptedRSAKeyPair = KeyGen.encryptedRSAKeyPair
         val blowfishKey: SecretKey = KeyGen.generateBlowfishKey()
 
+        cryptEngine = CryptEngine()
+        cryptEngine!!.updateKey(blowfishKey.encoded)
+
         /**
          * Send Init packet
          */
@@ -296,8 +302,8 @@ class LoginClientConnection(
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
-        cryptEngine = CryptEngine()
-        cryptEngine!!.updateKey(blowfishKey)
+        /*cryptEngine = CryptEngine()
+        cryptEngine!!.updateKey(blowfishKey)*/
     }
 
     override val getDisconnectionDelay = 0L

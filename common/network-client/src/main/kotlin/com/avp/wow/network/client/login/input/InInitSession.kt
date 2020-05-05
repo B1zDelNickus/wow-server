@@ -24,6 +24,10 @@ class InInitSession(
         sessionId = readD()
         publicRsaKey = readB(128)
         blowfishKey = readB(16)
+
+        println(sessionId)
+        println(publicRsaKey)
+        println(blowfishKey)
     }
 
     override suspend fun runImpl() {

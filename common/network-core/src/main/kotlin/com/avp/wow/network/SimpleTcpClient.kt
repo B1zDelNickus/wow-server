@@ -1,4 +1,4 @@
-package com.avp.wow.network.helpers
+package com.avp.wow.network
 
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.*

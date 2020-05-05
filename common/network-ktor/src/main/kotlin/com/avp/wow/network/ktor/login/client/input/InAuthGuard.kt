@@ -21,9 +21,11 @@ class InAuthGuard(
 
     override fun readImpl() {
         sessionId = readD()
+        println("1" + sessionId)
     }
 
     override suspend fun runImpl() {
+        println("2" + sessionId)
         when (connection?.sessionId) {
             sessionId -> {
                 connection?.state = AUTHED_GG
@@ -42,6 +44,6 @@ class InAuthGuard(
     }
 
     companion object {
-        const val OP_CODE = 0x03
+        const val OP_CODE = 0x02
     }
 }
