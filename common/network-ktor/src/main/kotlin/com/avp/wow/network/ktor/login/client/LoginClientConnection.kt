@@ -58,15 +58,15 @@ class LoginClientConnection(
      * Return Scrambled modulus
      * @return Scrambled modulus
      */
-    val getEncryptedModulus
-        get() = encryptedRSAKeyPair?.encryptedModulus
+    val encryptedModulus
+        get() = encryptedRSAKeyPair?.rsaKeyPair?.public?.encoded
             ?: throw IllegalArgumentException("RSA key was not initialized properly")
 
     /**
      * Return RSA private key
      * @return rsa private key
      */
-    val getRSAPrivateKey
+    val rsaPrivateKey
         get() = encryptedRSAKeyPair?.rsaKeyPair?.private
             ?: throw IllegalArgumentException("RSA key was not initialized properly")
 

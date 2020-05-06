@@ -1,9 +1,9 @@
 package ncrypt
 
+/*
 import io.kotlintest.specs.StringSpec
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.experimental.xor
 
 class CryptEngineTests : StringSpec({
 
@@ -61,10 +61,12 @@ class CryptEngineTests : StringSpec({
 
         }
 
-        /*fun xor(data: ByteArray): List<Byte> {
+        */
+/*fun xor(data: ByteArray): List<Byte> {
             var key = 0x99.toByte()
             return data.map { b -> b xor key }
-        }*/
+        }*//*
+
 
         fun encryptDecrypt(data: ByteArray) {
             val key = blowfishKey
@@ -83,7 +85,8 @@ class CryptEngineTests : StringSpec({
 
         fun encrypt(b: ByteBuffer) : Int {
 
-            /*var length = size + 4
+            */
+/*var length = size + 4
             length += 4
             length += 8 - length % 8
 
@@ -97,7 +100,8 @@ class CryptEngineTests : StringSpec({
 
             cipher.cipher(b.array(), offset, size)
 
-            println(b.array().map { it.toInt() }.joinToString(":", "[", "]"))*/
+            println(b.array().map { it.toInt() }.joinToString(":", "[", "]"))*//*
+
 
             println(b.array().take(b.remaining() + 2).map { it.toInt() }.joinToString(":", "[", "]"))
 
@@ -118,12 +122,14 @@ class CryptEngineTests : StringSpec({
 
             println(b.array().map { it.toInt() }.joinToString(":", "[", "]"))
 
-            /*println(b.array().map { it.toInt() }.joinToString(":", "[", "]"))
+            */
+/*println(b.array().map { it.toInt() }.joinToString(":", "[", "]"))
 
             val len = crypt.encrypt(b.array(), offset, size - 2)
             //cipher.cipher(b.array(), offset, size)
 
-            println(b.array().map { it.toInt() }.joinToString(":", "[", "]"))*/
+            println(b.array().map { it.toInt() }.joinToString(":", "[", "]"))*//*
+
 
             return b.limit() + 2 // len + 2 //
         }
@@ -132,11 +138,14 @@ class CryptEngineTests : StringSpec({
             val size = b.remaining()
             val offset = b.arrayOffset() + b.position()
 
-            /*var length = size + 4
+            */
+/*var length = size + 4
             length += 4
-            length += 8 - length % 8*/
+            length += 8 - length % 8*//*
 
-            /*println(b.array().map { it.toInt() }.joinToString(":", "[", "]"))
+
+            */
+/*println(b.array().map { it.toInt() }.joinToString(":", "[", "]"))
 
             encXORPass(b.array(), offset, size, 4)
 
@@ -144,7 +153,8 @@ class CryptEngineTests : StringSpec({
 
             cipher.decipher(b.array(), offset, size)
 
-            println(b.array().map { it.toInt() }.joinToString(":", "[", "]"))*/
+            println(b.array().map { it.toInt() }.joinToString(":", "[", "]"))*//*
+
 
             println(b.array().map { it.toInt() }.joinToString(":", "[", "]"))
 
@@ -192,4 +202,4 @@ class CryptEngineTests : StringSpec({
 
     }
 
-})
+})*/

@@ -3,6 +3,8 @@ package com.avp.wow.network.client
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorConnectionConfig
+import com.avp.wow.network.client.login.LoginServerConnection
+import com.avp.wow.network.client.login.output.OutLogin
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.aSocket
@@ -89,6 +91,12 @@ class KtorNioClient(
 
     override fun closeAll() {
         TODO("Not yet implemented")
+    }
+
+    fun login(login: String, password: String) {
+        (loginServerConnection as? LoginServerConnection)?.let {
+            it.sendPacket(OutLogin(login = login, password = password, server = it))
+        }
     }
 
 }

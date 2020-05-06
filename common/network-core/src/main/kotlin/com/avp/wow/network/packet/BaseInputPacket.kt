@@ -25,7 +25,7 @@ abstract class BaseInputPacket<T : BaseConnection> : BasePacket, KtxRunnable {
     fun read(): Boolean {
         return try {
             readImpl()
-            if (getRemainingBytes > 0) {
+            if (remainingBytes > 0) {
                 log.debug("Packet $this not fully readed!")
             }
             true
@@ -43,7 +43,7 @@ abstract class BaseInputPacket<T : BaseConnection> : BasePacket, KtxRunnable {
     /**
      * @return number of bytes remaining in this packet buffer.
      */
-    private val getRemainingBytes get() = buffer?.remaining() ?: 0
+    val remainingBytes get() = buffer?.remaining() ?: 0
 
     /**
      * Read int from this packet buffer.

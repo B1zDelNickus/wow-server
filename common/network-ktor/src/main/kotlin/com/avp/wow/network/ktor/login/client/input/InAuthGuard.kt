@@ -21,11 +21,9 @@ class InAuthGuard(
 
     override fun readImpl() {
         sessionId = readD()
-        println("1" + sessionId)
     }
 
     override suspend fun runImpl() {
-        println("2" + sessionId)
         when (connection?.sessionId) {
             sessionId -> {
                 connection?.state = AUTHED_GG

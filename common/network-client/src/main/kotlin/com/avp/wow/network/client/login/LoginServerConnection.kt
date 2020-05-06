@@ -31,6 +31,7 @@ class LoginServerConnection(
     var state = State.DEFAULT
 
     var sessionId = 0
+    var publicRsa: ByteArray? = null
 
     /**
      * Server Packet "to send" Queue

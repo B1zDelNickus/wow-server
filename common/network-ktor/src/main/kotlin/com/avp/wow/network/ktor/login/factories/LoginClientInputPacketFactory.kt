@@ -4,6 +4,7 @@ import com.avp.wow.network.ktor.login.client.LoginClientInputPacket
 import com.avp.wow.network.ktor.login.client.LoginClientConnection
 import com.avp.wow.network.ktor.login.client.LoginClientConnection.Companion.State
 import com.avp.wow.network.ktor.login.client.input.InAuthGuard
+import com.avp.wow.network.ktor.login.client.input.InLogin
 import com.avp.wow.network.ktor.login.client.tp.CpTestFastExecutePkt
 import com.avp.wow.network.ktor.login.client.tp.CpTestSlowExecutePkt
 import io.ktor.util.KtorExperimentalAPI
@@ -44,9 +45,7 @@ object LoginClientInputPacketFactory {
             }
             State.AUTHED_GG -> {
                 when (id) {
-                    0x0B -> {
-                        //msg = CM_LOGIN(data, client)
-                    }
+                    InLogin.OP_CODE -> { msg = InLogin(data, client) }
                     else -> {
                         unknownPacket(
                             state,
