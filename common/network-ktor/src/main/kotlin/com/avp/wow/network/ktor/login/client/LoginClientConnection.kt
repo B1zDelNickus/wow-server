@@ -2,9 +2,9 @@ package com.avp.wow.network.ktor.login.client
 
 import com.avp.wow.model.auth.Account
 import com.avp.wow.network.BaseNioService
-import com.avp.wow.network.ktor.PacketProcessor
+import com.avp.wow.network.KtorPacketProcessor
 import com.avp.wow.network.KtorConnection
-import com.avp.wow.network.ktor.KtorNioServer
+import com.avp.wow.network.ktor.LoginNioServer
 import com.avp.wow.network.ktor.login.client.output.OutInitSession
 import com.avp.wow.network.ktor.login.factories.LoginClientInputPacketFactory
 import com.avp.wow.network.ncrypt.CryptEngine
@@ -16,7 +16,6 @@ import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
 import java.io.IOException
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import javax.crypto.SecretKey
 
 @KtorExperimentalAPI
@@ -33,7 +32,7 @@ class LoginClientConnection(
     var state =
         State.DEFAULT
 
-    private val processor = PacketProcessor<LoginClientConnection>()
+    private val processor = KtorPacketProcessor<LoginClientConnection>()
 
     /**
      * Server Packet "to send" Queue
@@ -44,6 +43,7 @@ class LoginClientConnection(
      * Crypt to encrypt/decrypt packets
      */
     private var cryptEngine: CryptEngine? = null
+
     /**
      * Scrambled key pair for RSA
      */
@@ -58,6 +58,8 @@ class LoginClientConnection(
     var sessionKey: SessionKey? = null
 
     var account: Account? = null
+
+    var joinedGs = false
 
     /**
      * Return Scrambled modulus
@@ -75,9 +77,13 @@ class LoginClientConnection(
         get() = encryptedRSAKeyPair?.rsaKeyPair?.private
             ?: throw IllegalArgumentException("RSA key was not initialized properly")
 
-    override suspend fun dispatchRead() { read() }
+    override suspend fun dispatchRead() {
+        read()
+    }
 
-    override suspend fun dispatchWrite() { write() }
+    override suspend fun dispatchWrite() {
+        write()
+    }
 
     /**
      * Decrypt packet.
@@ -110,9 +116,9 @@ class LoginClientConnection(
 
     /**
      * Sends AionServerPacket to this client.
-     * @param bp AionServerPacket to be sent.
+     * @param packet AionServerPacket to be sent.
      */
-    fun sendPacket(bp: LoginClientOutputPacket) {
+    fun sendPacket(packet: LoginClientOutputPacket) {
         synchronized(guard) {
             /**
              * Connection is already closed or waiting for last (close packet) to be sent
@@ -120,18 +126,15 @@ class LoginClientConnection(
             if (isWriteDisabled) {
                 return
             }
-            sendMsgQueue.addLast(bp)
+            sendMsgQueue.addLast(packet)
         }
     }
 
     override fun processData(data: ByteBuffer): Boolean {
-
         if (!decrypt(data)) {
             return false
         }
-
         val pck = LoginClientInputPacketFactory.define(data, this)
-
         /**
          * Execute packet only if packet exist (!= null) and read was ok.
          */
@@ -139,7 +142,6 @@ class LoginClientConnection(
             log.debug { "Received packet $pck from client: $ip" }
             processor.executePacket(pck)
         }
-
         return true
     }
 
@@ -147,7 +149,9 @@ class LoginClientConnection(
         synchronized(guard) {
             val packet = try {
                 sendMsgQueue.removeFirst()
-            } catch (ignored: Exception) { return false }
+            } catch (ignored: Exception) {
+                return false
+            }
             log.debug { "Send packet $packet to client: $ip" }
             packet.write(this, data)
             packet.afterWrite(this)
@@ -165,7 +169,7 @@ class LoginClientConnection(
             try {
                 numWrite = outputChannel.writeAvailable(wb)
             } catch (e: IOException) {
-                (nio as KtorNioServer).closeConnectionImpl(this)
+                (nio as LoginNioServer).closeConnectionImpl(this)
                 return
             }
             if (numWrite == 0) {
@@ -194,7 +198,7 @@ class LoginClientConnection(
             try {
                 numWrite = outputChannel.writeAvailable(wb)
             } catch (e: IOException) {
-                (nio as KtorNioServer).closeConnectionImpl(this)
+                (nio as LoginNioServer).closeConnectionImpl(this)
                 return
             }
             if (numWrite == 0) {
@@ -214,20 +218,21 @@ class LoginClientConnection(
          * We wrote all data so we can close connection that is "PandingClose"
          */
         if (isPendingClose) {
-            (nio as KtorNioServer).closeConnectionImpl(this)
+            (nio as LoginNioServer).closeConnectionImpl(this)
         }
     }
 
     private suspend fun read() {
 
         val rb = readBuffer
+
         /**
          * Attempt to read off the channel
          */
         val numRead: Int = try {
             inputChannel.readAvailable(rb)
         } catch (e: Exception) {
-            (nio as KtorNioServer).closeConnectionImpl(this)
+            (nio as LoginNioServer).closeConnectionImpl(this)
             return
         }
 
@@ -236,7 +241,7 @@ class LoginClientConnection(
                 /**
                  * Remote entity shut the socket down cleanly. Do the same from our end and cancel the channel.
                  */
-                (nio as KtorNioServer).closeConnectionImpl(this)
+                (nio as LoginNioServer).closeConnectionImpl(this)
                 return
             }
             0 -> return
@@ -249,7 +254,7 @@ class LoginClientConnection(
              * got full message
              */
             if (!parse(rb)) {
-                (nio as KtorNioServer).closeConnectionImpl(this)
+                (nio as LoginNioServer).closeConnectionImpl(this)
                 return
             }
         }
@@ -292,7 +297,7 @@ class LoginClientConnection(
     override fun initialized() {
         state = State.CONNECTED
 
-        log.info("Connection initialized from: $ip, sending welcome packet.")
+        log.info("Connection initialized from: [$ip].")
 
         encryptedRSAKeyPair = KeyGen.encryptedRSAKeyPair
         val blowfishKey: SecretKey = KeyGen.generateBlowfishKey()
@@ -303,7 +308,7 @@ class LoginClientConnection(
         /**
          * Send Init packet
          */
-        sendPacket(OutInitSession(this, blowfishKey))
+        sendPacket(OutInitSession(client = this, blowfishKey = blowfishKey))
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
@@ -311,7 +316,7 @@ class LoginClientConnection(
         cryptEngine!!.updateKey(blowfishKey)*/
     }
 
-    override val getDisconnectionDelay = 0L
+    override val disconnectionDelay = 0L
 
     override fun onDisconnect() {
         /**
@@ -333,7 +338,7 @@ class LoginClientConnection(
                 return
             }
             isForcedClosing = forced
-            (nio as KtorNioServer).closeConnection(this)
+            (nio as LoginNioServer).closeConnection(this)
         }
     }
 
@@ -350,7 +355,7 @@ class LoginClientConnection(
                 if (!socket.isClosed) {
                     socket.close()
                     socket.dispose()
-                    (nio as KtorNioServer).removeConnection(this)
+                    (nio as LoginNioServer).removeConnection(this)
                     log.info { "Connection from $ip was successfully closed: ${socket.isClosed}" }
                 }
                 closed = true

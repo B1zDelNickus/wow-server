@@ -28,7 +28,7 @@ class KtorNioClient(
     private var loginServerConnection: KtorConnection? = null
     private var gameServerConnection: KtorConnection? = null
 
-    override val getActiveConnections: Int
+    override val activeConnectionsCount: Int
         get() = listOfNotNull(loginServerConfig, gameServerConnection).size
 
     /**
@@ -85,7 +85,7 @@ class KtorNioClient(
         TODO("Not yet implemented")
     }
 
-    override fun notifyServerClose() {
+    override fun notifyClose() {
         TODO("Not yet implemented")
     }
 

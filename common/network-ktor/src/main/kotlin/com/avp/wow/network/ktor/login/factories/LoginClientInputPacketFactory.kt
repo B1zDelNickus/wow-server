@@ -4,6 +4,7 @@ import com.avp.wow.network.ktor.login.client.LoginClientInputPacket
 import com.avp.wow.network.ktor.login.client.LoginClientConnection
 import com.avp.wow.network.ktor.login.client.LoginClientConnection.Companion.State
 import com.avp.wow.network.ktor.login.client.input.InAuthGuard
+import com.avp.wow.network.ktor.login.client.input.InEnterGameServer
 import com.avp.wow.network.ktor.login.client.input.InGameServersList
 import com.avp.wow.network.ktor.login.client.input.InLogin
 import com.avp.wow.network.ktor.login.client.tp.CpTestFastExecutePkt
@@ -30,9 +31,21 @@ object LoginClientInputPacketFactory {
         when (state) {
             State.CONNECTED -> {
                 when (id) {
-                    CpTestFastExecutePkt.OP_CODE -> { msg = CpTestFastExecutePkt(data, client) }
-                    CpTestSlowExecutePkt.OP_CODE -> { msg = CpTestSlowExecutePkt(data, client) }
-                    InAuthGuard.OP_CODE -> { msg = InAuthGuard(data, client) }
+                    CpTestFastExecutePkt.OP_CODE -> { msg =
+                        CpTestFastExecutePkt(
+                            data,
+                            client
+                        )
+                    }
+                    CpTestSlowExecutePkt.OP_CODE -> { msg =
+                        CpTestSlowExecutePkt(
+                            data,
+                            client
+                        )
+                    }
+                    InAuthGuard.OP_CODE -> { msg =
+                        InAuthGuard(data, client)
+                    }
                     0x08 -> {
                         //msg = CM_UPDATE_SESSION(data, client)
                     }
@@ -46,7 +59,9 @@ object LoginClientInputPacketFactory {
             }
             State.AUTHED_GG -> {
                 when (id) {
-                    InLogin.OP_CODE -> { msg = InLogin(data, client) }
+                    InLogin.OP_CODE -> { msg =
+                        InLogin(data, client)
+                    }
                     else -> {
                         unknownPacket(
                             state,
@@ -57,9 +72,17 @@ object LoginClientInputPacketFactory {
             }
             State.AUTHED_LOGIN -> {
                 when (id) {
-                    InGameServersList.OP_CODE -> { msg = InGameServersList(data, client) }
-                    0x02 -> {
-                        //msg = CM_PLAY(data, client)
+                    InGameServersList.OP_CODE -> { msg =
+                        InGameServersList(
+                            data,
+                            client
+                        )
+                    }
+                    InEnterGameServer.OP_CODE -> { msg =
+                        InEnterGameServer(
+                            data,
+                            client
+                        )
                     }
                     else -> {
                         unknownPacket(

@@ -174,7 +174,11 @@ class InLogin(
                     con.state = AUTHED_LOGIN
                     con.sessionKey = SessionKey(account = con.account!!)
                         .also { key ->
-                            con.sendPacket(OutLoginOk(sessionKey = key))
+                            con.sendPacket(
+                                OutLoginOk(
+                                    sessionKey = key
+                                )
+                            )
                         }
                 }
                 log.debug { "User $user authorized to Login Server." }

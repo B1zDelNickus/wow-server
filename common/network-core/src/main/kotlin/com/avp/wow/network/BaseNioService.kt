@@ -13,7 +13,7 @@ abstract class BaseNioService {
     /**
      * @return Number of active connections.
      */
-    abstract val getActiveConnections: Int
+    abstract val activeConnectionsCount: Int
 
     abstract fun connect()
 
@@ -27,7 +27,7 @@ abstract class BaseNioService {
          * Sending DC packets for active clients
          */
         log.info { "Sending DC packets to clients and close connections..." }
-        notifyServerClose()
+        notifyClose()
 
         /**
          * Wait 1s for coroutines to execute close operations
@@ -38,7 +38,7 @@ abstract class BaseNioService {
             log.warn(t) { "Nio thread was interrupted during shutdown" }
         }
 
-        log.info { "Active connections: $getActiveConnections" }
+        log.info { "Active connections: $activeConnectionsCount" }
 
         /**
          * DC all
@@ -55,7 +55,7 @@ abstract class BaseNioService {
             log.warn(t) { "Nio thread was interrupted during shutdown" }
         }
 
-        log.info { "Active connections: $getActiveConnections" }
+        log.info { "Active connections: $activeConnectionsCount" }
 
         /**
          * Wait 1s for coroutines to execute close operations
@@ -77,7 +77,7 @@ abstract class BaseNioService {
     /**
      * Calls onServerClose method for all active connections.
      */
-    protected abstract fun notifyServerClose()
+    protected abstract fun notifyClose()
 
     /**
      * Close all active connections.

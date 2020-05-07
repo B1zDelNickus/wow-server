@@ -3,7 +3,8 @@ package com.avp.wow.model.auth
 data class Account(
     val id: Long? = null,
     val name: String,
-    val passwordHash: String
+    val passwordHash: String,
+    val currentServerId: Long
 ) {
 
 
@@ -33,7 +34,7 @@ data class Account(
 
     companion object {
 
-        val EMPTY = Account(null, "", "")
+        val EMPTY = Account(null, "", "", -1)
 
     }
 

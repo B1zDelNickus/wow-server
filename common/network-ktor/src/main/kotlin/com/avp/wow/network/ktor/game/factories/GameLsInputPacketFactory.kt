@@ -1,18 +1,14 @@
-package com.avp.wow.network.client.factories
+package com.avp.wow.network.ktor.game.factories
 
-import com.avp.wow.network.client.login.LoginServerConnection
-import com.avp.wow.network.client.login.LoginServerConnection.Companion.State
-import com.avp.wow.network.client.login.LoginServerInputPacket
-import com.avp.wow.network.client.login.input.InAuthGuard
-import com.avp.wow.network.client.login.input.InEnterGameServerOk
-import com.avp.wow.network.client.login.input.InInitSession
-import com.avp.wow.network.client.login.input.InLoginOk
+import com.avp.wow.network.ktor.game.ls.GameLsConnection
+import com.avp.wow.network.ktor.game.ls.GameLsConnection.Companion.State
+import com.avp.wow.network.ktor.game.ls.GameLsInputPacket
 import io.ktor.util.KtorExperimentalAPI
 import mu.KotlinLogging
 import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-object LoginServerInputPacketFactory {
+object GameLsInputPacketFactory {
 
     private val log = KotlinLogging.logger(this::class.java.name)
 
@@ -22,15 +18,13 @@ object LoginServerInputPacketFactory {
      * @param client
      * @return AionClientPacket object from binary data
      */
-    fun define(data: ByteBuffer, server: LoginServerConnection): LoginServerInputPacket? {
-        var msg: LoginServerInputPacket? = null
-        val state: State = server.state
+    fun define(data: ByteBuffer, client: GameLsConnection): GameLsInputPacket? {
+        var msg: GameLsInputPacket? = null
+        val state: State = client.state
         val id: Int = data.get().toInt() and 0xff
         when (state) {
             State.CONNECTED -> {
                 when (id) {
-                    InInitSession.OP_CODE -> { msg = InInitSession(data, server) }
-                    InAuthGuard.OP_CODE -> { msg = InAuthGuard(data, server) }
                     0x08 -> {
                         //msg = CM_UPDATE_SESSION(data, client)
                     }
@@ -42,23 +36,9 @@ object LoginServerInputPacketFactory {
                     }
                 }
             }
-            State.AUTHED_GG -> {
+            State.AUTHED -> {
                 when (id) {
-                    InLoginOk.OP_CODE -> { msg = InLoginOk(data, server) }
-                    else -> {
-                        unknownPacket(
-                            state,
-                            id
-                        )
-                    }
-                }
-            }
-            State.AUTHED_LOGIN -> {
-                when (id) {
-                    InEnterGameServerOk.OP_CODE -> { msg = InEnterGameServerOk(data, server) }
-                    0x02 -> {
-                        //msg = CM_PLAY(data, client)
-                    }
+                    //InLogin.OP_CODE -> { msg = InLogin(data, client) }
                     else -> {
                         unknownPacket(
                             state,

@@ -27,7 +27,11 @@ class InAuthGuard(
         when (connection?.sessionId) {
             sessionId -> {
                 connection?.state = AUTHED_GG
-                connection?.sendPacket(OutAuthGuard(sessionId = sessionId))
+                connection?.sendPacket(
+                    OutAuthGuard(
+                        sessionId = sessionId
+                    )
+                )
             }
             else -> {
                 /**

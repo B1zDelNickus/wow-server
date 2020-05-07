@@ -8,7 +8,7 @@ import java.io.IOException
 @KtorExperimentalAPI
 abstract class KtorConnection(
     val socket: Socket,
-    protected val nio: BaseNioService,
+    val nio: BaseNioService,
     readBufferSize: Int,
     writeBufferSize: Int
 ) : BaseConnection(readBufferSize = readBufferSize, writeBufferSize = writeBufferSize) {

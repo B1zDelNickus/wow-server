@@ -115,7 +115,7 @@ abstract class BaseConnection(
      * This method is called by Dispatcher when connection is ready to be closed.
      * @return time in ms after witch onDisconnect() method will be called.
      */
-    abstract val getDisconnectionDelay: Long
+    abstract val disconnectionDelay: Long
 
     /**
      * This method is called by Dispatcher to inform that this connection was closed and should be cleared. This method is called only once.

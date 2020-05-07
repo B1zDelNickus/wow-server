@@ -26,7 +26,7 @@ class InMemoryAuthService : IAuthService {
 
     companion object {
 
-        val ADMIN_ACCOUNT = Account(id = 1, name = "Admin", passwordHash = "21232f297a57a5a743894a0e4a801fc3")
+        val ADMIN_ACCOUNT = Account(id = 1, name = "Admin", passwordHash = "21232f297a57a5a743894a0e4a801fc3", currentServerId = 1)
 
     }
 

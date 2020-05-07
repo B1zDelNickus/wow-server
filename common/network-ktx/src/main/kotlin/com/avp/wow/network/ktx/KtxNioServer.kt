@@ -16,7 +16,7 @@ class KtxNioServer(
     override val scope by lazy {
         CoroutineScope(SupervisorJob() + context)
     }
-    override val getActiveConnections: Int
+    override val activeConnectionsCount: Int
         get() = if (readWriteDispatchers != null) {
             var count = 0
             for (d in readWriteDispatchers!!) {

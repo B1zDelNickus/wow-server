@@ -2,8 +2,8 @@ package com.avp.wow.network.ktx
 
 import com.avp.wow.network.KtorConnectionConfig
 import com.avp.wow.network.KtxConnectionConfig
-import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_HOST
-import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_PORT
+import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_CLIENT_HOST
+import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_CLIENT_PORT
 import com.avp.wow.network.client.KtorNioClient
 import com.avp.wow.network.client.login.LoginServerConnectionFactory
 import com.avp.wow.network.ktx.login.client.LoginClientConnectionFactory
@@ -26,8 +26,8 @@ class KtxNioServerTest : StringSpec({
         val server = KtxNioServer(
             serverConfigs = listOf(
                 KtxConnectionConfig(
-                    hostName = DEFAULT_LOGIN_SERVER_HOST,
-                    port = DEFAULT_LOGIN_SERVER_PORT,
+                    hostName = DEFAULT_LOGIN_SERVER_CLIENT_HOST,
+                    port = DEFAULT_LOGIN_SERVER_CLIENT_PORT,
                     connectionName = "Test Login Clients Connection",
                     factory = LoginClientConnectionFactory()
                 )
@@ -52,8 +52,8 @@ class KtxNioServerTest : StringSpec({
 
         val client = KtorNioClient(
             loginServerConfig = KtorConnectionConfig(
-                hostName = DEFAULT_LOGIN_SERVER_HOST,
-                port = DEFAULT_LOGIN_SERVER_PORT,
+                hostName = DEFAULT_LOGIN_SERVER_CLIENT_HOST,
+                port = DEFAULT_LOGIN_SERVER_CLIENT_PORT,
                 connectionName = "Test Login Server Connection",
                 factory = LoginServerConnectionFactory()
             )

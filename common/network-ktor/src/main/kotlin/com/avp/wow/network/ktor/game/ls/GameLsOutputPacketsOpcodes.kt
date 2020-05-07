@@ -1,30 +1,24 @@
-package com.avp.wow.network.client.login
+package com.avp.wow.network.ktor.game.ls
 
-import com.avp.wow.network.client.login.output.OutAuthGuard
-import com.avp.wow.network.client.login.output.OutEnterGameServer
-import com.avp.wow.network.client.login.output.OutGameServersList
-import com.avp.wow.network.client.login.output.OutLogin
+import com.avp.wow.network.ktor.game.ls.output.OutGsAuth
 import io.ktor.util.KtorExperimentalAPI
 import kotlin.reflect.KClass
 
 @KtorExperimentalAPI
-object LoginServerOutputPacketsOpcodes {
+object GameLsOutputPacketsOpcodes {
 
     private val idSet = mutableSetOf<Int>()
 
     private val opCodes = mutableMapOf(
-        addPacketOpcode(packetClass = OutAuthGuard::class, opcode = OutAuthGuard.OP_CODE),
-        addPacketOpcode(packetClass = OutLogin::class, opcode = OutLogin.OP_CODE),
-        addPacketOpcode(packetClass = OutGameServersList::class, opcode = OutGameServersList.OP_CODE),
-        addPacketOpcode(packetClass = OutEnterGameServer::class, opcode = OutEnterGameServer.OP_CODE)
+        addPacketOpcode(packetClass = OutGsAuth::class, opcode = OutGsAuth.OP_CODE)
     )
 
-    fun getOpcode(packetClass: KClass<out LoginServerOutputPacket>): Int {
+    fun getOpcode(packetClass: KClass<out GameLsOutputPacket>): Int {
         return opCodes[packetClass]
             ?: throw IllegalArgumentException("There is no opcode for $packetClass defined.")
     }
 
-    private fun addPacketOpcode(packetClass: KClass<out LoginServerOutputPacket>, opcode: Int) =
+    private fun addPacketOpcode(packetClass: KClass<out GameLsOutputPacket>, opcode: Int) =
         when {
             opcode < 0 -> throw IllegalArgumentException(
                 String.format(
