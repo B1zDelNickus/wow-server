@@ -1,10 +1,13 @@
 package com.avp.wow.network.ktor.login.client
 
+import com.avp.wow.model.auth.Account
+import kotlin.random.Random
+
 data class SessionKey(
     /**
      * accountId - will be used for authentication on Game Server side.
      */
-    val accountId: Int,
+    val accountId: Long,
     /**
      * login ok key
      */
@@ -19,7 +22,12 @@ data class SessionKey(
     val playOk2: Int
 ) {
 
-    //constructor(account: Account) : this()
+    constructor(account: Account) : this(
+        accountId = account.id!!,
+        loginOk = Random.nextInt(),
+        playOk1 = Random.nextInt(),
+        playOk2 = Random.nextInt()
+    )
 
     /**
      * Check if given values are ok.
@@ -27,7 +35,7 @@ data class SessionKey(
      * @param loginOk
      * @return true if accountId and loginOk match this SessionKey
      */
-    fun checkLogin(accountId: Int, loginOk: Int): Boolean {
+    fun checkLogin(accountId: Long, loginOk: Int): Boolean {
         return this.accountId == accountId && this.loginOk == loginOk
     }
 

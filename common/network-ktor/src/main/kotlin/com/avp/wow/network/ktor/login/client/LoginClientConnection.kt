@@ -1,5 +1,6 @@
 package com.avp.wow.network.ktor.login.client
 
+import com.avp.wow.model.auth.Account
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.ktor.PacketProcessor
 import com.avp.wow.network.KtorConnection
@@ -53,6 +54,10 @@ class LoginClientConnection(
      * @return SessionId
      */
     val sessionId = hashCode()
+
+    var sessionKey: SessionKey? = null
+
+    var account: Account? = null
 
     /**
      * Return Scrambled modulus

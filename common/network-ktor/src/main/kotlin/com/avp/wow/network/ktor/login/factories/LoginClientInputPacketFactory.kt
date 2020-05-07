@@ -4,6 +4,7 @@ import com.avp.wow.network.ktor.login.client.LoginClientInputPacket
 import com.avp.wow.network.ktor.login.client.LoginClientConnection
 import com.avp.wow.network.ktor.login.client.LoginClientConnection.Companion.State
 import com.avp.wow.network.ktor.login.client.input.InAuthGuard
+import com.avp.wow.network.ktor.login.client.input.InGameServersList
 import com.avp.wow.network.ktor.login.client.input.InLogin
 import com.avp.wow.network.ktor.login.client.tp.CpTestFastExecutePkt
 import com.avp.wow.network.ktor.login.client.tp.CpTestSlowExecutePkt
@@ -56,9 +57,7 @@ object LoginClientInputPacketFactory {
             }
             State.AUTHED_LOGIN -> {
                 when (id) {
-                    0x05 -> {
-                        //msg = CM_SERVER_LIST(data, client)
-                    }
+                    InGameServersList.OP_CODE -> { msg = InGameServersList(data, client) }
                     0x02 -> {
                         //msg = CM_PLAY(data, client)
                     }

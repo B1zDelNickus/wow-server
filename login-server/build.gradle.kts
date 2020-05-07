@@ -3,5 +3,5 @@ private val nexus_url = System.getenv().getOrDefault("NEXUS_URL", "https://nexus
 group = "com.avp.wow.login"
 
 dependencies {
-    implementation(project(":jdbc-utils"))
+    implementation(project(":jdbc-core"))
 }

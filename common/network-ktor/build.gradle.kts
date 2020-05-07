@@ -1,6 +1,7 @@
 group = "com.avp.wow.network-ktor"
 
 dependencies {
-    api(project(":network-core"))
+    implementation(project(":network-core"))
+    implementation(project(":service"))
     testImplementation(project(":network-client"))
 }

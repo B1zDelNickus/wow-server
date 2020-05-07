@@ -5,6 +5,7 @@ import com.avp.wow.network.client.login.LoginServerConnection.Companion.State
 import com.avp.wow.network.client.login.LoginServerInputPacket
 import com.avp.wow.network.client.login.input.InAuthGuard
 import com.avp.wow.network.client.login.input.InInitSession
+import com.avp.wow.network.client.login.input.InLoginOk
 import io.ktor.util.KtorExperimentalAPI
 import mu.KotlinLogging
 import java.nio.ByteBuffer
@@ -42,9 +43,7 @@ object LoginServerInputPacketFactory {
             }
             State.AUTHED_GG -> {
                 when (id) {
-                    0x0B -> {
-                        //msg = CM_LOGIN(data, client)
-                    }
+                    InLoginOk.OP_CODE -> { msg = InLoginOk(data, server) }
                     else -> {
                         unknownPacket(
                             state,
