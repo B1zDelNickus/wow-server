@@ -11,6 +11,7 @@ import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_GS_PORT
 import com.avp.wow.network.client.KtorNioClient
 import com.avp.wow.network.client.login.LoginServerConnectionFactory
 import com.avp.wow.network.ktor.game.GameNioServer
+import com.avp.wow.network.ktor.game.client.GameClientConnectionFactory
 import com.avp.wow.network.ktor.login.client.LoginClientConnectionFactory
 import com.avp.wow.network.ktor.login.gs.LoginGsConnectionFactory
 import com.avp.wow.network.ncrypt.KeyGen
@@ -57,17 +58,13 @@ class NioServerRunTests : StringSpec({
             hostName = "*",
             port = 2323,
             connectionName = "",
-            factory = object : IKtorConnectionFactory {
-                override fun create(socket: Socket, nio: BaseNioService): KtorConnection {
-                    TODO("Not yet implemented")
-                }
-            }
+            factory = GameClientConnectionFactory()
         )
 
         val gameServer = GameNioServer(
             hostName = DEFAULT_LOGIN_SERVER_GS_HOST,
             port = DEFAULT_LOGIN_SERVER_GS_PORT,
-            gameServerConfig = gameServerClientConfig
+            gameClientConfig = gameServerClientConfig
         )
 
         gameServer.connect()
@@ -83,11 +80,11 @@ class NioServerRunTests : StringSpec({
             )
         ).apply {
 
-            /*connect()
+            connect()
 
             delay(1_000) // wait auth gg operations
 
-            login(login = "admin", password = "admin")*/
+            login(login = "admin", password = "admin")
 
         }
 

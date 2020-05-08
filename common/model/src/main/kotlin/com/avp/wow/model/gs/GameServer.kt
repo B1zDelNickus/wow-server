@@ -11,6 +11,6 @@ class GameServer {
 
     val serverIp get() = byteArrayOf(127, 0, 0, 1)
 
-    val serverPort get() = 3434
+    val serverPort get() = 2323
 
 }

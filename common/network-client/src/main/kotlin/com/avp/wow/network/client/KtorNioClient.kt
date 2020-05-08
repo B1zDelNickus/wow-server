@@ -25,6 +25,8 @@ class KtorNioClient(
 
     override val scope by lazy { CoroutineScope(SupervisorJob() + context) }
 
+    private val selector by lazy { ActorSelectorManager(scope.coroutineContext) }
+
     private var loginServerConnection: KtorConnection? = null
     private var gameServerConnection: KtorConnection? = null
 
@@ -48,7 +50,7 @@ class KtorNioClient(
 
                 log.info { "Connecting to Login Server - $loginServerConfig" }
 
-                val socket = aSocket(ActorSelectorManager(scope.coroutineContext))
+                val socket = aSocket(selector = selector)
                     .tcp()
                     .connect(hostname = loginServerConfig.hostName, port = loginServerConfig.port)
 
@@ -74,11 +76,51 @@ class KtorNioClient(
                 }
 
             } catch (e: Exception) {
-                log.error(e) { "Error while connection to server." }
+                log.error(e) { "Error while connection to login server." }
                 throw Error(e)
             }
 
         }
+    }
+
+    fun connectGameServer(gameServerConfig: KtorConnectionConfig) {
+
+        try {
+            scope.launch {
+
+                log.info { "Connecting to Game Server - $gameServerConfig" }
+
+                val socket = aSocket(selector = selector)
+                    .tcp()
+                    .connect(hostname = gameServerConfig.hostName, port = gameServerConfig.port)
+
+                log.info { "Connected to ${socket.remoteAddress}" }
+
+                gameServerConnection =
+                    gameServerConfig.factory.create(socket = socket, nio = this@KtorNioClient)
+
+                launch {
+
+                    /**
+                     * Run Read Dispatcher coroutine
+                     */
+                    launch { gameServerConnection?.startReadDispatching() }
+
+                    /**
+                     * Run Write Dispatcher coroutine
+                     */
+                    launch { gameServerConnection?.startWriteDispatching() }
+
+                    gameServerConnection?.initialized()
+
+                }
+
+            }
+        } catch (e: Exception) {
+            log.error(e) { "Error while connection to game server." }
+            throw Error(e)
+        }
+
     }
 
     override fun closeChannels() {
@@ -91,6 +133,10 @@ class KtorNioClient(
 
     override fun closeAll() {
         TODO("Not yet implemented")
+    }
+
+    fun closeConnectionImpl(connection: KtorConnection) {
+        // todo place into connection with syncronization
     }
 
     fun login(login: String, password: String) {

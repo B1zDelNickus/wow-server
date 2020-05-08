@@ -7,7 +7,7 @@ import com.avp.wow.service.gs.IGameServersService
 class InMemoryGameServersService : IGameServersService {
 
     override val gameServers = mapOf(
-        1L to GameServer()
+        1L to DEFAULT_GAME_SERVER
     )
 
     override fun isAccountOnAnyGameServer(account: Account): Boolean {
@@ -20,6 +20,10 @@ class InMemoryGameServersService : IGameServersService {
 
     override fun kickAccountFromGameServer(account: Account) {
         TODO("Not implemented yet")
+    }
+
+    companion object {
+        private val DEFAULT_GAME_SERVER = GameServer()
     }
 
 }

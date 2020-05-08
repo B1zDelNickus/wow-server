@@ -18,7 +18,7 @@ import kotlin.coroutines.CoroutineContext
 class GameNioServer(
     private val hostName: String,
     private val port: Int,
-    private val gameServerConfig: KtorConnectionConfig,
+    private val gameClientConfig: KtorConnectionConfig,
     context: CoroutineContext = Dispatchers.IO
 ) : BaseNioService() {
 
@@ -53,11 +53,11 @@ class GameNioServer(
 
                     //launch {
 
-                        launch { loginServerConnection?.startReadDispatching() }
+                    launch { loginServerConnection?.startReadDispatching() }
 
-                        launch { loginServerConnection?.startWriteDispatching() }
+                    launch { loginServerConnection?.startWriteDispatching() }
 
-                        loginServerConnection?.initialized()
+                    loginServerConnection?.initialized()
 
                     //}
 
@@ -69,14 +69,14 @@ class GameNioServer(
 
                 launch {
 
-                    val isa = when (gameServerConfig.hostName) {
+                    val isa = when (gameClientConfig.hostName) {
                         "*" -> {
-                            log.info { "Server listening on all available IPs on Port " + gameServerConfig.port.toString() + " for " + gameServerConfig.connectionName }
-                            InetSocketAddress(gameServerConfig.port)
+                            log.info { "Server listening on all available IPs on Port " + gameClientConfig.port.toString() + " for " + gameClientConfig.connectionName }
+                            InetSocketAddress(gameClientConfig.port)
                         }
                         else -> {
-                            log.info { "Server listening on IP: " + gameServerConfig.hostName + " Port " + gameServerConfig.port + " for " + gameServerConfig.connectionName }
-                            InetSocketAddress(gameServerConfig.hostName, gameServerConfig.port)
+                            log.info { "Server listening on IP: " + gameClientConfig.hostName + " Port " + gameClientConfig.port + " for " + gameClientConfig.connectionName }
+                            InetSocketAddress(gameClientConfig.hostName, gameClientConfig.port)
                         }
                     }
 
@@ -89,6 +89,19 @@ class GameNioServer(
                         val clientSocket = gameServer.accept()
 
                         log.info { "Accepted connection from client: ${clientSocket.remoteAddress}" }
+
+                        launch {
+
+                            val connection =
+                                gameClientConfig.factory.create(socket = clientSocket, nio = this@GameNioServer)
+
+                            launch { connection.startReadDispatching() }
+
+                            launch { connection.startWriteDispatching() }
+
+                            connection.initialized()
+
+                        }
 
                     }
 
