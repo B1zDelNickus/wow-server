@@ -10,6 +10,7 @@ import com.avp.wow.network.ktor.login.factories.LoginClientInputPacketFactory
 import com.avp.wow.network.ncrypt.CryptEngine
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
+import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.isClosed
 import io.ktor.util.KtorExperimentalAPI
@@ -42,7 +43,7 @@ class LoginClientConnection(
     /**
      * Crypt to encrypt/decrypt packets
      */
-    private var cryptEngine: CryptEngine? = null
+    private val cryptEngine by lazy { WowCryptEngine()  }
 
     /**
      * Scrambled key pair for RSA
@@ -91,13 +92,14 @@ class LoginClientConnection(
      * @return true if success
      */
     private fun decrypt(buf: ByteBuffer): Boolean {
-        val size = buf.remaining()
+        /*val size = buf.remaining()
         val offset = buf.arrayOffset() + buf.position()
         val ret = cryptEngine?.decrypt(buf.array(), offset, size)
             ?: throw IllegalArgumentException("Crypt Engine was not initialized properly")
         if (!ret) { log.warn { "Wrong checksum from client: $this" } }
         return ret
-        //return true
+        //return true*/
+        return cryptEngine.decrypt(data = buf)
     }
 
     /**
@@ -105,15 +107,16 @@ class LoginClientConnection(
      * @param buf
      * @return encrypted packet size.
      */
-    fun encrypt(buf: ByteBuffer): Int {
-        var size = buf.limit() - 2
+    fun encrypt(buf: ByteBuffer) {
+        /*var size = buf.limit() - 2
         val offset = buf.arrayOffset() + buf.position()
         println(buf.array().map { it.toInt() }.joinToString(":"))
         size = cryptEngine?.encrypt(buf.array(), offset, size)
             ?: throw IllegalArgumentException("Crypt Engine was not initialized properly")
         println(buf.array().map { it.toInt() }.joinToString(":"))
         return size
-        //return buf.limit()
+        //return buf.limit()*/
+        cryptEngine.encrypt(data = buf)
     }
 
     /**
@@ -282,7 +285,7 @@ class LoginClientConnection(
                 sz = (sz - 2).toShort()
             }
             val b = buf.slice().limit(sz.toInt()) as ByteBuffer
-            b.order(ByteOrder.LITTLE_ENDIAN)
+            //b.order(ByteOrder.LITTLE_ENDIAN)
             /**
              * read message fully
              */
@@ -304,9 +307,6 @@ class LoginClientConnection(
         encryptedRSAKeyPair = KeyGen.encryptedRSAKeyPair
         val blowfishKey: SecretKey = KeyGen.generateBlowfishKey()
 
-        cryptEngine = CryptEngine()
-        cryptEngine!!.updateKey(blowfishKey.encoded)
-
         /**
          * Send Init packet
          */
@@ -314,8 +314,7 @@ class LoginClientConnection(
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
-        /*cryptEngine = CryptEngine()
-        cryptEngine!!.updateKey(blowfishKey)*/
+        cryptEngine.updateKey(blowfishKey)
     }
 
     override val disconnectionDelay = 0L

@@ -1,5 +1,6 @@
 package com.avp.wow.network.ktor.login.client.output
 
+import com.avp.wow.network.BaseConnection
 import com.avp.wow.network.ktor.login.client.LoginClientOutputPacket
 import com.avp.wow.network.ktor.login.client.LoginClientConnection
 import io.ktor.util.KtorExperimentalAPI
@@ -24,7 +25,7 @@ class OutInitSession(
         writeB(blowfishKey) // BlowFish key
     }
 
-    override fun afterWrite(con: LoginClientConnection) {
+    override fun <T : BaseConnection> afterWrite(con: T) {
         con.enableEncryption(blowfishKey)
     }
 

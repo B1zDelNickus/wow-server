@@ -9,6 +9,7 @@ import com.avp.wow.network.ktor.login.client.input.InGameServersList
 import com.avp.wow.network.ktor.login.client.input.InLogin
 import com.avp.wow.network.ktor.login.client.tp.CpTestFastExecutePkt
 import com.avp.wow.network.ktor.login.client.tp.CpTestSlowExecutePkt
+import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.util.KtorExperimentalAPI
 import mu.KotlinLogging
 import java.nio.ByteBuffer
@@ -27,7 +28,9 @@ object LoginClientInputPacketFactory {
     fun define(data: ByteBuffer, client: LoginClientConnection): LoginClientInputPacket? {
         var msg: LoginClientInputPacket? = null
         val state: State = client.state
-        val id: Int = data.get().toInt() and 0xff
+        val id: Int = WowCryptEngine.decodeOpCodec(data.short.toInt()) and 0xffff
+        /* Second opcodec. */
+        data.position(data.position() + 3)
         when (state) {
             State.CONNECTED -> {
                 when (id) {

@@ -67,9 +67,9 @@ class NioServerRunTests : StringSpec({
             gameClientConfig = gameServerClientConfig
         )
 
-        gameServer.connect()
+        /*gameServer.connect()
 
-        delay(3_000)
+        delay(3_000)*/
 
         val client = KtorNioClient(
             loginServerConfig = KtorConnectionConfig(
@@ -82,9 +82,9 @@ class NioServerRunTests : StringSpec({
 
             connect()
 
-            delay(1_000) // wait auth gg operations
+            //delay(1_000) // wait auth gg operations
 
-            login(login = "admin", password = "admin")
+            //login(login = "admin", password = "admin")
 
         }
 

@@ -11,6 +11,21 @@ import kotlin.experimental.inv
 
 class WowCryptTest : StringSpec({
 
+    "f:encode" {
+
+        val code1 = 15
+        val code2 = 61
+        val mask1 = 20
+        val mask2 = 30
+
+        println((code1 + mask1) xor mask2)
+        println(code1 xor mask1)
+        println(27 xor mask1)
+        println(61 xor mask2 - mask1) // 123123
+        println((code2 xor mask2) - mask1) // 123123
+
+    }
+
     "test" {
 
         fun printBuf(buf: ByteBuffer) {
@@ -257,6 +272,8 @@ class WowCryptEngine {
          * @return obfuscated opcodec
          */
         fun encodeOpCodec(op: Int) = op + MASK_1 xor MASK_2
+
+        fun decodeOpCodec(op: Int) = op and MASK_2 - MASK_1
 
     }
 

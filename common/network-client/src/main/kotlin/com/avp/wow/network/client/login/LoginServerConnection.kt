@@ -6,6 +6,7 @@ import com.avp.wow.network.client.factories.LoginServerInputPacketFactory
 import com.avp.wow.network.ncrypt.CryptEngine
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
+import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
 import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
@@ -28,7 +29,7 @@ class LoginServerConnection(
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
-    private var cryptEnabled: Boolean = false
+    //private var cryptEnabled: Boolean = false
 
     var state = State.DEFAULT
 
@@ -47,7 +48,7 @@ class LoginServerConnection(
     /**
      * Crypt to encrypt/decrypt packets
      */
-    private var cryptEngine: CryptEngine? = null
+    private val cryptEngine = WowCryptEngine()
 
     /**
      * Scrambled key pair for RSA
@@ -64,13 +65,14 @@ class LoginServerConnection(
      * @return true if success
      */
     private fun decrypt(buf: ByteBuffer): Boolean {
-        val size = buf.remaining()
+        /*val size = buf.remaining()
         val offset = buf.arrayOffset() + buf.position()
         val ret = cryptEngine?.decrypt(buf.array(), offset, size)
             ?: throw IllegalArgumentException("Crypt Engine was not initialized properly")
         if (!ret) { log.warn { "Wrong checksum from server: $this" } }
         return ret
-        //return true
+        //return true*/
+        return cryptEngine.decrypt(data = buf)
     }
 
     /**
@@ -78,13 +80,14 @@ class LoginServerConnection(
      * @param buf
      * @return encrypted packet size.
      */
-    fun encrypt(buf: ByteBuffer): Int {
-        var size = buf.limit() - 2
+    fun encrypt(buf: ByteBuffer) {
+        /*var size = buf.limit() - 2
         val offset = buf.arrayOffset() + buf.position()
         size = cryptEngine?.encrypt(buf.array(), offset, size)
             ?:  throw IllegalArgumentException("Crypt Engine was not initialized properly")
         return size
-        //return buf.limit()
+        //return buf.limit()*/
+        cryptEngine.encrypt(data = buf)
     }
 
     private suspend fun write() {
@@ -203,7 +206,7 @@ class LoginServerConnection(
             val b = buf.slice().limit(sz.toInt()) as ByteBuffer
             /*if (cryptEnabled) b.order(ByteOrder.LITTLE_ENDIAN)
             else b.order(ByteOrder.BIG_ENDIAN)*/
-            b.order(ByteOrder.LITTLE_ENDIAN)
+            //b.order(ByteOrder.LITTLE_ENDIAN)
             /**
              * read message fully
              */
@@ -226,17 +229,12 @@ class LoginServerConnection(
     }
 
     override fun processData(data: ByteBuffer): Boolean {
-
         println(data.array().map { it.toInt() }.joinToString(":"))
-
         if (!decrypt(data)) {
             return false
         }
-
         println(data.array().map { it.toInt() }.joinToString(":"))
-
         val pck = LoginServerInputPacketFactory.define(data, this)
-
         /**
          * Execute packet only if packet exist (!= null) and read was ok.
          */
@@ -291,13 +289,10 @@ class LoginServerConnection(
         state = State.CONNECTED
         log.info("Connected to server: [$ip]")
         encryptedRSAKeyPair = KeyGen.encryptedRSAKeyPair
-        cryptEngine = CryptEngine()
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
-        //cryptEngine = CryptEngine()
-        cryptEngine!!.updateKey(blowfishKey)
-        cryptEnabled = true
+        cryptEngine.updateKey(blowfishKey)
     }
 
     override val disconnectionDelay = 0L

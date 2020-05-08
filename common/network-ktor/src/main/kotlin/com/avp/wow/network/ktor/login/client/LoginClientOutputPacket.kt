@@ -8,10 +8,7 @@ import java.nio.ByteBuffer
 abstract class LoginClientOutputPacket : BaseOutputPacket() {
 
     init {
-        opCode =
-            LoginClientOutputPacketsOpcodes.getOpcode(
-                this::class
-            )
+        opCode = LoginClientOutputPacketsOpcodes.getOpcode(this::class)
     }
 
     /**
@@ -22,19 +19,16 @@ abstract class LoginClientOutputPacket : BaseOutputPacket() {
 
         buffer = buf
 
-        buffer?.let { b ->
+        writeH(0)
+        writeOpCode(opCode)
+        writeImpl(con)
+        flipBuffer()
+        writeH(limitBufferSize())
 
-            b.putShort(0.toShort())
-            b.put(opCode.toByte())
-            writeImpl(con)
-            b.flip()
-            b.putShort(0.toShort())
-            val b2 = b.slice()
-            val size = (con.encrypt(b2) + 2)/* + 2*/
-            b.putShort(0, size.toShort())
-            b.position(0).limit(size)
+        val toEncrypt = sliceBuffer()
+        con.encrypt(toEncrypt)
 
-        }
+        resetBufferPosition()
 
     }
 
@@ -43,7 +37,5 @@ abstract class LoginClientOutputPacket : BaseOutputPacket() {
      * @param con
      */
     protected abstract fun writeImpl(con: LoginClientConnection)
-
-    open fun afterWrite(con: LoginClientConnection) = Unit
 
 }
