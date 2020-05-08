@@ -1,22 +1,5 @@
 package com.avp.wow.network.client
 
-import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_HOST
-import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_PORT
-import com.avp.wow.network.client.factories.LoginServerInputPacketFactory
-import com.avp.wow.network.ncrypt.CryptEngine
-import io.ktor.network.selector.ActorSelectorManager
-import io.ktor.network.sockets.aSocket
-import io.ktor.network.sockets.openReadChannel
-import io.ktor.network.sockets.openWriteChannel
-import io.ktor.util.KtorExperimentalAPI
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import mu.KotlinLogging
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-
 /*
 @KtorExperimentalAPI
 class SimpleWowClient(

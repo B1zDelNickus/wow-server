@@ -14,7 +14,7 @@ class OutInitSession(
 
     constructor(client: LoginClientConnection, blowfishKey: SecretKey) : this(
         sessionId = client.sessionId,
-        publicRsaKey = client.getEncryptedModulus,
+        publicRsaKey = client.encryptedModulus,
         blowfishKey = blowfishKey.encoded
     )
 

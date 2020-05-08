@@ -33,6 +33,11 @@ class LoginServerConnection(
     var state = State.DEFAULT
 
     var sessionId = 0
+    var publicRsa: ByteArray? = null
+    var accountId = 0L
+    var loginOk = 0
+    var playOk1 = 0
+    var playOk2 = 0
 
     /**
      * Server Packet "to send" Queue
@@ -295,7 +300,7 @@ class LoginServerConnection(
         cryptEnabled = true
     }
 
-    override val getDisconnectionDelay = 0L
+    override val disconnectionDelay = 0L
 
     override fun onDisconnect() {
         TODO("Not yet implemented")

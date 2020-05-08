@@ -190,7 +190,7 @@ class LoginClientConnection(
         sendPacket(SpInit(this, blowfishKey))
     }
 
-    override val getDisconnectionDelay = 0L
+    override val disconnectionDelay = 0L
 
     override fun onDisconnect() {
         /**

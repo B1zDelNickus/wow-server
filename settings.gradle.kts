@@ -16,7 +16,11 @@ pluginManagement {
 rootProject.name = rootProject.projectDir.name
 
 include(
-    "jdbc-utils",
+    "jdbc-core",
+
+    "model",
+    "repository",
+    "service",
 
     "network-core",
     "network-ktor",
@@ -30,7 +34,10 @@ include(
     "login-server-app"
 )
 
-project(":jdbc-utils").projectDir = file("common/jdbc-utils")
+project(":jdbc-core").projectDir = file("common/jdbc-core")
+project(":model").projectDir = file("common/model")
+project(":repository").projectDir = file("common/repository")
+project(":service").projectDir = file("common/service")
 project(":network-core").projectDir = file("common/network-core")
 project(":network-ktor").projectDir = file("common/network-ktor")
 project(":network-ktx").projectDir = file("common/network-ktx")

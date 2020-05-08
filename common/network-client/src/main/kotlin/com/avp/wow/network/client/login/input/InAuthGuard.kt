@@ -24,11 +24,11 @@ class InAuthGuard(
 
     override suspend fun runImpl() {
         connection?.state = AUTHED_GG
-        log.debug { "AUTHED GG" }
+        log.debug { "AUTHED GG, SHOW LOGIN SCREEN" }
     }
 
     companion object {
-        const val OP_CODE = 0x01
+        const val OP_CODE = 0x03
     }
 
 }

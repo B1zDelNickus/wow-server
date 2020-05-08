@@ -1,5 +1,6 @@
 package ncrypt
 
+/*
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import java.nio.ByteBuffer
@@ -42,9 +43,11 @@ class JavaTests : StringSpec({
 
                 clear()
 
-                /**
+                */
+/**
                  * Write packet
-                 */
+                 *//*
+
                 putShort(0.toShort())
                 put(15.toByte())
                 putInt(DATA)
@@ -61,7 +64,8 @@ class JavaTests : StringSpec({
                 putShort(0, size.toShort())
                 position(0).limit(size) as ByteBuffer
 
-                /*val size2 = short// - 2
+                */
+/*val size2 = short// - 2
                 println(size2)
 
                 val b = slice().limit(size2.toInt()) as ByteBuffer
@@ -72,12 +76,15 @@ class JavaTests : StringSpec({
                 decrypt(b)
 
                 println(b.get())
-                println(b.int)*/
+                println(b.int)*//*
 
 
-                /**
+
+                */
+/**
                  * Read packet
-                 */
+                 *//*
+
 
                 //flip()
                 //order(ByteOrder.BIG_ENDIAN)
@@ -114,4 +121,4 @@ class JavaTests : StringSpec({
 
     }
 
-})
+})*/

@@ -8,7 +8,10 @@ import java.nio.ByteBuffer
 abstract class LoginClientOutputPacket : BaseOutputPacket() {
 
     init {
-        opCode = LoginClientOutputPacketsOpcodes.getOpcode(this::class)
+        opCode =
+            LoginClientOutputPacketsOpcodes.getOpcode(
+                this::class
+            )
     }
 
     /**

@@ -16,7 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
-class KtorNioServer(
+class LoginNioServer(
     private val serverConfigs: List<KtorConnectionConfig> = emptyList(),
     context: CoroutineContext = Dispatchers.IO
 ) : BaseNioService() {
@@ -87,7 +87,7 @@ class KtorNioServer(
                         /**
                          * Create connection object and pass it to NIO server infrastructure
                          */
-                        cfg.factory.create(socket = socket, nio = this@KtorNioServer)
+                        cfg.factory.create(socket = socket, nio = this@LoginNioServer)
                             .also { conn ->
                                 /**
                                  * Add new connection to nio's all-connections pool
@@ -115,7 +115,7 @@ class KtorNioServer(
 
             } catch (e: Exception) {
                 log.error(e) { "Error occurred while connecting servers: ${e.message}" }
-                throw Error("Error initialize NioServer")
+                throw Error("Error initialize LoginNioServer")
             }
 
         }
@@ -205,7 +205,7 @@ class KtorNioServer(
     /**
      * Calls onServerClose method for all active connections.
      */
-    override fun notifyServerClose() {
+    override fun notifyClose() {
         connections
             .forEach { conn ->
                 conn.onServerClose()
@@ -259,7 +259,7 @@ class KtorNioServer(
     /**
      * @return Number of active connections.
      */
-    override val getActiveConnections get() = connections.size
+    override val activeConnectionsCount get() = connections.size
 
     companion object {
 

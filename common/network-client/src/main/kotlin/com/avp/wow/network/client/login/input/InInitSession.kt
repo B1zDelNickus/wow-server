@@ -22,17 +22,14 @@ class InInitSession(
 
     override fun readImpl() {
         sessionId = readD()
-        publicRsaKey = readB(128)
+        publicRsaKey = readB(162) // (128)
         blowfishKey = readB(16)
-
-        println(sessionId)
-        println(publicRsaKey)
-        println(blowfishKey)
     }
 
     override suspend fun runImpl() {
         connection?.enableEncryption(blowfishKey!!)
         connection?.sessionId = sessionId
+        connection?.publicRsa = publicRsaKey
         connection?.sendPacket(OutAuthGuard())
     }
 
