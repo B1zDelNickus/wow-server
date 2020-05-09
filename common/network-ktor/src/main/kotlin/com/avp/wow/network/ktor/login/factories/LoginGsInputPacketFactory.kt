@@ -4,6 +4,7 @@ import com.avp.wow.network.ktor.login.gs.LoginGsConnection.Companion.State
 import com.avp.wow.network.ktor.login.gs.LoginGsConnection
 import com.avp.wow.network.ktor.login.gs.LoginGsInputPacket
 import com.avp.wow.network.ktor.login.gs.input.InAuthGs
+import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.util.KtorExperimentalAPI
 import mu.KotlinLogging
 import java.nio.ByteBuffer
@@ -22,7 +23,9 @@ object LoginGsInputPacketFactory {
     fun define(data: ByteBuffer, client: LoginGsConnection): LoginGsInputPacket? {
         var msg: LoginGsInputPacket? = null
         val state: State = client.state
-        val id: Int = data.get().toInt() and 0xff
+        val id: Int = WowCryptEngine.decodeOpCodec(data.short.toInt()) and 0xffff
+        /* Second opcodec. */
+        data.position(data.position() + 3)
         when (state) {
             State.CONNECTED -> {
                 when (id) {

@@ -136,7 +136,7 @@ class GameLsConnection(
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
-        TODO("Not yet implemented")
+        cryptEngine.updateKey(newKey = blowfishKey)
     }
 
     companion object {

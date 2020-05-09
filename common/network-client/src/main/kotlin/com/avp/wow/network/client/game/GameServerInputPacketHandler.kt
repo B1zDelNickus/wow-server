@@ -1,6 +1,7 @@
 package com.avp.wow.network.client.game
 
 import com.avp.wow.network.client.game.GameServerConnection.Companion.State
+import com.avp.wow.network.ncrypt.WowCryptEngine
 import com.avp.wow.network.utils.Util
 import io.ktor.util.KtorExperimentalAPI
 import mu.KotlinLogging
@@ -22,7 +23,7 @@ class GameServerInputPacketHandler {
      */
     fun handle(data: ByteBuffer, client: GameServerConnection): GameServerInputPacket? {
         val state: State = client.state
-        val id: Int = data.short.toInt() and 0xffff
+        val id: Int = WowCryptEngine.decodeOpCodec(data.short.toInt()) and 0xffff
         /* Second opcodec. */
         data.position(data.position() + 3)
         return getPacket(state, id, data, client)
