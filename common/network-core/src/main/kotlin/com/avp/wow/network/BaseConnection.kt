@@ -1,15 +1,29 @@
 package com.avp.wow.network
 
+import com.fasterxml.uuid.Generators
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.coroutines.CoroutineContext
 
 abstract class BaseConnection(
+    context: CoroutineContext = Dispatchers.IO,
     readBufferSize: Int,
     writeBufferSize: Int
 ) {
 
     protected val log = KotlinLogging.logger(this::class.java.name)
+
+    /**
+     * Time based hash to provide uniqueness to hashCode
+     */
+    protected val hash = Generators.timeBasedGenerator().generate().toString()
+
+    protected val scope by lazy { CoroutineScope(SupervisorJob() + context) }
 
     val readBuffer by lazy {
         ByteBuffer.allocate(readBufferSize)
@@ -97,14 +111,17 @@ abstract class BaseConnection(
      * @param data
      * @return True if data was processed correctly, False if some error occurred and connection should be closed NOW.
      */
-    abstract fun processData(data: ByteBuffer): Boolean
+    protected abstract fun processData(data: ByteBuffer): Boolean
 
     /**
      * This method will be called by Dispatcher, and will be repeated till return false.
      * @param data
      * @return True if data was written to buffer, False indicating that there are not any more data to write.
      */
-    abstract fun writeData(data: ByteBuffer): Boolean
+    protected abstract fun writeData(data: ByteBuffer): Boolean
+
+    protected abstract suspend fun write()
+    protected abstract suspend fun read()
 
     /**
      * Called when AConnection object is fully initialized and ready to process and send packets. It may be used as hook for sending first packet etc.
@@ -128,5 +145,25 @@ abstract class BaseConnection(
     abstract fun onServerClose()
 
     abstract fun enableEncryption(blowfishKey: ByteArray)
+
+    fun closeConnectionImpl() {
+        if (onlyClose()) {
+            scope.launch {
+                onDisconnect()
+            }
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as BaseConnection
+        if (hash != other.hash) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return hash.hashCode()
+    }
 
 }

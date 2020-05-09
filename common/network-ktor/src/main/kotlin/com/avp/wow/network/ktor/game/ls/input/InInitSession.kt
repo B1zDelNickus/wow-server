@@ -1,18 +1,18 @@
-package com.avp.wow.network.client.login.input
+package com.avp.wow.network.ktor.game.ls.input
 
-import com.avp.wow.network.client.login.LoginServerConnection
-import com.avp.wow.network.client.login.LoginServerInputPacket
-import com.avp.wow.network.client.login.output.OutAuthClient
+import com.avp.wow.network.ktor.game.ls.GameLsConnection
+import com.avp.wow.network.ktor.game.ls.GameLsInputPacket
+import com.avp.wow.network.ktor.game.ls.output.OutAuthGs
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
 class InInitSession(
     buffer: ByteBuffer,
-    server: LoginServerConnection
-) : LoginServerInputPacket(
+    client: GameLsConnection
+) : GameLsInputPacket(
     opCode = OP_CODE,
-    server = server,
+    client = client,
     buffer = buffer
 ) {
 
@@ -30,7 +30,7 @@ class InInitSession(
         connection?.enableEncryption(blowfishKey!!)
         connection?.sessionId = sessionId
         connection?.publicRsa = publicRsaKey
-        connection?.sendPacket(OutAuthClient())
+        connection?.sendPacket(OutAuthGs())
     }
 
     companion object {

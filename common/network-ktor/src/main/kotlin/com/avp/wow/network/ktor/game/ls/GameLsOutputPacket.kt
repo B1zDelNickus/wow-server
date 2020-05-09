@@ -19,16 +19,16 @@ abstract class GameLsOutputPacket : BaseOutputPacket() {
 
         buffer = buf
 
-        buffer?.let { b ->
+        writeH(0)
+        writeOpCode(opCode)
+        writeImpl(con)
+        flipBuffer()
+        writeH(limitBufferSize())
 
-            b.putShort(0.toShort())
-            b.put(opCode.toByte())
-            writeImpl(con)
-            b.flip()
-            b.putShort(b.remaining().toShort())
-            b.position(0)
+        val toEncrypt = sliceBuffer()
+        con.encrypt(toEncrypt)
 
-        }
+        resetBufferPosition()
 
     }
 

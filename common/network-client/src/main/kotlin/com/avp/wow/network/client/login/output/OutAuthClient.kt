@@ -5,10 +5,10 @@ import com.avp.wow.network.client.login.LoginServerOutputPacket
 import io.ktor.util.KtorExperimentalAPI
 
 @KtorExperimentalAPI
-class OutAuthGuard : LoginServerOutputPacket() {
+class OutAuthClient : LoginServerOutputPacket() {
 
     override fun writeImpl(con: LoginServerConnection) {
-        writeD(con.sessionId) // session id
+        writeD(con.sessionId) // session id TODO obfuscate with RSA public key
     }
 
     companion object {

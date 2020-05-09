@@ -24,7 +24,7 @@ include(
 
     "network-core",
     "network-ktor",
-    "network-ktx",
+    //"network-ktx",
     "network-client",
 
     "login-server",
@@ -40,7 +40,7 @@ project(":repository").projectDir = file("common/repository")
 project(":service").projectDir = file("common/service")
 project(":network-core").projectDir = file("common/network-core")
 project(":network-ktor").projectDir = file("common/network-ktor")
-project(":network-ktx").projectDir = file("common/network-ktx")
+//project(":network-ktx").projectDir = file("common/network-ktx")
 project(":network-client").projectDir = file("common/network-client")
 
 project(":login-server-app").projectDir = file("dockers/login-server-app")

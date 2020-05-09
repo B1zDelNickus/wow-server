@@ -1,5 +1,6 @@
 package com.avp.wow.network.ktor
 
+import com.avp.wow.network.BaseConnection
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorConnectionConfig
@@ -29,7 +30,7 @@ class LoginNioServer(
     /**
      * List of connections that should be closed by this `Dispatcher` as soon as possible.
      */
-    private val pendingClose = CopyOnWriteArrayList<KtorConnection>()
+    private val pendingClose = CopyOnWriteArrayList<BaseConnection>()
 
     private var processPendingClosing = false
 
@@ -37,7 +38,7 @@ class LoginNioServer(
      * Open connections to configured servers
      */
     @Throws(Error::class)
-    override fun connect() {
+    override fun start() {
 
         /**
          * Main connect coroutine
@@ -87,7 +88,7 @@ class LoginNioServer(
                         /**
                          * Create connection object and pass it to NIO server infrastructure
                          */
-                        cfg.factory.create(socket = socket, nio = this@LoginNioServer)
+                        cfg.factory.create(socket = socket, nio = this@LoginNioServer, context = scope.coroutineContext)
                             .also { conn ->
                                 /**
                                  * Add new connection to nio's all-connections pool
@@ -228,31 +229,19 @@ class LoginNioServer(
     private fun processPendingClose() {
         synchronized(pendingClose) {
             for (connection in pendingClose) {
-                closeConnectionImpl(connection)
+                connection.closeConnectionImpl()
             }
             pendingClose.clear()
         }
     }
 
-    /**
-     * Connection will be closed [onlyClose()] and onDisconnect() method will be executed on another thread [DisconnectionThreadPool] after getDisconnectionDelay() time in ms. This method may only be called by current Dispatcher Thread.
-     * @param con
-     */
-    fun closeConnectionImpl(connection: KtorConnection) {
-        if (connection.onlyClose()) {
-            scope.launch {
-                connection.onDisconnect()
-            }
-        }
-    }
-
-    fun closeConnection(connection: KtorConnection) {
+    override fun closeConnection(connection: BaseConnection) {
         synchronized(pendingClose) {
             pendingClose.add(connection)
         }
     }
 
-    fun removeConnection(connection: KtorConnection) {
+    override fun removeConnection(connection: BaseConnection) {
         connections.remove(connection)
     }
 

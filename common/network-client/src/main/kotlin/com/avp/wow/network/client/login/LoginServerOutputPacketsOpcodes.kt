@@ -1,6 +1,6 @@
 package com.avp.wow.network.client.login
 
-import com.avp.wow.network.client.login.output.OutAuthGuard
+import com.avp.wow.network.client.login.output.OutAuthClient
 import com.avp.wow.network.client.login.output.OutEnterGameServer
 import com.avp.wow.network.client.login.output.OutGameServersList
 import com.avp.wow.network.client.login.output.OutLogin
@@ -13,7 +13,7 @@ object LoginServerOutputPacketsOpcodes {
     private val idSet = mutableSetOf<Int>()
 
     private val opCodes = mutableMapOf(
-        addPacketOpcode(packetClass = OutAuthGuard::class, opcode = OutAuthGuard.OP_CODE),
+        addPacketOpcode(packetClass = OutAuthClient::class, opcode = OutAuthClient.OP_CODE),
         addPacketOpcode(packetClass = OutLogin::class, opcode = OutLogin.OP_CODE),
         addPacketOpcode(packetClass = OutGameServersList::class, opcode = OutGameServersList.OP_CODE),
         addPacketOpcode(packetClass = OutEnterGameServer::class, opcode = OutEnterGameServer.OP_CODE)

@@ -3,26 +3,38 @@ package com.avp.wow.network.ktor.login.gs
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorPacketProcessor
-import com.avp.wow.network.ktor.LoginNioServer
 import com.avp.wow.network.ktor.login.factories.LoginGsInputPacketFactory
+import com.avp.wow.network.ktor.login.gs.output.OutInitSession
+import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
+import com.avp.wow.network.ncrypt.KeyGen
+import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
 import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
-import java.io.IOException
 import java.nio.ByteBuffer
+import javax.crypto.SecretKey
+import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
 class LoginGsConnection(
     socket: Socket,
-    nio: BaseNioService
+    nio: BaseNioService,
+    context: CoroutineContext
 ) : KtorConnection(
     socket = socket,
     nio = nio,
+    context = context,
     readBufferSize = DEFAULT_R_BUFFER_SIZE,
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
     var state = State.DEFAULT
+
+    /**
+     * Returns unique sessionId of this connection.
+     * @return SessionId
+     */
+    var sessionId = hashCode()
 
     private val processor = KtorPacketProcessor<LoginGsConnection>()
 
@@ -31,13 +43,31 @@ class LoginGsConnection(
      */
     private val sendMsgQueue = FastList<LoginGsOutputPacket>()
 
-    override suspend fun dispatchRead() {
-        read()
-    }
+    /**
+     * Scrambled key pair for RSA
+     */
+    private var encryptedRSAKeyPair: EncryptedRSAKeyPair? = null
 
-    override suspend fun dispatchWrite() {
-        write()
-    }
+    /**
+     * Return Scrambled modulus
+     * @return Scrambled modulus
+     */
+    val encryptedModulus
+        get() = encryptedRSAKeyPair?.rsaKeyPair?.public?.encoded
+            ?: throw IllegalArgumentException("RSA key was not initialized properly")
+
+    /**
+     * Return RSA private key
+     * @return rsa private key
+     */
+    val rsaPrivateKey
+        get() = encryptedRSAKeyPair?.rsaKeyPair?.private
+            ?: throw IllegalArgumentException("RSA key was not initialized properly")
+
+    /**
+     * Crypt to encrypt/decrypt packets
+     */
+    private val cryptEngine by lazy { WowCryptEngine() }
 
     override fun close(forced: Boolean) {
         TODO("Not yet implemented")
@@ -45,6 +75,24 @@ class LoginGsConnection(
 
     override fun onlyClose(): Boolean {
         TODO("Not yet implemented")
+    }
+
+    /**
+     * Decrypt packet.
+     * @param buf
+     * @return true if success
+     */
+    private fun decrypt(buf: ByteBuffer): Boolean {
+        return cryptEngine.decrypt(data = buf)
+    }
+
+    /**
+     * Encrypt packet.
+     * @param buf
+     * @return encrypted packet size.
+     */
+    fun encrypt(buf: ByteBuffer) {
+        cryptEngine.encrypt(data = buf)
     }
 
     fun sendPacket(packet: LoginGsOutputPacket) {
@@ -60,8 +108,14 @@ class LoginGsConnection(
     }
 
     override fun processData(data: ByteBuffer): Boolean {
+        if (!decrypt(data)) {
+            return false
+        }
+        if (data.remaining() < 5) { // op + static code + op == 5 bytes
+            log.error("Received fake packet from: $this")
+            return false
+        }
         val pck = LoginGsInputPacketFactory.define(data, this)
-
         /**
          * Execute packet only if packet exist (!= null) and read was ok.
          */
@@ -69,7 +123,6 @@ class LoginGsConnection(
             log.debug { "Received packet $pck from game server: $ip" }
             processor.executePacket(pck)
         }
-
         return true
     }
 
@@ -84,138 +137,15 @@ class LoginGsConnection(
         return true
     }
 
-    private suspend fun write() {
-        var numWrite: Int
-        val wb = writeBuffer
-        /**
-         * We have not writted data
-         */
-        if (wb.hasRemaining()) {
-            try {
-                numWrite = outputChannel.writeAvailable(wb)
-            } catch (e: IOException) {
-                (nio as LoginNioServer).closeConnectionImpl(this)
-                return
-            }
-            if (numWrite == 0) {
-                log.info("Write $numWrite ip: $ip")
-                return
-            }
-
-            /**
-             * Again not all data was send
-             */
-            if (wb.hasRemaining()) {
-                return
-            }
-        }
-
-        while (true) {
-            wb.clear()
-            val writeFailed = !writeData(wb)
-            if (writeFailed) {
-                wb.limit(0)
-                break
-            }
-            /**
-             * Attempt to write to the channel
-             */
-            try {
-                numWrite = outputChannel.writeAvailable(wb)
-            } catch (e: IOException) {
-                (nio as LoginNioServer).closeConnectionImpl(this)
-                return
-            }
-            if (numWrite == 0) {
-                log.info("Write $numWrite ip: $ip")
-                return
-            }
-
-            /**
-             * not all data was send
-             */
-            if (wb.hasRemaining()) {
-                return
-            }
-        }
-
-        /**
-         * We wrote all data so we can close connection that is "PandingClose"
-         */
-        if (isPendingClose) {
-            (nio as LoginNioServer).closeConnectionImpl(this)
-        }
-    }
-
-    private suspend fun read() {
-
-        val rb = readBuffer
-
-        /**
-         * Attempt to read off the channel
-         */
-        val numRead: Int = try {
-            inputChannel.readAvailable(rb)
-        } catch (e: Exception) {
-            (nio as LoginNioServer).closeConnectionImpl(this)
-            return
-        }
-
-        when (numRead) {
-            -1 -> {
-                /**
-                 * Remote entity shut the socket down cleanly. Do the same from our end and cancel the channel.
-                 */
-                (nio as LoginNioServer).closeConnectionImpl(this)
-                return
-            }
-            0 -> return
-        }
-
-        rb.flip()
-
-        while (rb.remaining() > 2 && rb.remaining() >= rb.getShort(rb.position())) {
-            /**
-             * got full message
-             */
-            if (!parse(rb)) {
-                (nio as LoginNioServer).closeConnectionImpl(this)
-                return
-            }
-        }
-
-        when {
-            rb.hasRemaining() -> readBuffer.compact()
-            else -> rb.clear()
-        }
-
-    }
-
-    private fun parse(buf: ByteBuffer): Boolean {
-        var sz: Short = 0
-        try {
-            sz = buf.short
-            if (sz > 1) {
-                sz = (sz - 2).toShort()
-            }
-            val b = buf.slice().limit(sz.toInt()) as ByteBuffer
-            //b.order(ByteOrder.LITTLE_ENDIAN)
-            /**
-             * read message fully
-             */
-            log.trace { "Pkt received with size: $sz." }
-            buf.position(buf.position() + sz)
-            return processData(b)
-        } catch (e: IllegalArgumentException) {
-            log.warn(e) { "Error on parsing input from client - account: " + this + " packet size: " + sz + " real size:" + buf.remaining() }
-            return false
-        }
-
-    }
-
     override fun initialized() {
         log.info("GameServer connection initialized from: [$ip].")
         state = State.CONNECTED
+        encryptedRSAKeyPair = KeyGen.encryptedRSAKeyPair
+        val blowfishKey: SecretKey = KeyGen.generateBlowfishKey()
+        /**
+         * Send Init packet
+         */
+        sendPacket(OutInitSession(client = this, blowfishKey = blowfishKey))
     }
 
     override val disconnectionDelay: Long
@@ -230,7 +160,7 @@ class LoginGsConnection(
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
-        TODO("Not yet implemented")
+        cryptEngine.updateKey(blowfishKey)
     }
 
     companion object {

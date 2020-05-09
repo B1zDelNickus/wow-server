@@ -1,6 +1,6 @@
 package com.avp.wow.network.ktor.login.client
 
-import com.avp.wow.network.ktor.login.client.output.OutAuthGuard
+import com.avp.wow.network.ktor.login.client.output.OutAuthClient
 import com.avp.wow.network.ktor.login.client.output.OutEnterGameServerOk
 import com.avp.wow.network.ktor.login.client.output.OutInitSession
 import com.avp.wow.network.ktor.login.client.output.OutLoginOk
@@ -18,8 +18,8 @@ object LoginClientOutputPacketsOpcodes {
             opcode = OutInitSession.OP_CODE
         ),
         addPacketOpcode(
-            packetClass = OutAuthGuard::class,
-            opcode = OutAuthGuard.OP_CODE
+            packetClass = OutAuthClient::class,
+            opcode = OutAuthClient.OP_CODE
         ),
         addPacketOpcode(
             packetClass = OutLoginOk::class,

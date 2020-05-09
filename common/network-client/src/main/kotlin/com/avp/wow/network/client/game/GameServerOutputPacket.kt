@@ -20,18 +20,16 @@ abstract class GameServerOutputPacket : BaseOutputPacket() {
 
         buffer = buf
 
-        buffer?.let { b ->
+        writeH(0)
+        writeOpCode(opCode)
+        writeImpl(con)
+        flipBuffer()
+        writeH(limitBufferSize())
 
-            b.putShort(0.toShort())
-            writeOP(opCode)
-            writeImpl(con)
-            b.flip()
-            b.putShort(buf.limit().toShort())
-            val b2 = b.slice()
-            b.position(0)
-            con.encrypt(b2)
+        val toEncrypt = sliceBuffer()
+        con.encrypt(toEncrypt)
 
-        }
+        resetBufferPosition()
 
     }
 

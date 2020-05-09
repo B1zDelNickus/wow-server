@@ -3,12 +3,12 @@ package com.avp.wow.network.ktor.login.client.input
 import com.avp.wow.network.ktor.login.client.LoginClientConnection
 import com.avp.wow.network.ktor.login.client.LoginClientConnection.Companion.State.AUTHED_GG
 import com.avp.wow.network.ktor.login.client.LoginClientInputPacket
-import com.avp.wow.network.ktor.login.client.output.OutAuthGuard
+import com.avp.wow.network.ktor.login.client.output.OutAuthClient
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-class InAuthGuard(
+class InAuthClient(
     buffer: ByteBuffer,
     client: LoginClientConnection
 ) : LoginClientInputPacket(
@@ -28,7 +28,7 @@ class InAuthGuard(
             sessionId -> {
                 connection?.state = AUTHED_GG
                 connection?.sendPacket(
-                    OutAuthGuard(
+                    OutAuthClient(
                         sessionId = sessionId
                     )
                 )

@@ -17,24 +17,30 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.crypto.SecretKey
+import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
 class LoginServerConnection(
     socket: Socket,
-    nio: BaseNioService
+    nio: BaseNioService,
+    context: CoroutineContext
 ) : KtorConnection(
     socket = socket,
     nio = nio,
+    context = context,
     readBufferSize = DEFAULT_R_BUFFER_SIZE,
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
-    //private var cryptEnabled: Boolean = false
-
     var state = State.DEFAULT
 
+    /**
+     * Returns unique sessionId of this connection.
+     * @return SessionId
+     */
     var sessionId = 0
     var publicRsa: ByteArray? = null
+
     var accountId = 0L
     var loginOk = 0
     var playOk1 = 0
@@ -55,23 +61,12 @@ class LoginServerConnection(
      */
     private var encryptedRSAKeyPair: EncryptedRSAKeyPair? = null
 
-    override suspend fun dispatchRead() { read() }
-
-    override suspend fun dispatchWrite() { write() }
-
     /**
      * Decrypt packet.
      * @param buf
      * @return true if success
      */
     private fun decrypt(buf: ByteBuffer): Boolean {
-        /*val size = buf.remaining()
-        val offset = buf.arrayOffset() + buf.position()
-        val ret = cryptEngine?.decrypt(buf.array(), offset, size)
-            ?: throw IllegalArgumentException("Crypt Engine was not initialized properly")
-        if (!ret) { log.warn { "Wrong checksum from server: $this" } }
-        return ret
-        //return true*/
         return cryptEngine.decrypt(data = buf)
     }
 
@@ -81,143 +76,7 @@ class LoginServerConnection(
      * @return encrypted packet size.
      */
     fun encrypt(buf: ByteBuffer) {
-        /*var size = buf.limit() - 2
-        val offset = buf.arrayOffset() + buf.position()
-        size = cryptEngine?.encrypt(buf.array(), offset, size)
-            ?:  throw IllegalArgumentException("Crypt Engine was not initialized properly")
-        return size
-        //return buf.limit()*/
         cryptEngine.encrypt(data = buf)
-    }
-
-    private suspend fun write() {
-        var numWrite: Int
-        val wb = writeBuffer
-        /**
-         * We have not writted data
-         */
-        if (wb.hasRemaining()) {
-            try {
-                numWrite = outputChannel.writeAvailable(wb)
-            } catch (e: IOException) {
-                //(nio as KtorNioClient).closeConnectionImpl(this) TODO
-                return
-            }
-            if (numWrite == 0) {
-                log.info("Write $numWrite ip: $ip")
-                return
-            }
-
-            /**
-             * Again not all data was send
-             */
-            if (wb.hasRemaining()) {
-                return
-            }
-        }
-
-        while (true) {
-            wb.clear()
-            val writeFailed = !writeData(wb)
-            if (writeFailed) {
-                wb.limit(0)
-                break
-            }
-            /**
-             * Attempt to write to the channel
-             */
-            try {
-                numWrite = outputChannel.writeAvailable(wb)
-            } catch (e: IOException) {
-                //(nio as KtorNioServer).closeConnectionImpl(this) TODO
-                return
-            }
-            if (numWrite == 0) {
-                log.info("Write $numWrite ip: $ip")
-                return
-            }
-
-            /**
-             * not all data was send
-             */
-            if (wb.hasRemaining()) {
-                return
-            }
-        }
-
-        /**
-         * We wrote all data so we can close connection that is "PandingClose"
-         */
-        if (isPendingClose) {
-            // (nio as KtorNioServer).closeConnectionImpl(this) TODO
-        }
-    }
-
-    private suspend fun read() {
-
-        val rb = readBuffer
-        /**
-         * Attempt to read off the channel
-         */
-        val numRead: Int = try {
-            inputChannel.readAvailable(rb)
-        } catch (e: Exception) {
-            // (nio as KtorNioServer).closeConnectionImpl(this) TODO
-            return
-        }
-
-        when (numRead) {
-            -1 -> {
-                /**
-                 * Remote entity shut the socket down cleanly. Do the same from our end and cancel the channel.
-                 */
-                // (nio as KtorNioServer).closeConnectionImpl(this) TODO
-                return
-            }
-            0 -> return
-        }
-
-        rb.flip()
-
-        while (rb.remaining() > 2 && rb.remaining() >= rb.getShort(rb.position())) {
-            /**
-             * got full message
-             */
-            if (!parse(rb)) {
-                // (nio as KtorNioServer).closeConnectionImpl(this) TODO
-                return
-            }
-        }
-
-        when {
-            rb.hasRemaining() -> readBuffer.compact()
-            else -> rb.clear()
-        }
-
-    }
-
-    private fun parse(buf: ByteBuffer): Boolean {
-        var sz: Short = 0
-        try {
-            sz = buf.short
-            if (sz > 1) {
-                sz = (sz - 2).toShort()
-            }
-            val b = buf.slice().limit(sz.toInt()) as ByteBuffer
-            /*if (cryptEnabled) b.order(ByteOrder.LITTLE_ENDIAN)
-            else b.order(ByteOrder.BIG_ENDIAN)*/
-            //b.order(ByteOrder.LITTLE_ENDIAN)
-            /**
-             * read message fully
-             */
-            log.trace { "Pkt received with size: $sz." }
-            buf.position(buf.position() + sz)
-            return processData(b)
-        } catch (e: IllegalArgumentException) {
-            log.warn(e) { "Error on parsing input from client - account: " + this + " packet size: " + sz + " real size:" + buf.remaining() }
-            return false
-        }
-
     }
 
     override fun close(forced: Boolean) {
@@ -229,11 +88,13 @@ class LoginServerConnection(
     }
 
     override fun processData(data: ByteBuffer): Boolean {
-        println(data.array().map { it.toInt() }.joinToString(":"))
         if (!decrypt(data)) {
             return false
         }
-        println(data.array().map { it.toInt() }.joinToString(":"))
+        if (data.remaining() < 5) { // op + static code + op == 5 bytes
+            log.error("Received fake packet from: $this")
+            return false
+        }
         val pck = LoginServerInputPacketFactory.define(data, this)
         /**
          * Execute packet only if packet exist (!= null) and read was ok.

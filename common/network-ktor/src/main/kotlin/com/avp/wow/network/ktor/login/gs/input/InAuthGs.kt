@@ -6,7 +6,7 @@ import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-class InGsAuth(
+class InAuthGs(
     buffer: ByteBuffer,
     client: LoginGsConnection
 ) : LoginGsInputPacket(
@@ -15,8 +15,10 @@ class InGsAuth(
     buffer = buffer
 ) {
 
-    override fun readImpl() {
+    private var sessionId = 0
 
+    override fun readImpl() {
+        sessionId = readD()
     }
 
     override suspend fun runImpl() {
@@ -24,6 +26,6 @@ class InGsAuth(
     }
 
     companion object {
-        const val OP_CODE = 0x01
+        const val OP_CODE = 0x02
     }
 }

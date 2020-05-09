@@ -36,7 +36,7 @@ class KtxNioServer(
     var isUp = false
 
     @Throws(Error::class)
-    override fun connect() {
+    override fun start() {
 
         //scope.launch {
 

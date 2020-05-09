@@ -1,25 +1,23 @@
 package com.avp.wow.network.client
 
+import com.avp.wow.network.BaseConnection
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorConnectionConfig
 import com.avp.wow.network.client.login.LoginServerConnection
 import com.avp.wow.network.client.login.output.OutLogin
 import io.ktor.network.selector.ActorSelectorManager
-import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.aSocket
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import mu.KotlinLogging
-import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
 class KtorNioClient(
-    private val loginServerConfig: KtorConnectionConfig,
+    private val clientLsConfig: KtorConnectionConfig,
     context: CoroutineContext = Dispatchers.IO
 ) : BaseNioService() {
 
@@ -31,13 +29,13 @@ class KtorNioClient(
     private var gameServerConnection: KtorConnection? = null
 
     override val activeConnectionsCount: Int
-        get() = listOfNotNull(loginServerConfig, gameServerConnection).size
+        get() = listOfNotNull(clientLsConfig, gameServerConnection).size
 
     /**
      * Open connections to configured servers
      */
     @Throws(Error::class)
-    override fun connect() {
+    override fun start() {
         /**
          * Main connect coroutine
          */
@@ -48,16 +46,23 @@ class KtorNioClient(
              */
             try {
 
-                log.info { "Connecting to Login Server - $loginServerConfig" }
+                log.info { "Connecting to Login Server - $clientLsConfig" }
 
                 val socket = aSocket(selector = selector)
                     .tcp()
-                    .connect(hostname = loginServerConfig.hostName, port = loginServerConfig.port)
+                    .connect(
+                        hostname = clientLsConfig.hostName,
+                        port = clientLsConfig.port
+                    )
 
                 log.info { "Connected to ${socket.remoteAddress}" }
 
                 loginServerConnection =
-                    loginServerConfig.factory.create(socket = socket, nio = this@KtorNioClient)
+                    clientLsConfig.factory.create(
+                        socket = socket,
+                        nio = this@KtorNioClient,
+                        context = scope.coroutineContext
+                    )
 
                 launch {
 
@@ -92,12 +97,19 @@ class KtorNioClient(
 
                 val socket = aSocket(selector = selector)
                     .tcp()
-                    .connect(hostname = gameServerConfig.hostName, port = gameServerConfig.port)
+                    .connect(
+                        hostname = gameServerConfig.hostName,
+                        port = gameServerConfig.port
+                    )
 
                 log.info { "Connected to ${socket.remoteAddress}" }
 
                 gameServerConnection =
-                    gameServerConfig.factory.create(socket = socket, nio = this@KtorNioClient)
+                    gameServerConfig.factory.create(
+                        socket = socket,
+                        nio = this@KtorNioClient,
+                        context = scope.coroutineContext
+                    )
 
                 launch {
 
@@ -135,8 +147,12 @@ class KtorNioClient(
         TODO("Not yet implemented")
     }
 
-    fun closeConnectionImpl(connection: KtorConnection) {
-        // todo place into connection with syncronization
+    override fun closeConnection(connection: BaseConnection) {
+        TODO("Not yet implemented")
+    }
+
+    override fun removeConnection(connection: BaseConnection) {
+        TODO("Not yet implemented")
     }
 
     fun login(login: String, password: String) {

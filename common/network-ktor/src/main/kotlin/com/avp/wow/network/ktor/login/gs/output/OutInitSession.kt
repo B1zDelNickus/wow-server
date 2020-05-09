@@ -1,8 +1,10 @@
-package com.avp.wow.network.ktor.game.client.output
+package com.avp.wow.network.ktor.login.gs.output
 
 import com.avp.wow.network.BaseConnection
-import com.avp.wow.network.ktor.game.client.GameClientConnection
-import com.avp.wow.network.ktor.game.client.GameClientOutputPacket
+import com.avp.wow.network.ktor.login.client.LoginClientOutputPacket
+import com.avp.wow.network.ktor.login.client.LoginClientConnection
+import com.avp.wow.network.ktor.login.gs.LoginGsConnection
+import com.avp.wow.network.ktor.login.gs.LoginGsOutputPacket
 import io.ktor.util.KtorExperimentalAPI
 import javax.crypto.SecretKey
 
@@ -11,15 +13,15 @@ class OutInitSession(
     private val sessionId: Int,
     private val publicRsaKey: ByteArray,
     private val blowfishKey: ByteArray
-) : GameClientOutputPacket() {
+) : LoginGsOutputPacket() {
 
-    constructor(client: GameClientConnection, blowfishKey: SecretKey) : this(
+    constructor(client: LoginGsConnection, blowfishKey: SecretKey) : this(
         sessionId = client.sessionId,
         publicRsaKey = client.encryptedModulus,
         blowfishKey = blowfishKey.encoded
     )
 
-    override fun writeImpl(con: GameClientConnection) {
+    override fun writeImpl(con: LoginGsConnection) {
         writeD(sessionId) // session id
         writeB(publicRsaKey) // RSA Public Key
         writeB(blowfishKey) // BlowFish key

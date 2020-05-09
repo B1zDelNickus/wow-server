@@ -15,7 +15,7 @@ abstract class BaseNioService {
      */
     abstract val activeConnectionsCount: Int
 
-    abstract fun connect()
+    abstract fun start()
 
     fun shutdown() {
 
@@ -83,5 +83,9 @@ abstract class BaseNioService {
      * Close all active connections.
      */
     protected abstract fun closeAll()
+
+    abstract fun closeConnection(connection: BaseConnection)
+
+    abstract fun removeConnection(connection: BaseConnection)
 
 }

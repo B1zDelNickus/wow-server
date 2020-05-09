@@ -1,20 +1,12 @@
-package com.avp.wow.network.client.login.input
+package com.avp.wow.network.client.game.input
 
-import com.avp.wow.network.client.login.LoginServerConnection
-import com.avp.wow.network.client.login.LoginServerInputPacket
-import com.avp.wow.network.client.login.output.OutAuthClient
+import com.avp.wow.network.client.game.GameServerConnection.Companion.State
+import com.avp.wow.network.client.game.GameServerInputPacket
+import com.avp.wow.network.client.game.output.OutAuthClient
 import io.ktor.util.KtorExperimentalAPI
-import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-class InInitSession(
-    buffer: ByteBuffer,
-    server: LoginServerConnection
-) : LoginServerInputPacket(
-    opCode = OP_CODE,
-    server = server,
-    buffer = buffer
-) {
+class InInitSession(vararg states: State) : GameServerInputPacket(OP_CODE, states.toList()) {
 
     private var sessionId: Int = 0
     private var publicRsaKey: ByteArray? = null
@@ -36,5 +28,4 @@ class InInitSession(
     companion object {
         const val OP_CODE = 0x01
     }
-
 }

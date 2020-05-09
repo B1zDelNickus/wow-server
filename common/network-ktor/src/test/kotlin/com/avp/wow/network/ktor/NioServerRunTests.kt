@@ -1,8 +1,5 @@
 package com.avp.wow.network.ktor
 
-import com.avp.wow.network.BaseNioService
-import com.avp.wow.network.IKtorConnectionFactory
-import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorConnectionConfig
 import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_CLIENT_HOST
 import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_CLIENT_PORT
@@ -16,7 +13,6 @@ import com.avp.wow.network.ktor.login.client.LoginClientConnectionFactory
 import com.avp.wow.network.ktor.login.gs.LoginGsConnectionFactory
 import com.avp.wow.network.ncrypt.KeyGen
 import io.kotlintest.specs.StringSpec
-import io.ktor.network.sockets.Socket
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -50,7 +46,7 @@ class NioServerRunTests : StringSpec({
             context = Dispatchers.IO
         )
 
-        loginServer.connect()
+        loginServer.start()
 
         delay(3_000)
 
@@ -61,9 +57,15 @@ class NioServerRunTests : StringSpec({
             factory = GameClientConnectionFactory()
         )
 
-        val gameServer = GameNioServer(
+        val gameServerLsConfig = KtorConnectionConfig(
             hostName = DEFAULT_LOGIN_SERVER_GS_HOST,
             port = DEFAULT_LOGIN_SERVER_GS_PORT,
+            connectionName = "",
+            factory = GameClientConnectionFactory()
+        )
+
+        val gameServer = GameNioServer(
+            gameLsConfig = gameServerLsConfig,
             gameClientConfig = gameServerClientConfig
         )
 
@@ -71,16 +73,18 @@ class NioServerRunTests : StringSpec({
 
         delay(3_000)*/
 
+        val clientLsConfig = KtorConnectionConfig(
+            hostName = DEFAULT_LOGIN_SERVER_CLIENT_HOST,
+            port = DEFAULT_LOGIN_SERVER_CLIENT_PORT,
+            connectionName = "Test Login Server Connection",
+            factory = LoginServerConnectionFactory()
+        )
+
         val client = KtorNioClient(
-            loginServerConfig = KtorConnectionConfig(
-                hostName = DEFAULT_LOGIN_SERVER_CLIENT_HOST,
-                port = DEFAULT_LOGIN_SERVER_CLIENT_PORT,
-                connectionName = "Test Login Server Connection",
-                factory = LoginServerConnectionFactory()
-            )
+            clientLsConfig = clientLsConfig
         ).apply {
 
-            connect()
+            start()
 
             //delay(1_000) // wait auth gg operations
 

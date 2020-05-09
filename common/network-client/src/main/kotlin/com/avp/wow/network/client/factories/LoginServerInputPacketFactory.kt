@@ -3,7 +3,7 @@ package com.avp.wow.network.client.factories
 import com.avp.wow.network.client.login.LoginServerConnection
 import com.avp.wow.network.client.login.LoginServerConnection.Companion.State
 import com.avp.wow.network.client.login.LoginServerInputPacket
-import com.avp.wow.network.client.login.input.InAuthGuard
+import com.avp.wow.network.client.login.input.InAuthClient
 import com.avp.wow.network.client.login.input.InEnterGameServerOk
 import com.avp.wow.network.client.login.input.InInitSession
 import com.avp.wow.network.client.login.input.InLoginOk
@@ -33,7 +33,7 @@ object LoginServerInputPacketFactory {
             State.CONNECTED -> {
                 when (id) {
                     InInitSession.OP_CODE -> { msg = InInitSession(data, server) }
-                    InAuthGuard.OP_CODE -> { msg = InAuthGuard(data, server) }
+                    InAuthClient.OP_CODE -> { msg = InAuthClient(data, server) }
                     0x08 -> {
                         //msg = CM_UPDATE_SESSION(data, client)
                     }

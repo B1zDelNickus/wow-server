@@ -1,5 +1,6 @@
 package com.avp.wow.network.ktor.game
 
+import com.avp.wow.network.BaseConnection
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorConnectionConfig
@@ -16,8 +17,7 @@ import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
 class GameNioServer(
-    private val hostName: String,
-    private val port: Int,
+    private val gameLsConfig: KtorConnectionConfig,
     private val gameClientConfig: KtorConnectionConfig,
     context: CoroutineContext = Dispatchers.IO
 ) : BaseNioService() {
@@ -29,7 +29,7 @@ class GameNioServer(
     override val activeConnectionsCount: Int
         get() = TODO("Not yet implemented")
 
-    override fun connect() {
+    override fun start() {
 
         scope.launch {
 
@@ -45,11 +45,18 @@ class GameNioServer(
 
                     val loginSocket = aSocket(selector = selector)
                         .tcp()
-                        .connect(hostname = hostName, port = port)
+                        .connect(
+                            hostname = gameLsConfig.hostName,
+                            port = gameLsConfig.port
+                        )
 
                     log.info { "Connected to Login Server by address: ${loginSocket.remoteAddress}" }
 
-                    loginServerConnection = GameLsConnection(socket = loginSocket, nio = this@GameNioServer)
+                    loginServerConnection = gameLsConfig.factory.create(
+                        socket = loginSocket,
+                        nio = this@GameNioServer,
+                        context = scope.coroutineContext
+                    ) as GameLsConnection
 
                     //launch {
 
@@ -93,7 +100,11 @@ class GameNioServer(
                         launch {
 
                             val connection =
-                                gameClientConfig.factory.create(socket = clientSocket, nio = this@GameNioServer)
+                                gameClientConfig.factory.create(
+                                    socket = clientSocket,
+                                    nio = this@GameNioServer,
+                                    context = scope.coroutineContext
+                                )
 
                             launch { connection.startReadDispatching() }
 
@@ -128,11 +139,12 @@ class GameNioServer(
         TODO("Not yet implemented")
     }
 
-    fun closeConnectionImpl(connection: KtorConnection) {
-        if (connection.onlyClose()) {
-            scope.launch {
-                connection.onDisconnect()
-            }
-        }
+    override fun closeConnection(connection: BaseConnection) {
+        TODO("Not yet implemented")
     }
+
+    override fun removeConnection(connection: BaseConnection) {
+        TODO("Not yet implemented")
+    }
+
 }

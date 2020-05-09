@@ -5,23 +5,11 @@ import com.avp.wow.network.packet.BaseInputPacket
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
 
-
 @KtorExperimentalAPI
 abstract class GameClientInputPacket(
     opCode: Int,
-    client: GameClientConnection,
-    buffer: ByteBuffer,
-    vararg states: State
-) : BaseInputPacket<GameClientConnection>(
-    opCode = opCode,
-    buffer = buffer
-), Cloneable {
-
-    private val states = states.toList()
-
-    init {
-        connection = client
-    }
+    private var states: List<State>
+) : BaseInputPacket<GameClientConnection>(opCode = opCode), Cloneable {
 
     override suspend fun run() {
         try {

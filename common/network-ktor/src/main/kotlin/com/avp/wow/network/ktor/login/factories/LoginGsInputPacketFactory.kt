@@ -3,7 +3,7 @@ package com.avp.wow.network.ktor.login.factories
 import com.avp.wow.network.ktor.login.gs.LoginGsConnection.Companion.State
 import com.avp.wow.network.ktor.login.gs.LoginGsConnection
 import com.avp.wow.network.ktor.login.gs.LoginGsInputPacket
-import com.avp.wow.network.ktor.login.gs.input.InGsAuth
+import com.avp.wow.network.ktor.login.gs.input.InAuthGs
 import io.ktor.util.KtorExperimentalAPI
 import mu.KotlinLogging
 import java.nio.ByteBuffer
@@ -26,7 +26,7 @@ object LoginGsInputPacketFactory {
         when (state) {
             State.CONNECTED -> {
                 when (id) {
-                    InGsAuth.OP_CODE -> { msg = InGsAuth(data, client) }
+                    InAuthGs.OP_CODE -> { msg = InAuthGs(data, client) }
                     else -> {
                         unknownPacket(
                             state,

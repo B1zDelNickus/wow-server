@@ -7,41 +7,70 @@ import com.avp.wow.network.ktor.game.client.output.OutInitSession
 import com.avp.wow.network.ktor.game.factories.GameClientInputPacketFactory
 import com.avp.wow.network.ktor.login.client.LoginClientOutputPacket
 import com.avp.wow.network.ncrypt.Crypt
+import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
+import com.avp.wow.network.ncrypt.KeyGen
+import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
 import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
 import java.io.IOException
 import java.nio.ByteBuffer
+import javax.crypto.SecretKey
+import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
 class GameClientConnection(
     socket: Socket,
-    nio: BaseNioService
+    nio: BaseNioService,
+    context: CoroutineContext
 ) : KtorConnection(
     socket = socket,
     nio = nio,
+    context = context,
     readBufferSize = DEFAULT_R_BUFFER_SIZE,
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
     var state = State.DEFAULT
 
-    private val crypt = Crypt(isClientSide = false)
+    /**
+     * Returns unique sessionId of this connection.
+     * @return SessionId
+     */
+    var sessionId = hashCode()
+    var publicRsa: ByteArray? = null
 
     /**
      * Server Packet "to send" Queue
      */
     private val sendMsgQueue = FastList<GameClientOutputPacket>()
 
+    /**
+     * Crypt to encrypt/decrypt packets
+     */
+    private val cryptEngine by lazy { WowCryptEngine() }
+
+    /**
+     * Scrambled key pair for RSA
+     */
+    private var encryptedRSAKeyPair: EncryptedRSAKeyPair? = null
+    /**
+     * Return Scrambled modulus
+     * @return Scrambled modulus
+     */
+    val encryptedModulus
+        get() = encryptedRSAKeyPair?.rsaKeyPair?.public?.encoded
+            ?: throw IllegalArgumentException("RSA key was not initialized properly")
+
+    /**
+     * Return RSA private key
+     * @return rsa private key
+     */
+    val rsaPrivateKey
+        get() = encryptedRSAKeyPair?.rsaKeyPair?.private
+            ?: throw IllegalArgumentException("RSA key was not initialized properly")
+
     private val inputPacketHandler = GameClientInputPacketFactory.packetHandler
-
-    override suspend fun dispatchRead() {
-        read()
-    }
-
-    override suspend fun dispatchWrite() {
-        write()
-    }
 
     override fun close(forced: Boolean) {
         TODO("Not yet implemented")
@@ -51,7 +80,23 @@ class GameClientConnection(
         TODO("Not yet implemented")
     }
 
-    fun encrypt(buf: ByteBuffer) { crypt.encrypt(buf) }
+    /**
+     * Decrypt packet.
+     * @param buf
+     * @return true if success
+     */
+    private fun decrypt(buf: ByteBuffer): Boolean {
+        return cryptEngine.decrypt(data = buf)
+    }
+
+    /**
+     * Encrypt packet.
+     * @param buf
+     * @return encrypted packet size.
+     */
+    fun encrypt(buf: ByteBuffer) {
+        cryptEngine.encrypt(data = buf)
+    }
 
     fun sendPacket(packet: GameClientOutputPacket) {
         log.debug { "Sending $packet" }
@@ -68,7 +113,7 @@ class GameClientConnection(
 
     override fun processData(data: ByteBuffer): Boolean {
         try {
-            if (!crypt.decrypt(data)) {
+            if (!cryptEngine.decrypt(data)) {
                 log.debug { "Decrypt fail, client packet passed..." }
                 return true
             }
@@ -117,147 +162,12 @@ class GameClientConnection(
         }
     }
 
-    private suspend fun write() {
-
-        var numWrite: Int
-        val wb = writeBuffer
-        /**
-         * We have not writted data
-         */
-        if (wb.hasRemaining()) {
-            try {
-                numWrite = outputChannel.writeAvailable(wb)
-            } catch (e: IOException) {
-                (nio as GameNioServer).closeConnectionImpl(this)
-                return
-            }
-            if (numWrite == 0) {
-                log.info("Write $numWrite ip: $ip")
-                return
-            }
-
-            /**
-             * Again not all data was send
-             */
-            if (wb.hasRemaining()) {
-                return
-            }
-        }
-
-        while (true) {
-            wb.clear()
-            val writeFailed = !writeData(wb)
-            if (writeFailed) {
-                wb.limit(0)
-                break
-            }
-            /**
-             * Attempt to write to the channel
-             */
-            try {
-                numWrite = outputChannel.writeAvailable(wb)
-            } catch (e: IOException) {
-                (nio as GameNioServer).closeConnectionImpl(this)
-                return
-            }
-            if (numWrite == 0) {
-                log.info("Write $numWrite ip: $ip")
-                return
-            }
-
-            /**
-             * not all data was send
-             */
-            if (wb.hasRemaining()) {
-                return
-            }
-        }
-
-        /**
-         * We wrote all data so we can close connection that is "PandingClose"
-         */
-        if (isPendingClose) {
-            (nio as GameNioServer).closeConnectionImpl(this)
-        }
-    }
-
-    private suspend fun read() {
-
-        val rb = readBuffer
-
-        /**
-         * Attempt to read off the channel
-         */
-        val numRead: Int = try {
-            inputChannel.readAvailable(rb)
-        } catch (e: Exception) {
-            (nio as GameNioServer).closeConnectionImpl(this)
-            return
-        }
-
-        when (numRead) {
-            -1 -> {
-                /**
-                 * Remote entity shut the socket down cleanly. Do the same from our end and cancel the channel.
-                 */
-                (nio as GameNioServer).closeConnectionImpl(this)
-                return
-            }
-            0 -> return
-        }
-
-        rb.flip()
-
-        while (rb.remaining() > 2 && rb.remaining() >= rb.getShort(rb.position())) {
-            /**
-             * got full message
-             */
-            if (!parse(rb)) {
-                (nio as GameNioServer).closeConnectionImpl(this)
-                return
-            }
-        }
-
-        when {
-            rb.hasRemaining() -> readBuffer.compact()
-            else -> rb.clear()
-        }
-
-    }
-
-    /**
-     * Parse data from buffer and prepare buffer for reading just one packet - call processData(ByteBuffer b).
-     * @param con Connection
-     * @param buf Buffer with packet data
-     * @return True if packet was parsed.
-     */
-    private fun parse(buf: ByteBuffer): Boolean {
-        var sz: Short = 0
-        try {
-            sz = buf.short
-            if (sz > 1) {
-                sz = (sz - 2).toShort()
-            }
-            val b = buf.slice().limit(sz.toInt()) as ByteBuffer
-            //b.order(ByteOrder.LITTLE_ENDIAN)
-            /**
-             * read message fully
-             */
-            log.trace { "Pkt received with size: $sz." }
-            buf.position(buf.position() + sz)
-            return processData(b)
-        } catch (e: IllegalArgumentException) {
-            log.warn(e) { "Error on parsing input from client - account: " + this + " packet size: " + sz + " real size:" + buf.remaining() }
-            return false
-        }
-
-    }
-
     override fun initialized() {
         log.debug { "Accepted client from: [$ip]." }
         state = State.CONNECTED
-        val encryptionKey = crypt.enableKey()
-        sendPacket(OutInitSession(encryptionKey = encryptionKey))
+        encryptedRSAKeyPair = KeyGen.encryptedRSAKeyPair
+        val blowfishKey: SecretKey = KeyGen.generateBlowfishKey()
+        sendPacket(OutInitSession(client = this, blowfishKey = blowfishKey))
     }
 
     override val disconnectionDelay: Long
@@ -272,7 +182,7 @@ class GameClientConnection(
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
-        TODO("Not yet implemented")
+        cryptEngine.updateKey(blowfishKey)
     }
 
     companion object {

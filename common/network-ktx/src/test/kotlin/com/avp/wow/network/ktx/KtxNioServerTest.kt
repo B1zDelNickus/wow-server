@@ -36,7 +36,7 @@ class KtxNioServerTest : StringSpec({
             context = Dispatchers.IO
         )
 
-        server.connect()
+        server.start()
 
         delay(10_000)
 
@@ -59,7 +59,7 @@ class KtxNioServerTest : StringSpec({
             )
         )
 
-        client.connect()
+        client.start()
 
         delay(3_000)
 
