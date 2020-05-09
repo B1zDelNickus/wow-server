@@ -7,7 +7,7 @@ import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-class InAuthClient(
+class InAuthClientOk(
     buffer: ByteBuffer,
     server: LoginServerConnection
 ) : LoginServerInputPacket(

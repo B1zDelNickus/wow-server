@@ -1,6 +1,7 @@
 package com.avp.wow.network.ktor.login.gs.input
 
 import com.avp.wow.network.ktor.login.gs.LoginGsConnection
+import com.avp.wow.network.ktor.login.gs.LoginGsConnection.Companion.State.AUTHED
 import com.avp.wow.network.ktor.login.gs.LoginGsInputPacket
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
@@ -23,6 +24,18 @@ class InAuthGs(
 
     override suspend fun runImpl() {
         log.debug { "RECEIVED GS AUTH PACKET!" }
+        connection?.let { con ->
+            when (con.sessionId) {
+                sessionId -> {
+                    con.state = AUTHED
+
+                }
+                else -> {
+
+                }
+            }
+        }
+
     }
 
     companion object {

@@ -1,8 +1,8 @@
 package com.avp.wow.network.ktor.login.client
 
-import com.avp.wow.network.ktor.login.client.output.OutAuthClient
+import com.avp.wow.network.ktor.login.client.output.OutAuthClientOk
 import com.avp.wow.network.ktor.login.client.output.OutEnterGameServerOk
-import com.avp.wow.network.ktor.login.client.output.OutInitSession
+import com.avp.wow.network.ktor.login.client.output.OutInitSessionOk
 import com.avp.wow.network.ktor.login.client.output.OutLoginOk
 import io.ktor.util.KtorExperimentalAPI
 import kotlin.reflect.KClass
@@ -14,12 +14,12 @@ object LoginClientOutputPacketsOpcodes {
 
     private val opCodes = mutableMapOf(
         addPacketOpcode(
-            packetClass = OutInitSession::class,
-            opcode = OutInitSession.OP_CODE
+            packetClass = OutInitSessionOk::class,
+            opcode = OutInitSessionOk.OP_CODE
         ),
         addPacketOpcode(
-            packetClass = OutAuthClient::class,
-            opcode = OutAuthClient.OP_CODE
+            packetClass = OutAuthClientOk::class,
+            opcode = OutAuthClientOk.OP_CODE
         ),
         addPacketOpcode(
             packetClass = OutLoginOk::class,

@@ -1,6 +1,6 @@
 package com.avp.wow.network.ktor.game.ls
 
-import com.avp.wow.network.ktor.game.ls.output.OutAuthGs
+import com.avp.wow.network.ktor.game.ls.output.OutAuthGsOk
 import io.ktor.util.KtorExperimentalAPI
 import kotlin.reflect.KClass
 
@@ -10,7 +10,7 @@ object GameLsOutputPacketsOpcodes {
     private val idSet = mutableSetOf<Int>()
 
     private val opCodes = mutableMapOf(
-        addPacketOpcode(packetClass = OutAuthGs::class, opcode = OutAuthGs.OP_CODE)
+        addPacketOpcode(packetClass = OutAuthGsOk::class, opcode = OutAuthGsOk.OP_CODE)
     )
 
     fun getOpcode(packetClass: KClass<out GameLsOutputPacket>): Int {

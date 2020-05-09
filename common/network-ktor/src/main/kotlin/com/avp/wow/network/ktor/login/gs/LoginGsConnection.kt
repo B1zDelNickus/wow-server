@@ -183,7 +183,12 @@ class LoginGsConnection(
             /**
              * GameServer is authenticated
              */
-            AUTHED;
+            AUTHED,
+
+            /**
+             * GameServer is registered
+             */
+            REGISTERED;
 
             companion object {
 

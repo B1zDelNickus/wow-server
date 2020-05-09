@@ -6,12 +6,10 @@ import io.ktor.util.KtorExperimentalAPI
 import javax.crypto.SecretKey
 
 @KtorExperimentalAPI
-class OutAuthClient(
-    private val sessionId: Int
-) : LoginClientOutputPacket() {
+class OutAuthClientOk : LoginClientOutputPacket() {
 
     override fun writeImpl(con: LoginClientConnection) {
-        writeD(sessionId) // session id
+        writeD(con.sessionId) // session id
     }
 
     companion object {

@@ -2,7 +2,7 @@ package com.avp.wow.network.ktor.game.ls.input
 
 import com.avp.wow.network.ktor.game.ls.GameLsConnection
 import com.avp.wow.network.ktor.game.ls.GameLsInputPacket
-import com.avp.wow.network.ktor.game.ls.output.OutAuthGs
+import com.avp.wow.network.ktor.game.ls.output.OutAuthGsOk
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
 
@@ -30,7 +30,7 @@ class InInitSession(
         connection?.enableEncryption(blowfishKey!!)
         connection?.sessionId = sessionId
         connection?.publicRsa = publicRsaKey
-        connection?.sendPacket(OutAuthGs())
+        connection?.sendPacket(OutAuthGsOk())
     }
 
     companion object {
