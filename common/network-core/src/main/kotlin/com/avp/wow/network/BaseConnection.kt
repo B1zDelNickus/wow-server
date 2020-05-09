@@ -111,14 +111,14 @@ abstract class BaseConnection(
      * @param data
      * @return True if data was processed correctly, False if some error occurred and connection should be closed NOW.
      */
-    protected abstract fun processData(data: ByteBuffer): Boolean
+    abstract fun processData(data: ByteBuffer): Boolean
 
     /**
      * This method will be called by Dispatcher, and will be repeated till return false.
      * @param data
      * @return True if data was written to buffer, False indicating that there are not any more data to write.
      */
-    protected abstract fun writeData(data: ByteBuffer): Boolean
+    abstract fun writeData(data: ByteBuffer): Boolean
 
     protected abstract suspend fun write()
     protected abstract suspend fun read()
