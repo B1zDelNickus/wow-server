@@ -17,9 +17,9 @@ class OutEnterGameServerOk(
 
         writeD(con.sessionKey!!.playOk1)
         writeD(con.sessionKey!!.playOk2)
-        writeQ(1) // server ID
-        writeB(server.serverIp)
-        writeD(server.serverPort)
+        writeC(server.id) // server ID
+        writeS(server.host)
+        writeH(server.port)
 
     }
 

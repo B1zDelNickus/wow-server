@@ -4,7 +4,7 @@ import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorPacketProcessor
 import com.avp.wow.network.ktor.game.factories.GameLsInputPacketFactory
-import com.avp.wow.network.ktor.game.ls.output.OutAuthGsOk
+import com.avp.wow.network.ktor.game.ls.output.OutAuthGs
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
 import io.ktor.util.KtorExperimentalAPI
@@ -121,7 +121,7 @@ class GameLsConnection(
         /**
          * send first packet - authentication.
          */
-        sendPacket(OutAuthGsOk())
+        sendPacket(OutAuthGs())
     }
 
     override val disconnectionDelay: Long
@@ -159,7 +159,12 @@ class GameLsConnection(
             /**
              * GameServer is authenticated
              */
-            AUTHED;
+            AUTHED,
+
+            /**
+             * GameServer is registered
+             */
+            REGISTERED;
 
             companion object {
 

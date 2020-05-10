@@ -1,6 +1,8 @@
 package com.avp.wow.network.ktor.login.gs
 
+import com.avp.wow.network.ktor.login.gs.output.OutAuthGsOk
 import com.avp.wow.network.ktor.login.gs.output.OutInitSession
+import com.avp.wow.network.ktor.login.gs.output.OutRegisterGsOk
 import io.ktor.util.KtorExperimentalAPI
 import kotlin.reflect.KClass
 
@@ -10,7 +12,9 @@ object LoginGsOutputPacketsOpcodes {
     private val idSet = mutableSetOf<Int>()
 
     private val opCodes = mutableMapOf(
-        addPacketOpcode(packetClass = OutInitSession::class, opcode = OutInitSession.OP_CODE)
+        addPacketOpcode(packetClass = OutInitSession::class, opcode = OutInitSession.OP_CODE),
+        addPacketOpcode(packetClass = OutAuthGsOk::class, opcode = OutAuthGsOk.OP_CODE),
+        addPacketOpcode(packetClass = OutRegisterGsOk::class, opcode = OutRegisterGsOk.OP_CODE)
     )
 
     fun getOpcode(packetClass: KClass<out LoginGsOutputPacket>): Int {

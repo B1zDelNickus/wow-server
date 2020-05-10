@@ -4,6 +4,7 @@ import com.avp.wow.network.ktor.login.gs.LoginGsConnection.Companion.State
 import com.avp.wow.network.ktor.login.gs.LoginGsConnection
 import com.avp.wow.network.ktor.login.gs.LoginGsInputPacket
 import com.avp.wow.network.ktor.login.gs.input.InAuthGs
+import com.avp.wow.network.ktor.login.gs.input.InRegisterGs
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.util.KtorExperimentalAPI
 import mu.KotlinLogging
@@ -29,26 +30,25 @@ object LoginGsInputPacketFactory {
         when (state) {
             State.CONNECTED -> {
                 when (id) {
-                    InAuthGs.OP_CODE -> { msg = InAuthGs(data, client) }
+                    InAuthGs.OP_CODE -> {
+                        msg = InAuthGs(data, client)
+                    }
                     else -> {
-                        unknownPacket(
-                            state,
-                            id
-                        )
+                        unknownPacket(state, id)
                     }
                 }
             }
             State.AUTHED -> {
                 when (id) {
-                    //InLogin.OP_CODE -> { msg = InLogin(data, client) }
+                    InRegisterGs.OP_CODE -> {
+                        msg = InRegisterGs(data, client)
+                    }
                     else -> {
-                        unknownPacket(
-                            state,
-                            id
-                        )
+                        unknownPacket(state, id)
                     }
                 }
             }
+            State.REGISTERED -> TODO()
             State.NONE -> TODO()
         }
         return msg

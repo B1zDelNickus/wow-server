@@ -4,7 +4,7 @@ data class Account(
     val id: Long? = null,
     val name: String,
     val passwordHash: String,
-    val currentServerId: Long
+    val currentServerId: Int
 ) {
 
 

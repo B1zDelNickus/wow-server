@@ -24,10 +24,12 @@ class GameNioServer(
 
     override val scope by lazy { CoroutineScope(SupervisorJob() + context) }
 
-    var loginServerConnection: GameLsConnection? = null
+    private var loginServerConnection: GameLsConnection? = null
 
     override val activeConnectionsCount: Int
         get() = TODO("Not yet implemented")
+
+    var clientPort = 0
 
     override fun start() {
 
@@ -86,6 +88,8 @@ class GameNioServer(
                             InetSocketAddress(gameClientConfig.hostName, gameClientConfig.port)
                         }
                     }
+
+                    clientPort = gameClientConfig.port
 
                     val gameServer = aSocket(selector = selector)
                         .tcp()

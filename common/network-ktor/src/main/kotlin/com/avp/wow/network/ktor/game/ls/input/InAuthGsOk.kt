@@ -1,23 +1,23 @@
-package com.avp.wow.network.ktor.login.gs.input
+package com.avp.wow.network.ktor.game.ls.input
 
-import com.avp.wow.network.ktor.login.gs.LoginGsConnection
-import com.avp.wow.network.ktor.login.gs.LoginGsConnection.Companion.State.AUTHED
-import com.avp.wow.network.ktor.login.gs.LoginGsInputPacket
-import com.avp.wow.network.ktor.login.gs.output.OutAuthGsOk
+import com.avp.wow.network.ktor.game.ls.GameLsConnection
+import com.avp.wow.network.ktor.game.ls.GameLsConnection.Companion.State.AUTHED
+import com.avp.wow.network.ktor.game.ls.GameLsInputPacket
+import com.avp.wow.network.ktor.game.ls.output.OutRegisterGs
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-class InAuthGs(
+class InAuthGsOk(
     buffer: ByteBuffer,
-    client: LoginGsConnection
-) : LoginGsInputPacket(
+    client: GameLsConnection
+) : GameLsInputPacket(
     opCode = OP_CODE,
     client = client,
     buffer = buffer
 ) {
 
-    private var sessionId = 0
+    private var sessionId: Int = 0
 
     override fun readImpl() {
         sessionId = readD()
@@ -28,17 +28,17 @@ class InAuthGs(
             when (con.sessionId) {
                 sessionId -> {
                     con.state = AUTHED
-                    sendPacket(OutAuthGsOk())
+                    sendPacket(OutRegisterGs())
                 }
                 else -> {
 
                 }
             }
         }
-
     }
 
     companion object {
-        const val OP_CODE = 0x02
+        const val OP_CODE = 0x03
     }
+
 }

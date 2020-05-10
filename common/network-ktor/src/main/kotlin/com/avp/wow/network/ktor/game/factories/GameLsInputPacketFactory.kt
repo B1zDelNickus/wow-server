@@ -3,7 +3,9 @@ package com.avp.wow.network.ktor.game.factories
 import com.avp.wow.network.ktor.game.ls.GameLsConnection
 import com.avp.wow.network.ktor.game.ls.GameLsConnection.Companion.State
 import com.avp.wow.network.ktor.game.ls.GameLsInputPacket
+import com.avp.wow.network.ktor.game.ls.input.InAuthGsOk
 import com.avp.wow.network.ktor.game.ls.input.InInitSession
+import com.avp.wow.network.ktor.game.ls.input.InRegisterGsOk
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.util.KtorExperimentalAPI
 import mu.KotlinLogging
@@ -32,6 +34,9 @@ object GameLsInputPacketFactory {
                     InInitSession.OP_CODE -> {
                         msg = InInitSession(data, client)
                     }
+                    InAuthGsOk.OP_CODE -> {
+                        msg = InAuthGsOk(data, client)
+                    }
                     else -> {
                         unknownPacket(state, id)
                     }
@@ -39,7 +44,9 @@ object GameLsInputPacketFactory {
             }
             State.AUTHED -> {
                 when (id) {
-                    //InLogin.OP_CODE -> { msg = InLogin(data, client) }
+                    InRegisterGsOk.OP_CODE -> {
+                        msg = InRegisterGsOk(data, client)
+                    }
                     else -> {
                         unknownPacket(state, id)
                     }

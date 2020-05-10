@@ -22,16 +22,16 @@ class InEnterGameServerOk(
 
     private var playOk1: Int = 0
     private var playOk2: Int = 0
-    private var serverId: Long = 0
+    private var serverId: Int = 0
     private var serverHostIp: String = ""
     private var serverHostPort: Int = 0
 
     override fun readImpl() {
         playOk1 = readD()
         playOk2 = readD()
-        serverId = readQ()
-        serverHostIp = readB(4).joinToString(".") { it.toString() }
-        serverHostPort = readD()
+        serverId = readC()
+        serverHostIp = readS()
+        serverHostPort = readH()
 
     }
 

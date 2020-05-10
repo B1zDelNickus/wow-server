@@ -1,13 +1,16 @@
 package com.avp.wow.network.ktor.game.ls.input
 
 import com.avp.wow.network.ktor.game.ls.GameLsConnection
+import com.avp.wow.network.ktor.game.ls.GameLsConnection.Companion.State.AUTHED
+import com.avp.wow.network.ktor.game.ls.GameLsConnection.Companion.State.REGISTERED
 import com.avp.wow.network.ktor.game.ls.GameLsInputPacket
 import com.avp.wow.network.ktor.game.ls.output.OutAuthGs
+import com.avp.wow.network.ktor.game.ls.output.OutRegisterGs
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-class InInitSession(
+class InRegisterGsOk(
     buffer: ByteBuffer,
     client: GameLsConnection
 ) : GameLsInputPacket(
@@ -17,24 +20,27 @@ class InInitSession(
 ) {
 
     private var sessionId: Int = 0
-    private var publicRsaKey: ByteArray? = null
-    private var blowfishKey: ByteArray? = null
 
     override fun readImpl() {
         sessionId = readD()
-        publicRsaKey = readB(162) // (128)
-        blowfishKey = readB(16)
     }
 
     override suspend fun runImpl() {
-        connection?.enableEncryption(blowfishKey!!)
-        connection?.sessionId = sessionId
-        connection?.publicRsa = publicRsaKey
-        connection?.sendPacket(OutAuthGs())
+        connection?.let { con ->
+            when (con.sessionId) {
+                sessionId -> {
+                    con.state = REGISTERED
+                    log.debug { "Successfully registered on LS" }
+                }
+                else -> {
+
+                }
+            }
+        }
     }
 
     companion object {
-        const val OP_CODE = 0x01
+        const val OP_CODE = 0x05
     }
 
 }
