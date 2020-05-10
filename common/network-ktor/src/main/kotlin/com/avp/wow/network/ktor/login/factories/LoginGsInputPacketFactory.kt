@@ -3,6 +3,7 @@ package com.avp.wow.network.ktor.login.factories
 import com.avp.wow.network.ktor.login.gs.LoginGsConnection.Companion.State
 import com.avp.wow.network.ktor.login.gs.LoginGsConnection
 import com.avp.wow.network.ktor.login.gs.LoginGsInputPacket
+import com.avp.wow.network.ktor.login.gs.input.InAccountCheck
 import com.avp.wow.network.ktor.login.gs.input.InAuthGs
 import com.avp.wow.network.ktor.login.gs.input.InRegisterGs
 import com.avp.wow.network.ncrypt.WowCryptEngine
@@ -48,7 +49,16 @@ object LoginGsInputPacketFactory {
                     }
                 }
             }
-            State.REGISTERED -> TODO()
+            State.REGISTERED -> {
+                when (id) {
+                    InAccountCheck.OP_CODE -> {
+                        msg = InAccountCheck(data, client)
+                    }
+                    else -> {
+                        unknownPacket(state, id)
+                    }
+                }
+            }
             State.NONE -> TODO()
         }
         return msg

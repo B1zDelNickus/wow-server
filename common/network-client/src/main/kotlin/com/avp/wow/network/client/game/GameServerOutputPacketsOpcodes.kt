@@ -1,5 +1,7 @@
 package com.avp.wow.network.client.game
 
+import com.avp.wow.network.client.game.output.OutAuthClient
+import com.avp.wow.network.client.game.output.OutClientLoginCheck
 import io.ktor.util.KtorExperimentalAPI
 import kotlin.reflect.KClass
 
@@ -8,8 +10,9 @@ object GameServerOutputPacketsOpcodes {
 
     private val idSet = mutableSetOf<Int>()
 
-    private val opCodes = mutableMapOf<KClass<out GameServerOutputPacket>, Int>(
-        //addPacketOpcode(packetClass = OutGsAuth::class, opcode = OutGsAuth.OP_CODE)
+    private val opCodes = mutableMapOf(
+        addPacketOpcode(packetClass = OutAuthClient::class, opcode = OutAuthClient.OP_CODE),
+        addPacketOpcode(packetClass = OutClientLoginCheck::class, opcode = OutClientLoginCheck.OP_CODE)
     )
 
     fun getOpcode(packetClass: KClass<out GameServerOutputPacket>): Int {

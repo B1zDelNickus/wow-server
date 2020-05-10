@@ -24,7 +24,7 @@ class GameNioServer(
 
     override val scope by lazy { CoroutineScope(SupervisorJob() + context) }
 
-    private var loginServerConnection: GameLsConnection? = null
+    var loginServerConnection: GameLsConnection? = null
 
     override val activeConnectionsCount: Int
         get() = TODO("Not yet implemented")

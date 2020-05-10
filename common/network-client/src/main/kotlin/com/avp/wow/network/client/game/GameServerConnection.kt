@@ -9,6 +9,7 @@ import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
 import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
@@ -112,6 +113,8 @@ class GameServerConnection(
             if (pck.read()) {
                 log.debug { "Received packet $pck from client: $ip" }
                 //processor.executePacket(pck)
+
+                scope.launch { pck.run() }
             }
 
         }
@@ -153,7 +156,7 @@ class GameServerConnection(
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
-        TODO("Not yet implemented")
+        cryptEngine.updateKey(newKey = blowfishKey)
     }
 
     companion object {

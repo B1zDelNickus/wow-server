@@ -1,9 +1,7 @@
 package com.avp.wow.network.client
 
-import com.avp.wow.network.BaseConnection
-import com.avp.wow.network.BaseNioService
-import com.avp.wow.network.KtorConnection
-import com.avp.wow.network.KtorConnectionConfig
+import com.avp.wow.network.*
+import com.avp.wow.network.client.game.SessionKey
 import com.avp.wow.network.client.login.LoginServerConnection
 import com.avp.wow.network.client.login.output.OutLogin
 import io.ktor.network.selector.ActorSelectorManager
@@ -27,6 +25,7 @@ class KtorNioClient(
 
     private var loginServerConnection: KtorConnection? = null
     private var gameServerConnection: KtorConnection? = null
+    var sessionKey: SessionKey? = null
 
     override val activeConnectionsCount: Int
         get() = listOfNotNull(clientLsConfig, gameServerConnection).size

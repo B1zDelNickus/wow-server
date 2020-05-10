@@ -4,7 +4,8 @@ data class Account(
     val id: Long? = null,
     val name: String,
     val passwordHash: String,
-    val currentServerId: Int
+    val currentServerId: Int,
+    val accessLevel: Byte
 ) {
 
 
@@ -34,7 +35,7 @@ data class Account(
 
     companion object {
 
-        val EMPTY = Account(null, "", "", -1)
+        val EMPTY = Account(null, "", "", -1, 0)
 
     }
 

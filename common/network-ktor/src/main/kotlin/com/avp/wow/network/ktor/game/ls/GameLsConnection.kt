@@ -3,7 +3,9 @@ package com.avp.wow.network.ktor.game.ls
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorPacketProcessor
+import com.avp.wow.network.ktor.game.client.GameClientConnection
 import com.avp.wow.network.ktor.game.factories.GameLsInputPacketFactory
+import com.avp.wow.network.ktor.game.ls.output.OutAccountCheck
 import com.avp.wow.network.ktor.game.ls.output.OutAuthGs
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
@@ -40,6 +42,9 @@ class GameLsConnection(
      * Server Packet "to send" Queue
      */
     private val sendMsgQueue = FastList<GameLsOutputPacket>()
+
+    private val checkAccountRequests = mutableMapOf<Long, GameClientConnection>()
+    val loggedInAccounts = mutableMapOf<Long, GameClientConnection>()
 
     /**
      * Crypt to encrypt/decrypt packets
@@ -138,6 +143,24 @@ class GameLsConnection(
     override fun enableEncryption(blowfishKey: ByteArray) {
         cryptEngine.updateKey(newKey = blowfishKey)
     }
+
+    fun requestAccountCheck(accountId: Long, loginOk: Int, playOk1: Int, playOk2: Int, gsc: GameClientConnection) {
+        synchronized(checkAccountRequests) {
+            if (checkAccountRequests.containsKey(accountId)) return
+            checkAccountRequests[accountId] = gsc
+        }
+        sendPacket(
+            OutAccountCheck(
+                accountId = accountId,
+                loginOk = loginOk,
+                playOk1 = playOk1,
+                playOk2 = playOk2
+            )
+        )
+    }
+
+    fun removeAccountCheckRequest(accountId: Long) =
+        checkAccountRequests.remove(accountId)
 
     companion object {
 

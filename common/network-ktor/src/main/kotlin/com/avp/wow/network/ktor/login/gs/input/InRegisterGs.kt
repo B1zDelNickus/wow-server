@@ -46,6 +46,7 @@ class InRegisterGs(
                                 name = serverName
                             ) -> {
                             con.state = REGISTERED
+                            con.gameServerInfo = GameServersConfig.gameServersService.gameServers[serverId]!!
                             con.sendPacket(OutRegisterGsOk())
                         }
                         else -> {

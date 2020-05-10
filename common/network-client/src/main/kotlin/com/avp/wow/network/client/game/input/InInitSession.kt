@@ -19,10 +19,12 @@ class InInitSession(vararg states: State) : GameServerInputPacket(OP_CODE, state
     }
 
     override suspend fun runImpl() {
-        connection?.enableEncryption(blowfishKey!!)
-        connection?.sessionId = sessionId
-        connection?.publicRsa = publicRsaKey
-        connection?.sendPacket(OutAuthClient())
+        connection?.let { con ->
+            con.enableEncryption(blowfishKey!!)
+            con.sessionId = sessionId
+            con.publicRsa = publicRsaKey
+            con.sendPacket(OutAuthClient())
+        }
     }
 
     companion object {

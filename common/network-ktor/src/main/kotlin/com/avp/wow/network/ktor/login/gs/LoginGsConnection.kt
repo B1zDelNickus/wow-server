@@ -1,5 +1,6 @@
 package com.avp.wow.network.ktor.login.gs
 
+import com.avp.wow.model.gs.GameServer
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorPacketProcessor
@@ -29,6 +30,8 @@ class LoginGsConnection(
 ) {
 
     var state = State.DEFAULT
+
+    var gameServerInfo: GameServer? = null
 
     /**
      * Returns unique sessionId of this connection.

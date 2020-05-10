@@ -2,6 +2,7 @@ package com.avp.wow.network.ktor.game.client.input
 
 import com.avp.wow.network.ktor.game.client.GameClientConnection.Companion.State
 import com.avp.wow.network.ktor.game.client.GameClientInputPacket
+import com.avp.wow.network.ktor.game.client.output.OutAuthClientOk
 import io.ktor.util.KtorExperimentalAPI
 
 @KtorExperimentalAPI
@@ -14,7 +15,17 @@ class InAuthClient(vararg states: State) : GameClientInputPacket(OP_CODE, states
     }
 
     override suspend fun runImpl() {
-        log.debug { "RECEIVED GS AUTH PACKET!" }
+        connection?.let { con ->
+            when (con.sessionId) {
+                sessionId -> {
+                    //con.state = State.AUTHED
+                    con.sendPacket(OutAuthClientOk())
+                }
+                else -> {
+
+                }
+            }
+        }
     }
 
     companion object {

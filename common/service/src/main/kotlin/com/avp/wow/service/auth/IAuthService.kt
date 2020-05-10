@@ -13,4 +13,6 @@ interface IAuthService {
 
     fun loadAccount(name: String) : Account?
 
+    fun checkAccount(block: IAuthService.() -> Unit)
+
 }

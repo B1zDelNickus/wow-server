@@ -1,5 +1,6 @@
 package com.avp.wow.network.ktor.game.ls
 
+import com.avp.wow.network.ktor.game.ls.output.OutAccountCheck
 import com.avp.wow.network.ktor.game.ls.output.OutAuthGs
 import com.avp.wow.network.ktor.game.ls.output.OutRegisterGs
 import io.ktor.util.KtorExperimentalAPI
@@ -12,7 +13,8 @@ object GameLsOutputPacketsOpcodes {
 
     private val opCodes = mutableMapOf(
         addPacketOpcode(packetClass = OutAuthGs::class, opcode = OutAuthGs.OP_CODE),
-        addPacketOpcode(packetClass = OutRegisterGs::class, opcode = OutRegisterGs.OP_CODE)
+        addPacketOpcode(packetClass = OutRegisterGs::class, opcode = OutRegisterGs.OP_CODE),
+        addPacketOpcode(packetClass = OutAccountCheck::class, opcode = OutAccountCheck.OP_CODE)
     )
 
     fun getOpcode(packetClass: KClass<out GameLsOutputPacket>): Int {

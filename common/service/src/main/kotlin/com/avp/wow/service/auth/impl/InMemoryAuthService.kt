@@ -6,6 +6,8 @@ import com.avp.wow.service.auth.enums.AuthResponse
 
 class InMemoryAuthService : IAuthService {
 
+    // TODO IN FAST HASH MAP
+
     override val accountsOnLs = HashMap<Long, Any>()
 
     override fun login(login: String, rawPassword: String, currentIp: String): Pair<AuthResponse, Account> {
@@ -24,9 +26,21 @@ class InMemoryAuthService : IAuthService {
         }
     }
 
+    // @Synchronized
+    override fun checkAccount(block: IAuthService.() -> Unit) =
+        synchronized(this) {
+            this.block()
+        }
+
     companion object {
 
-        val ADMIN_ACCOUNT = Account(id = 1, name = "Admin", passwordHash = "21232f297a57a5a743894a0e4a801fc3", currentServerId = 1)
+        val ADMIN_ACCOUNT = Account(
+            id = 1,
+            name = "Admin",
+            passwordHash = "21232f297a57a5a743894a0e4a801fc3",
+            currentServerId = 1,
+            accessLevel = 99
+        )
 
     }
 
