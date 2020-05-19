@@ -1,4 +1,4 @@
-package com.avp.wow.network.ktor
+package com.avp.wow.network.ktor.login
 
 import com.avp.wow.network.BaseConnection
 import com.avp.wow.network.BaseNioService
@@ -78,35 +78,43 @@ class LoginNioServer(
                      */
                     launch {
 
-                        /**
-                         * Accept socket connection from clients
-                         */
-                        val socket = server.accept()
+                        while (true) { // TODO replace with syncronized guard
 
-                        log.info { "Socket accepted: ${socket.remoteAddress} to '${cfg.connectionName}'" }
+                            /**
+                             * Accept socket connection from clients
+                             */
+                            val socket = server.accept()
 
-                        /**
-                         * Create connection object and pass it to NIO server infrastructure
-                         */
-                        cfg.factory.create(socket = socket, nio = this@LoginNioServer, context = scope.coroutineContext)
-                            .also { conn ->
-                                /**
-                                 * Add new connection to nio's all-connections pool
-                                 */
-                                connections.add(conn)
+                            log.info { "Client socket accepted: ${socket.remoteAddress} to '${cfg.connectionName}'" }
 
-                                /**
-                                 * Run Read Dispatcher coroutine
-                                 */
-                                launch { conn.startReadDispatching() }
+                            /**
+                             * Create connection object and pass it to NIO server infrastructure
+                             */
+                            cfg.factory.create(
+                                socket = socket,
+                                nio = this@LoginNioServer,
+                                context = scope.coroutineContext
+                            )
+                                .also { conn ->
+                                    /**
+                                     * Add new connection to nio's all-connections pool
+                                     */
+                                    connections.add(conn)
 
-                                /**
-                                 * Run Write Dispatcher coroutine
-                                 */
-                                launch { conn.startWriteDispatching() }
+                                    /**
+                                     * Run Read Dispatcher coroutine
+                                     */
+                                    launch { conn.startReadDispatching() }
 
-                                conn.initialized()
-                            }
+                                    /**
+                                     * Run Write Dispatcher coroutine
+                                     */
+                                    launch { conn.startWriteDispatching() }
+
+                                    conn.initialized()
+                                }
+
+                        }
 
                     }
 
@@ -141,15 +149,17 @@ class LoginNioServer(
 
         log.info { "Stopping NIO server..." }
 
-        *//**
-         * Sending DC packets for active clients
-         *//*
+        */
+    /**
+     * Sending DC packets for active clients
+     *//*
         log.info { "Sending DC packets to clients and close connections..." }
         notifyServerClose()
 
-        *//**
-         * Wait 1s for coroutines to execute close operations
-         *//*
+        */
+    /**
+     * Wait 1s for coroutines to execute close operations
+     *//*
         try {
             Thread.sleep(1000)
         } catch (t: Throwable) {
@@ -158,15 +168,17 @@ class LoginNioServer(
 
         log.info { "Active connections: $getActiveConnections" }
 
-        *//**
-         * DC all
-         *//*
+        */
+    /**
+     * DC all
+     *//*
         log.info { "Forced Disconnecting all connections..." }
         closeAll()
 
-        *//**
-         * Wait 1s for coroutines to execute close operations
-         *//*
+        */
+    /**
+     * Wait 1s for coroutines to execute close operations
+     *//*
         try {
             Thread.sleep(1000)
         } catch (t: Throwable) {
@@ -189,9 +201,10 @@ class LoginNioServer(
 
         processPendingClosing = false
 
-        *//**
-         * Wait 1s for coroutines to execute close operations
-         *//*
+        */
+    /**
+     * Wait 1s for coroutines to execute close operations
+     *//*
         try {
             Thread.sleep(1000)
         } catch (t: Throwable) {

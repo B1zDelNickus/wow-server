@@ -8,10 +8,7 @@ import com.avp.wow.network.ktor.game.ls.GameLsConnection
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.aSocket
 import io.ktor.util.KtorExperimentalAPI
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.net.InetSocketAddress
 import kotlin.coroutines.CoroutineContext
 
@@ -60,15 +57,11 @@ class GameNioServer(
                         context = scope.coroutineContext
                     ) as GameLsConnection
 
-                    //launch {
-
                     launch { loginServerConnection?.startReadDispatching() }
 
                     launch { loginServerConnection?.startWriteDispatching() }
 
                     loginServerConnection?.initialized()
-
-                    //}
 
                 }
 
@@ -97,24 +90,30 @@ class GameNioServer(
 
                     launch {
 
-                        val clientSocket = gameServer.accept()
+                        while (true) { // TODO replace with syncronized guard
 
-                        log.info { "Accepted connection from client: ${clientSocket.remoteAddress}" }
+                            val clientSocket = gameServer.accept()
 
-                        launch {
+                            log.info { "Accepted connection from client: ${clientSocket.remoteAddress}" }
 
-                            val connection =
-                                gameClientConfig.factory.create(
-                                    socket = clientSocket,
-                                    nio = this@GameNioServer,
-                                    context = scope.coroutineContext
-                                )
+                            //launch {
 
-                            launch { connection.startReadDispatching() }
+                                val connection =
+                                    gameClientConfig.factory.create(
+                                        socket = clientSocket,
+                                        nio = this@GameNioServer,
+                                        context = scope.coroutineContext
+                                    )
 
-                            launch { connection.startWriteDispatching() }
+                                launch { connection.startReadDispatching() }
 
-                            connection.initialized()
+                                launch { connection.startWriteDispatching() }
+
+                                connection.initialized()
+
+                            //}
+
+                            delay(25)
 
                         }
 

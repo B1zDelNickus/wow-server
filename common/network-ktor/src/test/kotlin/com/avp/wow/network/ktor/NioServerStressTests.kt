@@ -17,11 +17,12 @@ import com.avp.wow.network.ktor.login.gs.LoginGsConnectionFactory
 import com.avp.wow.network.ncrypt.KeyGen
 import io.kotlintest.specs.StringSpec
 import io.ktor.util.KtorExperimentalAPI
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
+import java.lang.Error
+import java.util.concurrent.atomic.AtomicLong
 
 @KtorExperimentalAPI
-class NioServerRunTests : StringSpec({
+class NioServerStressTests : StringSpec({
 
     "test" {
 
@@ -83,29 +84,107 @@ class NioServerRunTests : StringSpec({
             factory = LoginServerConnectionFactory()
         )
 
-        val client = KtorNioClient(
-            clientLsConfig = clientLsConfig
-        ).apply {
+        val clientsConnected = AtomicLong(0)
+        val clientsFailed = AtomicLong(0)
 
-            start()
 
-            delay(1_000) // wait auth gg operations
+        val jobs = List(CLIENTS_NUMBER) { ind ->
 
-            login(login = "admin", password = "admin")
+            /*delay(CLIENTS_CONNECT_DELAY)
 
-            delay(1_000)
+            if (ind % 100 == 0)
+                delay(3_000)*/
 
-            enterGame()
+            async {
 
-            delay(1_000)
+                println("Starting client #$ind")
 
-            sendGamePacket(OutActivity1())
+                var client: KtorNioClient? = null
+
+                try {
+                    client = KtorNioClient(
+                        clientLsConfig = clientLsConfig
+                    ).apply {
+
+                        start()
+
+                        delay(1_000) // wait auth gg operations
+
+                        /*login(login = "user$ind", password = "admin")
+
+                        delay(1_000)
+
+                        enterGame()
+
+                        delay(1_000)
+
+                        repeat(PACKET_SEQ_COUNT) {
+
+                            sendGamePacket(OutActivity1())
+
+                            delay(PACKET_SEQ_DELAY)
+
+                        }
+
+                        delay(1_000)*/
+
+                        //shutdown()
+
+                        clientsConnected.incrementAndGet()
+
+                    }
+                } catch (e: Error) {
+                    clientsFailed.incrementAndGet()
+                } catch (e: Exception) {
+                    clientsFailed.incrementAndGet()
+                }
+
+                client
+            }
 
         }
 
-        delay(5 * 60 * 1_000)
+        jobs.awaitAll()
 
-        client.shutdown()
+        println("Active clients: ${gameServer.activeConnectionsCount}")
+
+        /*val actJobs = jobs.awaitAll().filterNotNull().mapIndexed { index, cl ->
+            launch {
+
+                cl.apply {
+
+                    login(login = "user$index", password = "admin")
+
+                    delay(1_000)
+
+                    enterGame()
+
+                    delay(1_000)
+
+                    repeat(PACKET_SEQ_COUNT) {
+
+                        sendGamePacket(OutActivity1())
+
+                        delay(PACKET_SEQ_DELAY)
+
+                    }
+
+                    delay(1_000)
+
+                    shutdown()
+
+                }
+
+            }
+        }
+
+        actJobs.joinAll()*/
+
+        //delay(TEST_DURATION_IN_MIN * 60 * 1_000)
+
+        println("Clients done: ${clientsConnected.get()}")
+        println("Clients failed: ${clientsFailed.get()}")
+
         gameServer.shutdown()
         loginServer.shutdown()
 
@@ -113,6 +192,14 @@ class NioServerRunTests : StringSpec({
 
 }) {
 
+    companion object {
 
+        const val TEST_DURATION_IN_MIN = 10L
+        const val CLIENTS_CONNECT_DELAY = 100L
+        const val CLIENTS_NUMBER = 1_000
+        const val PACKET_SEQ_COUNT = 1
+        const val PACKET_SEQ_DELAY = 100L
+
+    }
 
 }

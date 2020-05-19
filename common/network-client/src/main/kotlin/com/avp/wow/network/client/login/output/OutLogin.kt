@@ -12,8 +12,8 @@ import javax.crypto.Cipher
 
 @KtorExperimentalAPI
 class OutLogin(
-    login: String,
-    password: String,
+    private val login: String,
+    private val password: String,
     server: LoginServerConnection
 ) : LoginServerOutputPacket() {
 
@@ -21,7 +21,7 @@ class OutLogin(
 
     init {
 
-        val data = "$login $password".toByteArray(Charset.defaultCharset())
+        /*val data = "$login $password".toByteArray(Charset.defaultCharset())
             .also { b ->
                 b + ByteArray(64 - b.size) { ' '.toByte() }
             }
@@ -40,12 +40,14 @@ class OutLogin(
         } catch (e: GeneralSecurityException) {
             //sendPacket(SM_LOGIN_FAIL(AionAuthResponse.SYSTEM_ERROR))
             log.error(e) { "Encrypting credentials error: ${e.message}." }
-        }
+        }*/
 
     }
 
     override fun writeImpl(con: LoginServerConnection) {
-        writeB(decrypted) // encrypted crdentials id
+        //writeB(decrypted) // encrypted crdentials id
+        writeS(login)
+        writeS(password)
     }
 
     companion object {

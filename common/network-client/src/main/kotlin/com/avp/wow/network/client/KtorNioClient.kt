@@ -1,7 +1,10 @@
 package com.avp.wow.network.client
 
 import com.avp.wow.network.*
+import com.avp.wow.network.client.game.GameServerConnection
+import com.avp.wow.network.client.game.GameServerOutputPacket
 import com.avp.wow.network.client.game.SessionKey
+import com.avp.wow.network.client.game.output.OutEnterWorld
 import com.avp.wow.network.client.login.LoginServerConnection
 import com.avp.wow.network.client.login.output.OutLogin
 import io.ktor.network.selector.ActorSelectorManager
@@ -155,9 +158,17 @@ class KtorNioClient(
     }
 
     fun login(login: String, password: String) {
-        (loginServerConnection as? LoginServerConnection)?.let {
-            it.sendPacket(OutLogin(login = login, password = password, server = it))
+        (loginServerConnection as? LoginServerConnection)?.let { ls ->
+            ls.sendPacket(OutLogin(login = login, password = password, server = ls))
         }
+    }
+
+    fun enterGame() {
+        (gameServerConnection as? GameServerConnection)?.sendPacket(OutEnterWorld())
+    }
+
+    fun sendGamePacket(pck: GameServerOutputPacket) {
+        (gameServerConnection as? GameServerConnection)?.sendPacket(pck)
     }
 
 }
