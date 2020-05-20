@@ -1,0 +1,18 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <root level="trace">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+    <logger name="org" level="ERROR"/>
+    <logger name="io" level="ERROR"/>
+    <logger name="com" level="ERROR"/>
+
+    <!--<logger name="com.avp" level="TRACE"/>-->
+    <logger name="com.avp" level="INFO"/>
+
+</configuration>
