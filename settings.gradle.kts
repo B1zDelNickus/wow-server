@@ -23,7 +23,7 @@ include(
     "service",
 
     "network-core",
-    "network-ktor",
+    //"network-ktor",
     //"network-ktx",
     "network-client",
 
@@ -39,7 +39,7 @@ project(":model").projectDir = file("common/model")
 project(":repository").projectDir = file("common/repository")
 project(":service").projectDir = file("common/service")
 project(":network-core").projectDir = file("common/network-core")
-project(":network-ktor").projectDir = file("common/network-ktor")
+//project(":network-ktor").projectDir = file("common/network-ktor")
 //project(":network-ktx").projectDir = file("common/network-ktx")
 project(":network-client").projectDir = file("common/network-client")
 
