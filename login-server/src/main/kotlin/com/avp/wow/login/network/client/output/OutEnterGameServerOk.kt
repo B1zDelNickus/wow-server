@@ -21,7 +21,7 @@ class OutEnterGameServerOk(
     }
 
     companion object {
-        const val OP_CODE = 0x09
+        const val OP_CODE = 9
     }
 
 }

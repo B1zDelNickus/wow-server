@@ -55,6 +55,6 @@ class InEnterGameServer(
     }
 
     companion object {
-        const val OP_CODE = 0x08
+        const val OP_CODE = 8
     }
 }

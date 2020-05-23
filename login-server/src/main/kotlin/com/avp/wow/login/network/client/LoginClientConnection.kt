@@ -1,11 +1,15 @@
 package com.avp.wow.login.network.client
 
+import com.avp.wow.login.LoginServerConfig.processorMaxThreads
+import com.avp.wow.login.LoginServerConfig.processorMinThreads
+import com.avp.wow.login.LoginServerConfig.processorThreadKillThreshold
+import com.avp.wow.login.LoginServerConfig.processorThreadSpawnThreshold
 import com.avp.wow.login.network.client.output.OutInitSession
 import com.avp.wow.login.network.factories.LoginClientInputPacketFactory
 import com.avp.wow.model.auth.Account
 import com.avp.wow.network.BaseNioService
-import com.avp.wow.network.KtorPacketProcessor
 import com.avp.wow.network.KtorConnection
+import com.avp.wow.network.KtorPacketProcessor
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
 import com.avp.wow.network.ncrypt.WowCryptEngine
@@ -40,7 +44,15 @@ class LoginClientConnection(
      */
     var sessionId = hashCode()
 
-    private val processor by lazy { KtorPacketProcessor<LoginClientConnection>(8, 1, 3, 3, context) }
+    private val processor by lazy {
+        KtorPacketProcessor<LoginClientConnection>(
+            minThreads = processorMinThreads,
+            maxThreads = processorMaxThreads,
+            threadSpawnThreshold = processorThreadSpawnThreshold,
+            threadKillThreshold = processorThreadKillThreshold,
+            context = scope.coroutineContext
+        )
+    }
 
     /**
      * Server Packet "to send" Queue
@@ -213,6 +225,22 @@ class LoginClientConnection(
             }
         }
         return true
+    }
+
+    fun close(closePacket: LoginClientOutputPacket, forced: Boolean = false) {
+        synchronized(guard) {
+            if (isWriteDisabled) {
+                return
+            }
+            pendingClose = true
+            isForcedClosing = forced
+            sendMsgQueue.clear()
+            sendMsgQueue.addLast(closePacket)
+        }
+    }
+
+    fun closeNow() {
+        close(false)
     }
 
     companion object {

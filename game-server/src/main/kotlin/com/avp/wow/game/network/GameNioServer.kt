@@ -53,104 +53,6 @@ class GameNioServer(
          */
         startClientListener()
 
-        scope.launch {
-
-            try {
-
-                /**
-                 * Start connection to Login Server
-                 */
-
-                /*launch {
-
-                    val loginSocket = aSocket(selector = selector)
-                        .tcp()
-                        .connect(
-                            hostname = gameLsConfig.hostName,
-                            port = gameLsConfig.port
-                        )
-
-                    log.info { "Connected to Login Server by address: ${loginSocket.remoteAddress}" }
-
-                    loginServerConnection = gameLsConfig.factory.create(
-                        socket = loginSocket,
-                        nio = this@GameNioServer,
-                        context = scope.coroutineContext
-                    ) as GameLsConnection
-
-                    launch { loginServerConnection?.startReadDispatching() }
-
-                    launch { loginServerConnection?.startWriteDispatching() }
-
-                    loginServerConnection?.initialized()
-
-                }*/
-
-                /**
-                 * Start listening for Client connections
-                 */
-
-                /*launch {
-
-                    val isa = when (gameClientConfig.hostName) {
-                        "*" -> {
-                            log.info { "Server listening on all available IPs on Port " + gameClientConfig.port.toString() + " for " + gameClientConfig.connectionName }
-                            InetSocketAddress(gameClientConfig.port)
-                        }
-                        else -> {
-                            log.info { "Server listening on IP: " + gameClientConfig.hostName + " Port " + gameClientConfig.port + " for " + gameClientConfig.connectionName }
-                            InetSocketAddress(gameClientConfig.hostName, gameClientConfig.port)
-                        }
-                    }
-
-                    clientPort = gameClientConfig.port
-
-                    val gameServer = aSocket(selector = selector)
-                        .tcp()
-                        .bind(isa)
-
-                    launch {
-
-                        while (true) { // TODO replace with syncronized guard
-
-                            val clientSocket = gameServer.accept()
-
-                            log.info { "Accepted connection from client: ${clientSocket.remoteAddress}" }
-
-                            launch {
-
-                                val connection =
-                                    gameClientConfig.factory.create(
-                                        socket = clientSocket,
-                                        nio = this@GameNioServer,
-                                        context = scope.coroutineContext
-                                    ) as GameClientConnection
-
-                                connections + connection
-
-                                launch { connection.startReadDispatching() }
-
-                                launch { connection.startWriteDispatching() }
-
-                                connection.initialized()
-
-                            }
-
-                            delay(25)
-
-                        }
-
-                    }
-
-                }*/
-
-            } catch (e: Exception) {
-                log.error(e) { "Error occurred while connecting servers: ${e.message}" }
-                throw Error("Error initialize GameNioServer")
-            }
-
-        }
-
         /**
          * Coroutine for closing pending connections
          */
@@ -260,7 +162,6 @@ class GameNioServer(
             log.info { "Successfully connected to LS!" }
         }
 
-
     }
 
     fun startClientListener() {
@@ -284,38 +185,36 @@ class GameNioServer(
                 .tcp()
                 .bind(isa)
 
-            //launch { TODO think about needness
-
             while (true) { // TODO replace with syncronized guard
 
-                val clientSocket = gameServer.accept()
+                try {
 
-                log.info { "Accepted connection from client: ${clientSocket.remoteAddress}" }
+                    val clientSocket = gameServer.accept()
 
-                //launch {
+                    log.info { "Accepted connection from client: ${clientSocket.remoteAddress}" }
 
-                val connection =
-                    gameClientConfig.factory.create(
-                        socket = clientSocket,
-                        nio = this@GameNioServer,
-                        context = scope.coroutineContext
-                    ) as GameClientConnection
+                    val connection =
+                        gameClientConfig.factory.create(
+                            socket = clientSocket,
+                            nio = this@GameNioServer,
+                            context = scope.coroutineContext
+                        ) as GameClientConnection
 
-                connections.add(connection)
+                    connections.add(connection)
 
-                launch { connection.startReadDispatching() }
+                    launch { connection.startReadDispatching() }
 
-                launch { connection.startWriteDispatching() }
+                    launch { connection.startWriteDispatching() }
 
-                connection.initialized()
+                    connection.initialized()
 
-                //}
+                    delay(25)
 
-                delay(25)
+                } catch (e: Exception) {
+                    log.info(e) { "Error while accepting connection from client: ${e.message}" }
+                }
 
             }
-
-            //}
 
         }
 

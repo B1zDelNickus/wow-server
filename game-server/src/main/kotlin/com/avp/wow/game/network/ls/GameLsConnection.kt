@@ -1,5 +1,9 @@
 package com.avp.wow.game.network.ls
 
+import com.avp.wow.game.GameServerConfig.processorMaxThreads
+import com.avp.wow.game.GameServerConfig.processorMinThreads
+import com.avp.wow.game.GameServerConfig.processorThreadKillThreshold
+import com.avp.wow.game.GameServerConfig.processorThreadSpawnThreshold
 import com.avp.wow.game.network.GameNioServer
 import com.avp.wow.game.network.client.GameClientConnection
 import com.avp.wow.game.network.factories.GameLsInputPacketFactory
@@ -41,7 +45,15 @@ class GameLsConnection(
     var sessionId = 0
     var publicRsa: ByteArray? = null
 
-    private val processor = KtorPacketProcessor<GameLsConnection>(8, 1, 3, 3, scope.coroutineContext)
+    private val processor by lazy {
+        KtorPacketProcessor<GameLsConnection>(
+            minThreads = processorMinThreads,
+            maxThreads = processorMaxThreads,
+            threadSpawnThreshold = processorThreadSpawnThreshold,
+            threadKillThreshold = processorThreadKillThreshold,
+            context = scope.coroutineContext
+        )
+    }
 
     /**
      * Server Packet "to send" Queue

@@ -4,7 +4,9 @@ import com.avp.wow.login.network.client.LoginClientConnection
 import com.avp.wow.login.network.client.LoginClientConnection.Companion.State.AUTHED_LOGIN
 import com.avp.wow.login.network.client.LoginClientInputPacket
 import com.avp.wow.login.network.client.SessionKey
+import com.avp.wow.login.network.client.output.OutLoginFail
 import com.avp.wow.login.network.client.output.OutLoginOk
+import com.avp.wow.model.auth.Account
 import com.avp.wow.service.account.AccountConfig.accountService
 import com.avp.wow.service.auth.AccountUtils.encodePassword
 import com.avp.wow.service.auth.AuthConfig.accountAutoCreationEnabled
@@ -14,6 +16,9 @@ import com.avp.wow.service.ban.BanConfig.banService
 import com.avp.wow.service.gs.GameServersConfig.gameServersService
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
+import java.nio.charset.Charset
+import java.security.GeneralSecurityException
+import javax.crypto.Cipher
 
 @KtorExperimentalAPI
 class InLogin(
@@ -25,21 +30,22 @@ class InLogin(
     buffer = buffer
 ) {
 
-    private lateinit var data: ByteArray
+    private var data: ByteArray? = null
 
     private var user = ""
     private var passwordHash = ""
 
     override fun readImpl() {
-        /*if (remainingBytes >= 128) {
+        if (remainingBytes >= 128) {
             data = readB(128)
-        }*/
-        user = readS()
-        passwordHash = readS()
+        }
+        //user = readS()
+        //passwordHash = readS()
     }
 
     override suspend fun runImpl() {
-        /*try {
+
+        try {
             data
         } catch (e: Exception) {
             return
@@ -59,116 +65,29 @@ class InLogin(
             .toByteArray()
             .toString(Charset.defaultCharset())
             .trim()
-            .split(" ")*/
+            .split(" ")
 
-        val user = user//resultString[0]
-        val password = passwordHash//resultString[1]
+        val user = resultString[0]
+        val password = resultString[1]
+
+        //val user = user
+        //val password = passwordHash
 
         log.trace { "Auth with login: $user and pass: $password" }
 
-        /*val response =
-            AuthConfig.authService.login(login = user, rawPassword = password, currentIp = connection!!.ip)
+        connection?.let { con ->
 
-        when (response.first) {
-            AuthResponse.AUTHED -> {
-                connection?.let { con ->
-                    con.state = AUTHED_LOGIN
-                    con.sessionKey = SessionKey(account = response.second)
-                        .also { key ->
-                            con.sendPacket(OutLoginOk(sessionKey = key))
-                        }
-                }
-                log.debug { "User $user authorized to Login Server." }
-            }
-            AuthResponse.INVALID_PASSWORD -> {
+            val response = authService.login(
+                login = user,
+                rawPassword = password,
+                currentIp = con.ip,
+                client = con,
+                onAlreadyLoggedHandler = { any -> (any as LoginClientConnection).closeNow() },
+                applyAccToConnHandler = { acc -> con.account = acc }
+            )
 
-            }
-            else -> {
-
-            }
-        }*/
-
-        val response =
-            authService.login {
-
-                if (banService.isBanned(connection!!.ip)) {
-                    return@login AuthResponse.BAN_IP
-                }
-
-                var account = loadAccount(name = user)
-
-                if (null == account) {
-                    when {
-                        accountAutoCreationEnabled -> {
-                            // TODO place and do beautifully in specific service
-                            account = accountService.createAccount(name = user, password = password)
-                        }
-                        else -> return@login AuthResponse.INVALID_PASSWORD
-                    }
-                }
-
-                /*if (account.getAccessLevel() < Config.MAINTENANCE_MOD_GMLEVEL && Config.MAINTENANCE_MOD) {
-                    return AionAuthResponse.GM_ONLY
-                }*/
-
-                // check for paswords beeing equals
-                if (account.passwordHash != encodePassword(password)) {
-                    return@login AuthResponse.INVALID_PASSWORD
-                }
-
-                /*if (account.getActivated() !== 1) {
-                    return AionAuthResponse.INVALID_PASSWORD
-                }
-
-                // If account expired
-                if (AccountTimeController.isAccountExpired(account)) {
-                    return AionAuthResponse.TIME_EXPIRED
-                }
-
-                // if account is banned
-                if (AccountTimeController.isAccountPenaltyActive(account)) {
-                    return AionAuthResponse.BAN_IP
-                }
-
-                // if account is restricted to some ip or mask
-                if (account.getIpForce() != null) {
-                    if (!NetworkUtils.checkIPMatching(account.getIpForce(), connection.getIP())) {
-                        return AionAuthResponse.BAN_IP
-                    }
-                }*/
-
-                synchronized(this) {
-
-                    if (gameServersService.isAccountOnAnyGameServer(account = account)) {
-                        gameServersService.kickAccountFromGameServer(account = account)
-                        return@login AuthResponse.ALREADY_LOGGED_IN
-                    }
-
-                    if (accountsOnLs.containsKey(account.id!!)) {
-                        val prevConnection = accountsOnLs.remove(account.id!!) as LoginClientConnection
-                        //prevConnection.closeNow()
-                        return@login AuthResponse.ALREADY_LOGGED_IN
-                    }
-
-                    connection?.account = account
-                    accountsOnLs[account.id!!] = connection!!
-                }
-
-                /*AccountTimeController.updateOnLogin(account)
-
-                // if everything was OK
-                com.aionemu.loginserver.controller.AccountController.getAccountDAO()
-                    .updateLastIp(account.getId(), connection.getIP())
-
-                // last mac is updated after receiving packet from gameserver
-                com.aionemu.loginserver.controller.AccountController.getAccountDAO().updateMembership(account.getId())*/
-
-                return@login AuthResponse.AUTHED
-            }
-
-        when (response) {
-            AuthResponse.AUTHED -> {
-                connection?.let { con ->
+            when (response) {
+                AuthResponse.AUTHED -> {
                     con.state = AUTHED_LOGIN
                     con.sessionKey = SessionKey(account = con.account!!)
                         .also { key ->
@@ -178,20 +97,26 @@ class InLogin(
                                 )
                             )
                         }
+                    log.debug { "User $user authorized to Login Server." }
                 }
-                log.debug { "User $user authorized to Login Server." }
+                AuthResponse.INVALID_PASSWORD -> {
+                    // TODO BRUTE PROTECTION
+                    log.debug { "Invalid password for account: $user." }
+                    con.sendPacket(packet = OutLoginFail(response = response))
+                }
+                else -> {
+                    log.debug { "Failed to auth LS for reason: ${response.name}." }
+                    con.close(closePacket = OutLoginFail(response = response), forced = false)
+                }
             }
-            AuthResponse.INVALID_PASSWORD -> {
-                log.debug { "Invalid password for account: $user." }
-            }
-            else -> {
-                log.debug { "Failed to auth LS for reason: ${response.name}." }
-            }
+
         }
 
     }
 
     companion object {
-        const val OP_CODE = 0x04
+
+        const val OP_CODE = 4
+
     }
 }

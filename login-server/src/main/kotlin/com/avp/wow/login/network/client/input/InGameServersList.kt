@@ -22,6 +22,6 @@ class InGameServersList(
     }
 
     companion object {
-        const val OP_CODE = 0x06
+        const val OP_CODE = 6
     }
 }

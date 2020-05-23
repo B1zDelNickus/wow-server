@@ -1,8 +1,11 @@
 package com.avp.wow.login.network.client.input
 
 import com.avp.wow.login.network.client.LoginClientConnection
+import com.avp.wow.login.network.client.LoginClientConnection.Companion.State
 import com.avp.wow.login.network.client.LoginClientInputPacket
+import com.avp.wow.login.network.client.output.OutAuthClientFail
 import com.avp.wow.login.network.client.output.OutAuthClientOk
+import com.avp.wow.service.auth.enums.AuthResponse
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
 
@@ -23,26 +26,27 @@ class InAuthClient(
     }
 
     override suspend fun runImpl() {
-        when (connection?.sessionId) {
-            sessionId -> {
-                connection?.state = LoginClientConnection.Companion.State.AUTHED_GG
-                connection?.sendPacket(
-                    OutAuthClientOk()
-                )
-            }
-            else -> {
-                /**
-                 * Session id is not ok - inform client that smth went wrong - dc client
-                 */
-
-                log.error { "Sessions doesnt match: ${connection?.sessionId} != $sessionId" }
-
-                //con.close(SM_LOGIN_FAIL(AionAuthResponse.SYSTEM_ERROR), false)
+        connection?.let { con ->
+            when (con.sessionId) {
+                sessionId -> {
+                    con.state = State.AUTHED_GG
+                    con.sendPacket(
+                        OutAuthClientOk()
+                    )
+                }
+                else -> {
+                    /**
+                     * Session id is not ok - inform client that smth went wrong - dc client
+                     */
+                    log.error { "Sessions doesnt match: ${con.sessionId} != $sessionId" }
+                    con.close(OutAuthClientFail(AuthResponse.SYSTEM_ERROR), false)
+                }
             }
         }
+
     }
 
     companion object {
-        const val OP_CODE = 0x02
+        const val OP_CODE = 2
     }
 }

@@ -1,10 +1,15 @@
 package com.avp.wow.game.network.client
 
+import com.avp.wow.game.GameServerConfig.processorMaxThreads
+import com.avp.wow.game.GameServerConfig.processorMinThreads
+import com.avp.wow.game.GameServerConfig.processorThreadKillThreshold
+import com.avp.wow.game.GameServerConfig.processorThreadSpawnThreshold
 import com.avp.wow.game.network.client.output.OutInitSession
 import com.avp.wow.game.network.factories.GameClientInputPacketFactory
 import com.avp.wow.model.auth.Account
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnection
+import com.avp.wow.network.KtorPacketProcessor
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
 import com.avp.wow.network.ncrypt.WowCryptEngine
@@ -12,7 +17,6 @@ import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.isClosed
 import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
-import kotlinx.coroutines.launch
 import java.io.IOException
 import java.nio.ByteBuffer
 import javax.crypto.SecretKey
@@ -40,6 +44,16 @@ class GameClientConnection(
     var sessionId = hashCode()
     var publicRsa: ByteArray? = null
     var account: Account? = null
+
+    private val processor by lazy {
+        KtorPacketProcessor<GameClientConnection>(
+            minThreads = processorMinThreads,
+            maxThreads = processorMaxThreads,
+            threadSpawnThreshold = processorThreadSpawnThreshold,
+            threadKillThreshold = processorThreadKillThreshold,
+            context = scope.coroutineContext
+        )
+    }
 
     /**
      * Server Packet "to send" Queue
@@ -103,15 +117,6 @@ class GameClientConnection(
     }
 
     /**
-     * Decrypt packet.
-     * @param buf
-     * @return true if success
-     */
-    private fun decrypt(buf: ByteBuffer): Boolean {
-        return cryptEngine.decrypt(data = buf)
-    }
-
-    /**
      * Encrypt packet.
      * @param buf
      * @return encrypted packet size.
@@ -159,9 +164,7 @@ class GameClientConnection(
 
             if (pck.read()) {
                 log.debug { "Received packet $pck from client: $ip" }
-                //processor.executePacket(pck)
-
-                scope.launch { pck.run() }
+                processor.executePacket(pck)
             }
 
         }

@@ -1,9 +1,6 @@
 package com.avp.wow.login.network.client
 
-import com.avp.wow.login.network.client.output.OutAuthClientOk
-import com.avp.wow.login.network.client.output.OutEnterGameServerOk
-import com.avp.wow.login.network.client.output.OutInitSession
-import com.avp.wow.login.network.client.output.OutLoginOk
+import com.avp.wow.login.network.client.output.*
 import io.ktor.util.KtorExperimentalAPI
 import kotlin.reflect.KClass
 
@@ -16,7 +13,8 @@ object LoginClientOutputPacketsOpcodes {
         addPacketOpcode(packetClass = OutInitSession::class, opcode = OutInitSession.OP_CODE),
         addPacketOpcode(packetClass = OutAuthClientOk::class, opcode = OutAuthClientOk.OP_CODE),
         addPacketOpcode(packetClass = OutLoginOk::class, opcode = OutLoginOk.OP_CODE),
-        addPacketOpcode(packetClass = OutEnterGameServerOk::class, opcode = OutEnterGameServerOk.OP_CODE)
+        addPacketOpcode(packetClass = OutEnterGameServerOk::class, opcode = OutEnterGameServerOk.OP_CODE),
+        addPacketOpcode(packetClass = OutAuthClientFail::class, opcode = OutAuthClientFail.OP_CODE)
     )
 
     fun getOpcode(packetClass: KClass<out LoginClientOutputPacket>): Int {

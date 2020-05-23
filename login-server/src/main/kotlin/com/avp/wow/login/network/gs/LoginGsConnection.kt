@@ -1,5 +1,9 @@
 package com.avp.wow.login.network.gs
 
+import com.avp.wow.login.LoginServerConfig.processorMaxThreads
+import com.avp.wow.login.LoginServerConfig.processorMinThreads
+import com.avp.wow.login.LoginServerConfig.processorThreadKillThreshold
+import com.avp.wow.login.LoginServerConfig.processorThreadSpawnThreshold
 import com.avp.wow.login.network.factories.LoginGsInputPacketFactory
 import com.avp.wow.login.network.gs.output.OutInitSession
 import com.avp.wow.model.gs.GameServer
@@ -42,7 +46,15 @@ class LoginGsConnection(
      */
     var sessionId = hashCode()
 
-    private val processor = KtorPacketProcessor<LoginGsConnection>(8, 1, 3, 3, scope.coroutineContext)
+    private val processor by lazy {
+        KtorPacketProcessor<LoginGsConnection>(
+            minThreads = processorMinThreads,
+            maxThreads = processorMaxThreads,
+            threadSpawnThreshold = processorThreadSpawnThreshold,
+            threadKillThreshold = processorThreadKillThreshold,
+            context = scope.coroutineContext
+        )
+    }
 
     /**
      * Server Packet "to send" Queue
