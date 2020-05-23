@@ -9,9 +9,12 @@ import com.avp.wow.network.KtorPacketProcessor
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
 import com.avp.wow.network.ncrypt.WowCryptEngine
+import com.avp.wow.service.gs.GameServersConfig.gameServersService
 import io.ktor.network.sockets.Socket
+import io.ktor.network.sockets.isClosed
 import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
+import java.io.IOException
 import java.nio.ByteBuffer
 import javax.crypto.SecretKey
 import kotlin.coroutines.CoroutineContext
@@ -73,11 +76,32 @@ class LoginGsConnection(
     private val cryptEngine by lazy { WowCryptEngine() }
 
     override fun close(forced: Boolean) {
-        TODO("Not yet implemented")
+        synchronized(guard) {
+            if (isWriteDisabled) {
+                return
+            }
+            isForcedClosing = forced
+            nio.closeConnection(this)
+        }
     }
 
     override fun onlyClose(): Boolean {
-        TODO("Not yet implemented")
+        synchronized(guard) {
+            if (closed) {
+                return false
+            }
+            try {
+                if (!socket.isClosed) {
+                    socket.close()
+                    socket.dispose()
+                    nio.removeConnection(this)
+                    log.info { "Connection from $ip was successfully closed: ${socket.isClosed}" }
+                }
+                closed = true
+            } catch (ignored: IOException) {
+            }
+        }
+        return true
     }
 
     /**
@@ -155,11 +179,16 @@ class LoginGsConnection(
         get() = TODO("Not yet implemented")
 
     override fun onDisconnect() {
-        TODO("Not yet implemented")
+        log.info { "Unregister GS on LS." }
+        gameServerInfo?.let { gs ->
+            gameServersService.gameServers.remove(gs.id)
+            gs.accountsOnGs.clear()
+        }
+        gameServerInfo = null
     }
 
     override fun onServerClose() {
-        TODO("Not yet implemented")
+        close(forced = true)
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {

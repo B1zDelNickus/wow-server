@@ -23,7 +23,8 @@ object GameClientOutputPacketsOpcodes {
         addPacketOpcode(packetClass = OutInitSession::class, opcode = OutInitSession.OP_CODE),
         addPacketOpcode(packetClass = OutAuthClientOk::class, opcode = OutAuthClientOk.OP_CODE),
         addPacketOpcode(packetClass = OutClientLoginCheckResponse::class, opcode = OutClientLoginCheckResponse.OP_CODE),
-        addPacketOpcode(packetClass = OutEnterWorldOk::class, opcode = OutEnterWorldOk.OP_CODE)
+        addPacketOpcode(packetClass = OutEnterWorldOk::class, opcode = OutEnterWorldOk.OP_CODE),
+        addPacketOpcode(packetClass = OutExitWorld::class, opcode = OutExitWorld.OP_CODE)
     )
 
     fun getOpcode(packetClass: KClass<out GameClientOutputPacket>): Int {

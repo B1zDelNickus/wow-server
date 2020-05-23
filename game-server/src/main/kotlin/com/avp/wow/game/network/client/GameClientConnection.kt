@@ -9,9 +9,11 @@ import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
+import io.ktor.network.sockets.isClosed
 import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
 import kotlinx.coroutines.launch
+import java.io.IOException
 import java.nio.ByteBuffer
 import javax.crypto.SecretKey
 import kotlin.coroutines.CoroutineContext
@@ -72,11 +74,32 @@ class GameClientConnection(
     private val inputPacketHandler = GameClientInputPacketFactory.packetHandler
 
     override fun close(forced: Boolean) {
-        TODO("Not yet implemented")
+        synchronized(guard) {
+            if (isWriteDisabled) {
+                return
+            }
+            isForcedClosing = forced
+            nio.closeConnection(this)
+        }
     }
 
     override fun onlyClose(): Boolean {
-        TODO("Not yet implemented")
+        synchronized(guard) {
+            if (closed) {
+                return false
+            }
+            try {
+                if (!socket.isClosed) {
+                    socket.close()
+                    socket.dispose()
+                    nio.removeConnection(this)
+                    log.info { "Connection from $ip was successfully closed: ${socket.isClosed}" }
+                }
+                closed = true
+            } catch (ignored: IOException) {
+            }
+        }
+        return true
     }
 
     /**
@@ -175,18 +198,23 @@ class GameClientConnection(
         get() = TODO("Not yet implemented")
 
     override fun onDisconnect() {
-        TODO("Not yet implemented")
+        // TODO stop ping checker
+        log.info { "Disconnecting $account from GS." }
+        account?.let { acc ->
+            // send diconnect packets to loginserver
+        }
+        // same for active player
     }
 
     override fun onServerClose() {
-        TODO("Not yet implemented")
+        close(forced = true)
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
         cryptEngine.updateKey(blowfishKey)
     }
 
-    fun close(closePacket: GameClientOutputPacket, forced: Boolean) {
+    fun close(closePacket: GameClientOutputPacket, forced: Boolean = false) {
         synchronized(guard) {
             if (isWriteDisabled) {
                 return

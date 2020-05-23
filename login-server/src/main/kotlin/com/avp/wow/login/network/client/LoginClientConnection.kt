@@ -9,6 +9,7 @@ import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
 import com.avp.wow.network.ncrypt.WowCryptEngine
+import com.avp.wow.service.auth.AuthConfig.authService
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.isClosed
 import io.ktor.util.KtorExperimentalAPI
@@ -39,7 +40,7 @@ class LoginClientConnection(
      */
     var sessionId = hashCode()
 
-    private val processor = KtorPacketProcessor<LoginClientConnection>(8, 1, 3, 3, scope.coroutineContext)
+    private val processor by lazy { KtorPacketProcessor<LoginClientConnection>(8, 1, 3, 3, context) }
 
     /**
      * Server Packet "to send" Queue
@@ -168,6 +169,9 @@ class LoginClientConnection(
         /**
          * Remove account only if not joined GameServer yet.
          */
+        if (null != account && !joinedGs) {
+            authService.accountsOnLs.remove(account!!.id!!)
+        }
     }
 
     override fun onServerClose() {

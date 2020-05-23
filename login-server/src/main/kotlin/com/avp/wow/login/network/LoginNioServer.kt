@@ -8,10 +8,7 @@ import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.aSocket
 import io.ktor.util.KtorExperimentalAPI
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.net.InetSocketAddress
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.CoroutineContext
@@ -40,17 +37,17 @@ class LoginNioServer(
     @Throws(Error::class)
     override fun start() {
 
+
         /**
-         * Main connect coroutine
+         * Create non-blocking socket channel for clients
          */
-        scope.launch {
+        try {
 
+            log.info { "Connecting to servers..." }
             /**
-             * Create non-blocking socket channel for clients
+             * Main connect coroutine
              */
-            try {
-
-                log.info { "Connecting to servers..." }
+            scope.launch {
 
                 /**
                  * Bind the server socket to the specified address and port
@@ -88,6 +85,11 @@ class LoginNioServer(
                             log.info { "Client socket accepted: ${socket.remoteAddress} to '${cfg.connectionName}'" }
 
                             /**
+                             * Run Accepted Connection coroutine with R\W dispatching
+                             */
+                            //launch {
+
+                            /**
                              * Create connection object and pass it to NIO server infrastructure
                              */
                             cfg.factory.create(
@@ -113,6 +115,9 @@ class LoginNioServer(
 
                                     conn.initialized()
                                 }
+                            //}
+
+                            delay(25)
 
                         }
 
@@ -122,11 +127,11 @@ class LoginNioServer(
 
                 log.info { "Connected to servers: \n${serverConfigs.joinToString("\n") { "\t\t### address: ${it.hostName}:${it.port} | name: ${it.connectionName} ###" }}" }
 
-            } catch (e: Exception) {
-                log.error(e) { "Error occurred while connecting servers: ${e.message}" }
-                throw Error("Error initialize LoginNioServer")
             }
 
+        } catch (e: Exception) {
+            log.error(e) { "Error occurred while connecting servers: ${e.message}" }
+            throw Error("Error initialize LoginNioServer")
         }
 
         /**

@@ -31,7 +31,7 @@ class KtorNioClient(
     var sessionKey: SessionKey? = null
 
     override val activeConnectionsCount: Int
-        get() = listOfNotNull(clientLsConfig, gameServerConnection).size
+        get() = listOfNotNull(loginServerConnection, gameServerConnection).size
 
     /**
      * Open connections to configured servers
@@ -137,24 +137,32 @@ class KtorNioClient(
 
     }
 
-    override fun closeChannels() {
-        TODO("Not yet implemented")
-    }
+    override fun closeChannels() = Unit
 
     override fun notifyClose() {
-        TODO("Not yet implemented")
+        listOfNotNull(gameServerConnection, loginServerConnection)
+            .forEach { conn ->
+                conn.onServerClose()
+            }
     }
 
     override fun closeAll() {
-        TODO("Not yet implemented")
+        listOfNotNull(gameServerConnection, loginServerConnection)
+            .forEach { conn ->
+                conn.close(true)
+            }
     }
 
     override fun closeConnection(connection: BaseConnection) {
-        TODO("Not yet implemented")
+        connection.closeConnectionImpl()
     }
 
     override fun removeConnection(connection: BaseConnection) {
-        TODO("Not yet implemented")
+        when (connection) {
+            is GameServerConnection -> gameServerConnection = null
+            is LoginServerConnection -> loginServerConnection = null
+        }
+        log.info { "Disconnected! Some reconnecting stuff here..." }
     }
 
     fun login(login: String, password: String) {

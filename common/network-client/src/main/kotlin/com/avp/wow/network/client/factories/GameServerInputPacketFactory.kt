@@ -29,6 +29,7 @@ object GameServerInputPacketFactory {
         addPacket(InAuthClientOk(State.CONNECTED)) // 5.1
         addPacket(InClientLoginCheckResponse(State.CONNECTED)) // 5.1
         addPacket(InEnterWorldOk(State.AUTHED)) // 5.1
+        addPacket(InExitWord(State.AUTHED, State.IN_GAME)) // 5.1
         //addPacket(CM_L2AUTH_LOGIN_CHECK(0x015F, State.CONNECTED)) // 5.1
 
     }

@@ -1,5 +1,7 @@
 package com.avp.wow.game.network
 
+import com.avp.wow.game.network.client.GameClientConnection
+import com.avp.wow.game.network.client.output.OutExitWorld
 import com.avp.wow.game.network.ls.GameLsConnection
 import com.avp.wow.network.BaseConnection
 import com.avp.wow.network.BaseNioService
@@ -9,6 +11,7 @@ import io.ktor.network.sockets.aSocket
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.*
 import java.net.InetSocketAddress
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
@@ -20,26 +23,45 @@ class GameNioServer(
 
     override val scope by lazy { CoroutineScope(SupervisorJob() + context) }
 
+    private val selector by lazy { ActorSelectorManager(context = scope.coroutineContext) }
+
     var loginServerConnection: GameLsConnection? = null
+    private val connections = CopyOnWriteArrayList<GameClientConnection>()
+
+    /**
+     * List of connections that should be closed by this `Dispatcher` as soon as possible.
+     */
+    private val pendingClose = CopyOnWriteArrayList<BaseConnection>()
+
+    private var processPendingClosing = false
 
     override val activeConnectionsCount: Int
-        get() = TODO("Not yet implemented")
+        get() = connections.size + listOfNotNull(loginServerConnection).size
 
     var clientPort = 0
+    var connectedToLs = false
 
     override fun start() {
+
+        /**
+         * Start connection to Login Server
+         */
+        connectLs()
+
+        /**
+         * Start listening for Client connections
+         */
+        startClientListener()
 
         scope.launch {
 
             try {
 
-                val selector = ActorSelectorManager(context = scope.coroutineContext)
-
                 /**
                  * Start connection to Login Server
                  */
 
-                launch {
+                /*launch {
 
                     val loginSocket = aSocket(selector = selector)
                         .tcp()
@@ -62,13 +84,13 @@ class GameNioServer(
 
                     loginServerConnection?.initialized()
 
-                }
+                }*/
 
                 /**
                  * Start listening for Client connections
                  */
 
-                launch {
+                /*launch {
 
                     val isa = when (gameClientConfig.hostName) {
                         "*" -> {
@@ -95,14 +117,16 @@ class GameNioServer(
 
                             log.info { "Accepted connection from client: ${clientSocket.remoteAddress}" }
 
-                            //launch {
+                            launch {
 
                                 val connection =
                                     gameClientConfig.factory.create(
                                         socket = clientSocket,
                                         nio = this@GameNioServer,
                                         context = scope.coroutineContext
-                                    )
+                                    ) as GameClientConnection
+
+                                connections + connection
 
                                 launch { connection.startReadDispatching() }
 
@@ -110,7 +134,7 @@ class GameNioServer(
 
                                 connection.initialized()
 
-                            //}
+                            }
 
                             delay(25)
 
@@ -118,7 +142,7 @@ class GameNioServer(
 
                     }
 
-                }
+                }*/
 
             } catch (e: Exception) {
                 log.error(e) { "Error occurred while connecting servers: ${e.message}" }
@@ -127,26 +151,181 @@ class GameNioServer(
 
         }
 
+        /**
+         * Coroutine for closing pending connections
+         */
+        scope.launch {
+
+            processPendingClosing = true
+
+            while (processPendingClosing) {
+                processPendingClose()
+            }
+
+        }
+
     }
 
-    override fun closeChannels() {
-        TODO("Not yet implemented")
-    }
+    override fun closeChannels() = Unit
 
     override fun notifyClose() {
-        TODO("Not yet implemented")
+        connections
+            .forEach { conn ->
+                conn.onServerClose()
+            }
+        loginServerConnection?.onServerClose()
     }
 
     override fun closeAll() {
-        TODO("Not yet implemented")
+        connections
+            .forEach { conn ->
+                conn.close(true)
+            }
+        loginServerConnection?.close(true)
+    }
+
+    /**
+     * Process Pending Close connections.
+     */
+    private fun processPendingClose() {
+        synchronized(pendingClose) {
+            for (connection in pendingClose) {
+                connection.closeConnectionImpl()
+            }
+            pendingClose.clear()
+        }
     }
 
     override fun closeConnection(connection: BaseConnection) {
-        TODO("Not yet implemented")
+        synchronized(pendingClose) {
+            pendingClose.add(connection)
+        }
     }
 
     override fun removeConnection(connection: BaseConnection) {
-        TODO("Not yet implemented")
+        when (connection) {
+            loginServerConnection -> loginServerConnection = null
+            else -> connections.remove(connection)
+        }
+    }
+
+    fun connectLs() {
+
+        connectedToLs = false
+
+        /**
+         * Start connection to Login Server
+         */
+        scope.launch {
+
+            while (true) {
+
+                try {
+
+                    val loginSocket = aSocket(selector = selector)
+                        .tcp()
+                        .connect(
+                            hostname = gameLsConfig.hostName,
+                            port = gameLsConfig.port
+                        )
+
+                    log.info { "Connected to Login Server by address: ${loginSocket.remoteAddress}" }
+
+                    loginServerConnection = gameLsConfig.factory.create(
+                        socket = loginSocket,
+                        nio = this@GameNioServer,
+                        context = scope.coroutineContext
+                    ) as GameLsConnection
+
+                    launch { loginServerConnection?.startReadDispatching() }
+
+                    launch { loginServerConnection?.startWriteDispatching() }
+
+                    loginServerConnection?.initialized()
+
+                    connectedToLs = true
+
+                    break
+
+                } catch (e: Exception) {
+
+                    log.info { "Can't connect to LS: ${e.message}" }
+
+                }
+
+                delay(5_000)
+
+            }
+
+            log.info { "Successfully connected to LS!" }
+        }
+
+
+    }
+
+    fun startClientListener() {
+
+        scope.launch {
+
+            val isa = when (gameClientConfig.hostName) {
+                "*" -> {
+                    log.info { "Server listening on all available IPs on Port " + gameClientConfig.port.toString() + " for " + gameClientConfig.connectionName }
+                    InetSocketAddress(gameClientConfig.port)
+                }
+                else -> {
+                    log.info { "Server listening on IP: " + gameClientConfig.hostName + " Port " + gameClientConfig.port + " for " + gameClientConfig.connectionName }
+                    InetSocketAddress(gameClientConfig.hostName, gameClientConfig.port)
+                }
+            }
+
+            clientPort = gameClientConfig.port
+
+            val gameServer = aSocket(selector = selector)
+                .tcp()
+                .bind(isa)
+
+            //launch { TODO think about needness
+
+            while (true) { // TODO replace with syncronized guard
+
+                val clientSocket = gameServer.accept()
+
+                log.info { "Accepted connection from client: ${clientSocket.remoteAddress}" }
+
+                //launch {
+
+                val connection =
+                    gameClientConfig.factory.create(
+                        socket = clientSocket,
+                        nio = this@GameNioServer,
+                        context = scope.coroutineContext
+                    ) as GameClientConnection
+
+                connections.add(connection)
+
+                launch { connection.startReadDispatching() }
+
+                launch { connection.startWriteDispatching() }
+
+                connection.initialized()
+
+                //}
+
+                delay(25)
+
+            }
+
+            //}
+
+        }
+
+    }
+
+    fun kickAllClientsFromServer() {
+        connections
+            .forEach { con ->
+                con.close(closePacket = OutExitWorld(), forced = true)
+            }
     }
 
 }

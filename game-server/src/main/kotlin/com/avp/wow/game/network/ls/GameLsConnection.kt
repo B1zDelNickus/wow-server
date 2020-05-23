@@ -1,5 +1,6 @@
 package com.avp.wow.game.network.ls
 
+import com.avp.wow.game.network.GameNioServer
 import com.avp.wow.game.network.client.GameClientConnection
 import com.avp.wow.game.network.factories.GameLsInputPacketFactory
 import com.avp.wow.game.network.ls.output.OutAccountCheck
@@ -9,8 +10,12 @@ import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorPacketProcessor
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
+import io.ktor.network.sockets.isClosed
 import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.io.IOException
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 
@@ -46,17 +51,40 @@ class GameLsConnection(
     private val checkAccountRequests = mutableMapOf<Long, GameClientConnection>()
     val loggedInAccounts = mutableMapOf<Long, GameClientConnection>()
 
+    var serverShutdown = false
+
     /**
      * Crypt to encrypt/decrypt packets
      */
     private val cryptEngine by lazy { WowCryptEngine() }
 
     override fun close(forced: Boolean) {
-        TODO("Not yet implemented")
+        synchronized(guard) {
+            if (isWriteDisabled) {
+                return
+            }
+            isForcedClosing = forced
+            nio.closeConnection(this)
+        }
     }
 
     override fun onlyClose(): Boolean {
-        TODO("Not yet implemented")
+        synchronized(guard) {
+            if (closed) {
+                return false
+            }
+            try {
+                if (!socket.isClosed) {
+                    socket.close()
+                    socket.dispose()
+                    nio.removeConnection(this)
+                    log.info { "Connection from $ip was successfully closed: ${socket.isClosed}" }
+                }
+                closed = true
+            } catch (ignored: IOException) {
+            }
+        }
+        return true
     }
 
     /**
@@ -133,11 +161,24 @@ class GameLsConnection(
         get() = TODO("Not yet implemented")
 
     override fun onDisconnect() {
-        TODO("Not yet implemented")
+        log.info { "Ls connection lost - disconnecting all clients pending auth from GS." }
+        // TODO make clients close
+        synchronized(checkAccountRequests) {
+            checkAccountRequests.values.forEach { client ->
+                client.close(forced = true)
+            }
+            checkAccountRequests.clear()
+        }
+        if (!serverShutdown) {
+            scope.launch {
+                delay(5_000) // TODO to ENV
+                (nio as GameNioServer).connectLs()
+            }
+        }
     }
 
     override fun onServerClose() {
-        TODO("Not yet implemented")
+        close(forced = true)
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {

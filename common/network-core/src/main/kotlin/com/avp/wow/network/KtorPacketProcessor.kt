@@ -19,23 +19,6 @@ class KtorPacketProcessor<T: KtorConnection>(
     context: CoroutineContext = Dispatchers.IO
 ) {
 
-    /**
-     * Working threads.
-     */
-    private val jobs: MutableList<Pair<Job, PacketProcessorTask>> = ArrayList()
-
-    init {
-
-        if (minThreads != maxThreads) {
-            startCheckerThread()
-        }
-
-        for (i in 0 until minThreads) {
-            newJob()
-        }
-
-    }
-
     private val log = KotlinLogging.logger(this::class.java.name)
 
     private val scope by lazy { CoroutineScope(SupervisorJob() + context) }
@@ -54,6 +37,23 @@ class KtorPacketProcessor<T: KtorConnection>(
      * Queue of packet that will be executed in correct order.
      */
     val packets = LinkedList<BaseInputPacket<T>>()
+
+    /**
+     * Working threads.
+     */
+    private val jobs: MutableList<Pair<Job, PacketProcessorTask>> = ArrayList()
+
+    init {
+
+        if (minThreads != maxThreads) {
+            startCheckerThread()
+        }
+
+        for (i in 0 until minThreads) {
+            newJob()
+        }
+
+    }
 
     /**
      * Start Checker Thread. Checker is responsible for increasing / reducing PacketProcessor Thread count based on Runtime needs.
