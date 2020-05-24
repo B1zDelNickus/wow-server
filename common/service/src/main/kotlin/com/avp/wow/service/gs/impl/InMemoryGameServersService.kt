@@ -3,22 +3,25 @@ package com.avp.wow.service.gs.impl
 import com.avp.wow.model.auth.Account
 import com.avp.wow.model.gs.GameServer
 import com.avp.wow.service.gs.IGameServersService
+import com.avp.wow.service.gs.enums.GsRegisterResponse
 
 class InMemoryGameServersService : IGameServersService {
 
     override val gameServers: MutableMap<Int, GameServer> = mutableMapOf()
 
-    override fun registerGameServer(id: Int, host: String, port: Int, name: String) : Boolean {
+    override fun registerGameServer(id: Int, host: String, port: Int, name: String) : GsRegisterResponse {
         synchronized(gameServers) {
-            if (gameServers.containsKey(id)) return false
+
+            if (gameServers.containsKey(id)) return GsRegisterResponse.ALREADY_REGISTERED
+
             gameServers[id] = GameServer(
                 id = id,
                 host = host,
                 port = port,
                 name = name
             )
-            return true
         }
+        return GsRegisterResponse.REGISTERED
     }
 
     override fun isAccountOnAnyGameServer(account: Account): Boolean {

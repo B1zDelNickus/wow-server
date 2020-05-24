@@ -70,8 +70,8 @@ class KtorPacketProcessor<T: KtorConnection>(
         if (jobs.size >= maxThreads) {
             return false
         }
-        val name = "PacketProcessor:" + jobs.size
-        log.debug("Creating new PacketProcessor Thread: $name")
+        val name = "PacketProcessor-" + jobs.size
+        log.trace("Creating new PacketProcessor Thread: $name")
         val task = PacketProcessorTask(name = name)
         val job = scope.launch(start = CoroutineStart.LAZY) { task.run() }
         task.ownJob = job
@@ -86,7 +86,7 @@ class KtorPacketProcessor<T: KtorConnection>(
     private fun killThread() {
         if (jobs.size < minThreads) {
             val t: Pair<Job, PacketProcessorTask> = jobs.removeAt(jobs.size - 1)
-            log.debug("Killing PacketProcessor Job: " + t.second.name)
+            log.trace("Killing PacketProcessor Job: " + t.second.name)
             t.first.cancel("kill: ${t.second.name}")
         }
     }

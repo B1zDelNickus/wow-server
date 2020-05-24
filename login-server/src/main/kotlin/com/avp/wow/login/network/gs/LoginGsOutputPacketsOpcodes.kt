@@ -1,9 +1,6 @@
 package com.avp.wow.login.network.gs
 
-import com.avp.wow.login.network.gs.output.OutAccountCheckResponse
-import com.avp.wow.login.network.gs.output.OutAuthGsOk
-import com.avp.wow.login.network.gs.output.OutInitSession
-import com.avp.wow.login.network.gs.output.OutRegisterGsOk
+import com.avp.wow.login.network.gs.output.*
 import io.ktor.util.KtorExperimentalAPI
 import kotlin.reflect.KClass
 
@@ -15,7 +12,9 @@ object LoginGsOutputPacketsOpcodes {
     private val opCodes = mutableMapOf(
         addPacketOpcode(packetClass = OutInitSession::class, opcode = OutInitSession.OP_CODE),
         addPacketOpcode(packetClass = OutAuthGsOk::class, opcode = OutAuthGsOk.OP_CODE),
+        addPacketOpcode(packetClass = OutAuthGsFail::class, opcode = OutAuthGsFail.OP_CODE),
         addPacketOpcode(packetClass = OutRegisterGsOk::class, opcode = OutRegisterGsOk.OP_CODE),
+        addPacketOpcode(packetClass = OutRegisterGsFail::class, opcode = OutRegisterGsFail.OP_CODE),
         addPacketOpcode(packetClass = OutAccountCheckResponse::class, opcode = OutAccountCheckResponse.OP_CODE)
     )
 

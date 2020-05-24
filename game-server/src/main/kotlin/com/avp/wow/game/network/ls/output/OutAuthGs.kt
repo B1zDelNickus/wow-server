@@ -5,14 +5,16 @@ import com.avp.wow.game.network.ls.GameLsOutputPacket
 import io.ktor.util.KtorExperimentalAPI
 
 @KtorExperimentalAPI
-class OutAuthGs : GameLsOutputPacket() {
+class OutAuthGs(
+    private val sessionId: Int
+) : GameLsOutputPacket() {
 
     override fun writeImpl(con: GameLsConnection) {
-        writeD(con.sessionId) // session id TODO obfuscate with RSA public key
+        writeD(sessionId) // session id TODO obfuscate with RSA public key
     }
 
     companion object {
-        const val OP_CODE = 0x02
+        const val OP_CODE = 2
     }
 
 }

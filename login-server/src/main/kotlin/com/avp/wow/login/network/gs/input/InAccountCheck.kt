@@ -5,6 +5,7 @@ import com.avp.wow.login.network.client.SessionKey
 import com.avp.wow.login.network.gs.LoginGsConnection
 import com.avp.wow.login.network.gs.LoginGsInputPacket
 import com.avp.wow.login.network.gs.output.OutAccountCheckResponse
+import com.avp.wow.login.network.gs.output.OutAuthGsFail
 import com.avp.wow.service.auth.AuthConfig.authService
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
@@ -46,7 +47,7 @@ class InAccountCheck(
                             playOk1 = playOk1,
                             playOk2 = playOk2
                         )
-                        val lcc = accountsOnLs[accountId] as? LoginClientConnection
+                        val lcc = authService.accountsOnLs[accountId] as? LoginClientConnection
 
                         when {
                             null != lcc && lcc.sessionKey!!.checkSessionKey(requestedKey) -> {
@@ -54,7 +55,7 @@ class InAccountCheck(
                                 /**
                                  * account is successful logged in on gs remove it from here
                                  */
-                                accountsOnLs.remove(accountId)
+                                authService.accountsOnLs.remove(accountId)
 
                                 val gsi = con.gameServerInfo!!
                                 val acc = lcc.account!!
@@ -90,7 +91,8 @@ class InAccountCheck(
 
                 }
                 else -> {
-
+                    log.error { "Sessions doesnt match: ${con.sessionId} != $sessionId" }
+                    con.close(OutAuthGsFail(wrongSessionId = sessionId), true)
                 }
             }
         }
@@ -98,6 +100,6 @@ class InAccountCheck(
     }
 
     companion object {
-        const val OP_CODE = 0x05
+        const val OP_CODE = 5
     }
 }

@@ -207,6 +207,18 @@ class LoginGsConnection(
         cryptEngine.updateKey(blowfishKey)
     }
 
+    fun close(closePacket: LoginGsOutputPacket, forced: Boolean = false) {
+        synchronized(guard) {
+            if (isWriteDisabled) {
+                return
+            }
+            pendingClose = true
+            isForcedClosing = forced
+            sendMsgQueue.clear()
+            sendMsgQueue.addLast(closePacket)
+        }
+    }
+
     companion object {
 
         const val DEFAULT_R_BUFFER_SIZE = 8192 * 2

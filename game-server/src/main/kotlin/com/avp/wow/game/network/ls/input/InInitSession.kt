@@ -27,14 +27,16 @@ class InInitSession(
     }
 
     override suspend fun runImpl() {
-        connection?.enableEncryption(blowfishKey!!)
-        connection?.sessionId = sessionId
-        connection?.publicRsa = publicRsaKey
-        connection?.sendPacket(OutAuthGs())
+        connection?.let { con ->
+            con.enableEncryption(blowfishKey!!)
+            con.sessionId = sessionId
+            con.publicRsa = publicRsaKey
+            con.sendPacket(OutAuthGs(sessionId = sessionId))
+        }
     }
 
     companion object {
-        const val OP_CODE = 0x01
+        const val OP_CODE = 1
     }
 
 }

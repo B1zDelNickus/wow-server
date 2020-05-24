@@ -30,7 +30,7 @@ class OutInitSession(
     }
 
     companion object {
-        const val OP_CODE = 0x01
+        const val OP_CODE = 1
     }
 
 }

@@ -166,7 +166,7 @@ class GameLsConnection(
         /**
          * send first packet - authentication.
          */
-        sendPacket(OutAuthGs())
+        //sendPacket(OutAuthGs())
     }
 
     override val disconnectionDelay: Long

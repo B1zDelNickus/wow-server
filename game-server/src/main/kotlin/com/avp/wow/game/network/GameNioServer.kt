@@ -34,6 +34,7 @@ class GameNioServer(
     private val pendingClose = CopyOnWriteArrayList<BaseConnection>()
 
     private var processPendingClosing = false
+    private var pendingShutdown = false
 
     override val activeConnectionsCount: Int
         get() = connections.size + listOfNotNull(loginServerConnection).size
@@ -68,7 +69,9 @@ class GameNioServer(
 
     }
 
-    override fun closeChannels() = Unit
+    override fun closeChannels() {
+        pendingShutdown = true
+    }
 
     override fun notifyClose() {
         connections
@@ -84,6 +87,7 @@ class GameNioServer(
                 conn.close(true)
             }
         loginServerConnection?.close(true)
+        processPendingClosing = false
     }
 
     /**
@@ -115,12 +119,14 @@ class GameNioServer(
 
         connectedToLs = false
 
+        if (pendingShutdown) return
+
         /**
          * Start connection to Login Server
          */
         scope.launch {
 
-            while (true) {
+            while (!pendingShutdown) {
 
                 try {
 
@@ -185,7 +191,7 @@ class GameNioServer(
                 .tcp()
                 .bind(isa)
 
-            while (true) { // TODO replace with syncronized guard
+            while (!pendingShutdown) { // TODO replace with syncronized guard
 
                 try {
 
@@ -211,7 +217,7 @@ class GameNioServer(
                     delay(25)
 
                 } catch (e: Exception) {
-                    log.info(e) { "Error while accepting connection from client: ${e.message}" }
+                    log.info { "Error while accepting connection from client: ${e.message}" }
                 }
 
             }

@@ -68,7 +68,7 @@ abstract class BaseNioService {
 
         log.info { "NIO server was stopped successfully." }
 
-        scope.cancel("shutdown nio")
+        //scope.cancel("shutdown nio")
 
     }
 
