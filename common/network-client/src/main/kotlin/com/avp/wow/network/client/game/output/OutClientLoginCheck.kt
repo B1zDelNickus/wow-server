@@ -18,7 +18,7 @@ class OutClientLoginCheck : GameServerOutputPacket() {
     }
 
     companion object {
-        const val OP_CODE = 0x04
+        const val OP_CODE = 4
     }
 
 }

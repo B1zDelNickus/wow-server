@@ -12,7 +12,7 @@ class OutEnterWorldOk : GameClientOutputPacket() {
     }
 
     companion object {
-        const val OP_CODE = 0x07
+        const val OP_CODE = 7
     }
 
 }

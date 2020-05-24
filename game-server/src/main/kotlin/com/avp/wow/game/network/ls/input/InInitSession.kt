@@ -31,7 +31,7 @@ class InInitSession(
             con.enableEncryption(blowfishKey!!)
             con.sessionId = sessionId
             con.publicRsa = publicRsaKey
-            con.sendPacket(OutAuthGs(sessionId = sessionId))
+            con.sendPacket(OutAuthGs())
         }
     }
 

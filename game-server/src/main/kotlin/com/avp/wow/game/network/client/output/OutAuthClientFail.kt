@@ -5,14 +5,16 @@ import com.avp.wow.game.network.client.GameClientOutputPacket
 import io.ktor.util.KtorExperimentalAPI
 
 @KtorExperimentalAPI
-class OutExitWorld : GameClientOutputPacket() {
+class OutAuthClientFail(
+    private val wrongSessionId: Int
+) : GameClientOutputPacket() {
 
     override fun writeImpl(con: GameClientConnection) {
-        writeD(con.sessionId) // session id
+        writeD(wrongSessionId) // session id
     }
 
     companion object {
-        const val OP_CODE = 8
+        const val OP_CODE = 9
     }
 
 }

@@ -22,13 +22,14 @@ class InEnterWorldOk(vararg states: State) : GameServerInputPacket(OP_CODE, stat
                     log.debug { "Entered to Game" }
                 }
                 else -> {
-
+                    log.error { "Session doesn't matches: ${con.sessionId} != $sessionId" }
+                    // DISCONECT
                 }
             }
         }
     }
 
     companion object {
-        const val OP_CODE = 0x07
+        const val OP_CODE = 7
     }
 }

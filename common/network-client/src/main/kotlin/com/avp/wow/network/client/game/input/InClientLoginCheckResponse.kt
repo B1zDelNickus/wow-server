@@ -32,13 +32,14 @@ class InClientLoginCheckResponse(vararg states: State) : GameServerInputPacket(O
 
                 }
                 else -> {
-
+                    log.error { "Session doesn't matches: ${con.sessionId} != $sessionId" }
+                    // DISCONECT
                 }
             }
         }
     }
 
     companion object {
-        const val OP_CODE = 0x05
+        const val OP_CODE = 5
     }
 }

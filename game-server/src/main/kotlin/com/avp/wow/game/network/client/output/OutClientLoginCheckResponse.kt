@@ -17,7 +17,7 @@ class OutClientLoginCheckResponse(
     }
 
     companion object {
-        const val OP_CODE = 0x05
+        const val OP_CODE = 5
     }
 
 }

@@ -12,7 +12,7 @@ class OutAuthClient : GameServerOutputPacket() {
     }
 
     companion object {
-        const val OP_CODE = 0x02
+        const val OP_CODE = 2
     }
 
 }

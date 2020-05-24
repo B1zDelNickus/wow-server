@@ -22,13 +22,14 @@ class InExitWord(vararg states: State) : GameServerInputPacket(OP_CODE, states.t
                     log.debug { "Exit to Login Screen" }
                 }
                 else -> {
-
+                    log.error { "Session doesn't matches: ${con.sessionId} != $sessionId" }
+                    // DISCONECT
                 }
             }
         }
     }
 
     companion object {
-        const val OP_CODE = 0x08
+        const val OP_CODE = 8
     }
 }

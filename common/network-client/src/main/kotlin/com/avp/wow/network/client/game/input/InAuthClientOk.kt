@@ -18,17 +18,17 @@ class InAuthClientOk(vararg states: State) : GameServerInputPacket(OP_CODE, stat
         connection?.let { con ->
             when (con.sessionId) {
                 sessionId -> {
-                    //con.state = State.AUTHED
                     con.sendPacket(OutClientLoginCheck())
                 }
                 else -> {
-
+                    log.error { "Session doesn't matches: ${con.sessionId} != $sessionId" }
+                    // DISCONECT
                 }
             }
         }
     }
 
     companion object {
-        const val OP_CODE = 0x03
+        const val OP_CODE = 3
     }
 }

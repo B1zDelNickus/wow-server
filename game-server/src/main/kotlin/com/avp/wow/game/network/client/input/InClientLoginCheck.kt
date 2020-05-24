@@ -3,6 +3,7 @@ package com.avp.wow.game.network.client.input
 import com.avp.wow.game.network.GameNioServer
 import com.avp.wow.game.network.client.GameClientConnection
 import com.avp.wow.game.network.client.GameClientInputPacket
+import com.avp.wow.game.network.client.output.OutAuthClientFail
 import com.avp.wow.game.network.ls.GameLsConnection.Companion.State
 import io.ktor.util.KtorExperimentalAPI
 
@@ -27,8 +28,6 @@ class InClientLoginCheck(vararg states: GameClientConnection.Companion.State) : 
         connection?.let { con ->
             when (con.sessionId) {
                 sessionId -> {
-                    //con.state = State.AUTHED
-                    //con.sendPacket(OutAuthClientOk())
 
                     val lsCon = (con.nio as GameNioServer).loginServerConnection
 
@@ -53,7 +52,8 @@ class InClientLoginCheck(vararg states: GameClientConnection.Companion.State) : 
 
                 }
                 else -> {
-
+                    log.error { "Sessions doesnt match: ${con.sessionId} != $sessionId" }
+                    con.close(OutAuthClientFail(wrongSessionId = sessionId), true)
                 }
             }
         }
