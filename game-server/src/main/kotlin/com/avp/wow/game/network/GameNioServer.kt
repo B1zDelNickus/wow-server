@@ -31,7 +31,7 @@ class GameNioServer(
     /**
      * List of connections that should be closed by this `Dispatcher` as soon as possible.
      */
-    private val pendingClose = CopyOnWriteArrayList<BaseConnection>()
+    private val pendingClose = CopyOnWriteArrayList<BaseConnection<*>>()
 
     private var processPendingClosing = false
     private var pendingShutdown = false
@@ -102,13 +102,13 @@ class GameNioServer(
         }
     }
 
-    override fun closeConnection(connection: BaseConnection) {
+    override fun closeConnection(connection: BaseConnection<*>) {
         synchronized(pendingClose) {
             pendingClose.add(connection)
         }
     }
 
-    override fun removeConnection(connection: BaseConnection) {
+    override fun removeConnection(connection: BaseConnection<*>) {
         when (connection) {
             loginServerConnection -> loginServerConnection = null
             else -> connections.remove(connection)

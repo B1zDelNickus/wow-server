@@ -25,49 +25,13 @@ class LoginLsTests : StringSpec({
 
         KeyGen.init()
 
-        val loginServerClientConfig = KtorConnectionConfig(
-            hostName = DEFAULT_LOGIN_SERVER_CLIENT_HOST,
-            port = DEFAULT_LOGIN_SERVER_CLIENT_PORT,
-            connectionName = "Test Login Client Connection",
-            factory = LoginClientConnectionFactory()
-        )
 
-        val loginServerGsConfig = KtorConnectionConfig(
-            hostName = DEFAULT_LOGIN_SERVER_GS_HOST,
-            port = DEFAULT_LOGIN_SERVER_GS_PORT,
-            connectionName = "Test Login GS Connection",
-            factory = LoginGsConnectionFactory()
-        )
-
-        val loginServer = LoginNioServer(
-            serverConfigs = listOf(
-                loginServerClientConfig,
-                loginServerGsConfig
-            )
-        )
 
         loginServer.start()
 
         delay(3_000)
 
-        val gameServerClientConfig = KtorConnectionConfig(
-            hostName = "*",
-            port = 2323,
-            connectionName = "",
-            factory = GameClientConnectionFactory()
-        )
 
-        val gameServerLsConfig = KtorConnectionConfig(
-            hostName = DEFAULT_LOGIN_SERVER_GS_HOST,
-            port = DEFAULT_LOGIN_SERVER_GS_PORT,
-            connectionName = "",
-            factory = GameLsConnectionFactory()
-        )
-
-        val gameServer = GameNioServer(
-            gameLsConfig = gameServerLsConfig,
-            gameClientConfig = gameServerClientConfig
-        )
 
         gameServer.start()
 
@@ -102,4 +66,67 @@ class LoginLsTests : StringSpec({
 
     }
 
-})
+}) {
+
+    companion object {
+
+        private val loginServerClientConfig = KtorConnectionConfig(
+            hostName = DEFAULT_LOGIN_SERVER_CLIENT_HOST,
+            port = DEFAULT_LOGIN_SERVER_CLIENT_PORT,
+            connectionName = "Test Login Client Connection",
+            factory = LoginClientConnectionFactory()
+        )
+
+        private val loginServerGsConfig = KtorConnectionConfig(
+            hostName = DEFAULT_LOGIN_SERVER_GS_HOST,
+            port = DEFAULT_LOGIN_SERVER_GS_PORT,
+            connectionName = "Test Login GS Connection",
+            factory = LoginGsConnectionFactory()
+        )
+
+        private val loginServer by lazy {
+            LoginNioServer(
+                serverConfigs = listOf(
+                    loginServerClientConfig,
+                    loginServerGsConfig
+                )
+            )
+        }
+
+        private val gameServerClientConfig = KtorConnectionConfig(
+            hostName = "*",
+            port = 2323,
+            connectionName = "",
+            factory = GameClientConnectionFactory()
+        )
+
+        private val gameServerLsConfig = KtorConnectionConfig(
+            hostName = DEFAULT_LOGIN_SERVER_GS_HOST,
+            port = DEFAULT_LOGIN_SERVER_GS_PORT,
+            connectionName = "",
+            factory = GameLsConnectionFactory()
+        )
+
+        private val gameServer by lazy {
+            GameNioServer(
+                gameLsConfig = gameServerLsConfig,
+                gameClientConfig = gameServerClientConfig
+            )
+        }
+
+        val clientLsConfig = KtorConnectionConfig(
+            hostName = DEFAULT_LOGIN_SERVER_CLIENT_HOST,
+            port = DEFAULT_LOGIN_SERVER_CLIENT_PORT,
+            connectionName = "Test Login Server Connection",
+            factory = LoginServerConnectionFactory()
+        )
+
+        val client by lazy {
+            KtorNioClient(
+                clientLsConfig = clientLsConfig
+            )
+        }
+
+    }
+
+}

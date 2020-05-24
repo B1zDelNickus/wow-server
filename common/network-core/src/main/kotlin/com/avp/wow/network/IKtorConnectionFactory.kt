@@ -6,5 +6,5 @@ import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
 interface IKtorConnectionFactory : IConnectionFactory {
-    fun create(socket: Socket, nio: BaseNioService, context: CoroutineContext): KtorConnection
+    fun create(socket: Socket, nio: BaseNioService, context: CoroutineContext): KtorConnection<*>
 }

@@ -4,10 +4,12 @@ import com.avp.wow.game.GameServerConfig.processorMaxThreads
 import com.avp.wow.game.GameServerConfig.processorMinThreads
 import com.avp.wow.game.GameServerConfig.processorThreadKillThreshold
 import com.avp.wow.game.GameServerConfig.processorThreadSpawnThreshold
+import com.avp.wow.game.network.client.GameClientConnection.Companion.State
 import com.avp.wow.game.network.client.output.OutInitSession
 import com.avp.wow.game.network.factories.GameClientInputPacketFactory
 import com.avp.wow.model.auth.Account
 import com.avp.wow.network.BaseNioService
+import com.avp.wow.network.BaseState
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorPacketProcessor
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
@@ -27,7 +29,7 @@ class GameClientConnection(
     socket: Socket,
     nio: BaseNioService,
     context: CoroutineContext
-) : KtorConnection(
+) : KtorConnection<State>(
     socket = socket,
     nio = nio,
     context = context,
@@ -35,7 +37,7 @@ class GameClientConnection(
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
-    var state = State.DEFAULT
+    override var state = State.DEFAULT
 
     /**
      * Returns unique sessionId of this connection.
@@ -234,7 +236,7 @@ class GameClientConnection(
         const val DEFAULT_R_BUFFER_SIZE = 8192 * 2
         const val DEFAULT_W_BUFFER_SIZE = 8192 * 2
 
-        enum class State {
+        enum class State : BaseState {
 
             /**
              * Default state

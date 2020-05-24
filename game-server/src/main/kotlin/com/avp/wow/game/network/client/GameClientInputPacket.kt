@@ -19,9 +19,10 @@ abstract class GameClientInputPacket(
         }
     }
 
-    fun clonePacket(): GameClientInputPacket? {
+    override fun <InputPacket : BaseInputPacket<GameClientConnection>> clonePacket(): InputPacket? {
         return try {
-            super.clone() as GameClientInputPacket
+            @Suppress("UNCHECKED_CAST")
+            super.clone() as InputPacket
         } catch (e: CloneNotSupportedException) {
             null
         }

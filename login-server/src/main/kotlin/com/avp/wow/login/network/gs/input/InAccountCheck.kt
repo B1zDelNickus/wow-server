@@ -2,6 +2,7 @@ package com.avp.wow.login.network.gs.input
 
 import com.avp.wow.login.network.client.LoginClientConnection
 import com.avp.wow.login.network.client.SessionKey
+import com.avp.wow.login.network.factories.LoginGsOutputPacketFactory.packetHandler
 import com.avp.wow.login.network.gs.LoginGsConnection.Companion.State
 import com.avp.wow.login.network.gs.LoginGsInputPacket
 import com.avp.wow.login.network.gs.output.OutAccountCheckResponse
@@ -59,24 +60,12 @@ class InAccountCheck(vararg states: State) : LoginGsInputPacket(OP_CODE, states.
 
                                 // updateLastServer() TODO needed ? probably not
 
-                                sendPacket(
-                                    OutAccountCheckResponse(
-                                        accountId = accountId,
-                                        result = true,
-                                        accountName = acc.name,
-                                        accessLevel = acc.accessLevel
-                                    )
-                                )
+                                packetHandler.handle(OutAccountCheckResponse.OP_CODE, accountId, true, acc.name, acc.accessLevel)
+                                    ?.let { pck -> sendPacket(pck) }
 
                             }
-                            else -> sendPacket(
-                                OutAccountCheckResponse(
-                                    accountId = accountId,
-                                    result = false,
-                                    accountName = null,
-                                    accessLevel = 0
-                                )
-                            )
+                            else -> packetHandler.handle(OutAccountCheckResponse.OP_CODE, accountId, false, null, 0)
+                                ?.let { pck -> sendPacket(pck) }
                         }
 
                     }
@@ -84,7 +73,8 @@ class InAccountCheck(vararg states: State) : LoginGsInputPacket(OP_CODE, states.
                 }
                 else -> {
                     log.error { "Sessions doesnt match: ${con.sessionId} != $sessionId" }
-                    con.close(OutAuthGsFail(wrongSessionId = sessionId), true)
+                    packetHandler.handle(OutAuthGsFail.OP_CODE, sessionId)
+                        ?.let { pck -> con.close(pck,true) }
                 }
             }
         }

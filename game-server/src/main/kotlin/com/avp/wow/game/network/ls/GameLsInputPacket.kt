@@ -32,9 +32,10 @@ abstract class GameLsInputPacket(
             ?: throw IllegalStateException("Connection was not sat properly")
     }
 
-    fun clonePacket(): GameLsInputPacket? {
+    override fun <InputPacket : BaseInputPacket<GameLsConnection>> clonePacket(): InputPacket? {
         return try {
-            super.clone() as GameLsInputPacket
+            @Suppress("UNCHECKED_CAST")
+            super.clone() as InputPacket
         } catch (e: CloneNotSupportedException) {
             null
         }

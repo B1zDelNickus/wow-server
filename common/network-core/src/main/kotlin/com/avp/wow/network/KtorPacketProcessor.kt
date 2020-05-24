@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
-class KtorPacketProcessor<T: KtorConnection>(
+class KtorPacketProcessor<T: KtorConnection<*>>(
     private val minThreads: Int,
     private val maxThreads: Int,
     private val threadSpawnThreshold: Int,

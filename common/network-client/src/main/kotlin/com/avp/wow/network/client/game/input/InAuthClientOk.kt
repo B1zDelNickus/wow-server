@@ -1,5 +1,6 @@
 package com.avp.wow.network.client.game.input
 
+import com.avp.wow.network.client.factories.GameServerOutputPacketFactory.packetHandler
 import com.avp.wow.network.client.game.GameServerConnection.Companion.State
 import com.avp.wow.network.client.game.GameServerInputPacket
 import com.avp.wow.network.client.game.output.OutClientLoginCheck
@@ -18,7 +19,8 @@ class InAuthClientOk(vararg states: State) : GameServerInputPacket(OP_CODE, stat
         connection?.let { con ->
             when (con.sessionId) {
                 sessionId -> {
-                    con.sendPacket(OutClientLoginCheck())
+                    packetHandler.handle(OutClientLoginCheck.OP_CODE)
+                        ?.let { pck -> con.sendPacket(pck) }
                 }
                 else -> {
                     log.error { "Session doesn't matches: ${con.sessionId} != $sessionId" }

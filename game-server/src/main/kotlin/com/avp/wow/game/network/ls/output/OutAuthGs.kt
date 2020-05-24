@@ -7,6 +7,10 @@ import io.ktor.util.KtorExperimentalAPI
 @KtorExperimentalAPI
 class OutAuthGs : GameLsOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: GameLsConnection) {
         //println("########## $sessionId - ${con.sessionId}")
         writeD(con.sessionId) // session id TODO obfuscate with RSA public key

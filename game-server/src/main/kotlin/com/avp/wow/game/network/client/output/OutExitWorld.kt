@@ -7,6 +7,10 @@ import io.ktor.util.KtorExperimentalAPI
 @KtorExperimentalAPI
 class OutExitWorld : GameClientOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: GameClientConnection) {
         writeD(con.sessionId) // session id
     }

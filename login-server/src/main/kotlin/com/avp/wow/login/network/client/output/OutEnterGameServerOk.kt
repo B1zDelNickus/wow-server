@@ -10,6 +10,10 @@ class OutEnterGameServerOk(
     private val server: GameServer
 ) : LoginClientOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: LoginClientConnection) {
         writeD(con.sessionId)
         writeD(con.sessionKey!!.playOk1)

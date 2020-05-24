@@ -12,6 +12,10 @@ class OutAccountCheck(
     private val playOk2: Int
 ) : GameLsOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: GameLsConnection) {
         writeD(con.sessionId) // session id TODO obfuscate with RSA public key
         writeQ(accountId)

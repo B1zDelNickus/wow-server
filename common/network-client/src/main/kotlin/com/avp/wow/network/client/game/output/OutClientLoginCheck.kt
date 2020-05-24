@@ -8,6 +8,10 @@ import io.ktor.util.KtorExperimentalAPI
 @KtorExperimentalAPI
 class OutClientLoginCheck : GameServerOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: GameServerConnection) {
         writeD(con.sessionId) // session id
         val sessionKey = (con.nio as KtorNioClient).sessionKey!!

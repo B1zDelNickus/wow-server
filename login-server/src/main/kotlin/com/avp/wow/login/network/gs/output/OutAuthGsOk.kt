@@ -7,6 +7,10 @@ import io.ktor.util.KtorExperimentalAPI
 @KtorExperimentalAPI
 class OutAuthGsOk : LoginGsOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: LoginGsConnection) {
         writeD(con.sessionId) // session id
     }

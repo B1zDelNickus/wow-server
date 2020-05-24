@@ -1,5 +1,7 @@
 package com.avp.wow.login.network.gs.input
 
+import com.avp.wow.login.network.factories.LoginGsOutputPacketFactory
+import com.avp.wow.login.network.factories.LoginGsOutputPacketFactory.packetHandler
 import com.avp.wow.login.network.gs.LoginGsConnection.Companion.State
 import com.avp.wow.login.network.gs.LoginGsInputPacket
 import com.avp.wow.login.network.gs.output.OutAuthGsFail
@@ -42,18 +44,21 @@ class InRegisterGs(vararg states: State) : LoginGsInputPacket(OP_CODE, states.to
                         GsRegisterResponse.REGISTERED -> {
                             con.state = State.REGISTERED
                             con.gameServerInfo = GameServersConfig.gameServersService.gameServers[serverId]!!
-                            con.sendPacket(OutRegisterGsOk())
+                            packetHandler.handle(OutRegisterGsOk.OP_CODE)
+                                ?.let { pck -> sendPacket(pck) }
                         }
                         else -> {
                             // TODO in future multiple instances or load balancing
                             log.error { "GS already registered!!!" }
-                            con.close(OutRegisterGsFail(response = response), true)
+                            packetHandler.handle(OutRegisterGsFail.OP_CODE, response)
+                                ?.let { pck -> con.close(pck, true) }
                         }
                     }
                 }
                 else -> {
                     log.error { "Sessions doesnt match: ${con.sessionId} != $sessionId" }
-                    con.close(OutAuthGsFail(wrongSessionId = sessionId), true)
+                    packetHandler.handle(OutAuthGsFail.OP_CODE, sessionId)
+                        ?.let { pck -> con.close(pck, true) }
                 }
             }
         }
@@ -61,6 +66,6 @@ class InRegisterGs(vararg states: State) : LoginGsInputPacket(OP_CODE, states.to
     }
 
     companion object {
-        const val OP_CODE = 0x04
+        const val OP_CODE = 4
     }
 }

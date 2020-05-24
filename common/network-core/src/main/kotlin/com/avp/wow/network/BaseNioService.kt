@@ -84,8 +84,8 @@ abstract class BaseNioService {
      */
     protected abstract fun closeAll()
 
-    abstract fun closeConnection(connection: BaseConnection)
+    abstract fun closeConnection(connection: BaseConnection<*>)
 
-    abstract fun removeConnection(connection: BaseConnection)
+    abstract fun removeConnection(connection: BaseConnection<*>)
 
 }

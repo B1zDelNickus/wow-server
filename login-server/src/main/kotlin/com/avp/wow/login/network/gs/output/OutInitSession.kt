@@ -13,6 +13,10 @@ class OutInitSession(
     private val blowfishKey: ByteArray
 ) : LoginGsOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     constructor(client: LoginGsConnection, blowfishKey: SecretKey) : this(
         sessionId = client.sessionId,
         publicRsaKey = client.encryptedModulus,
@@ -25,7 +29,7 @@ class OutInitSession(
         writeB(blowfishKey) // BlowFish key
     }
 
-    override fun <T : BaseConnection> afterWrite(con: T) {
+    override fun <T : BaseConnection<*>> afterWrite(con: T) {
         con.enableEncryption(blowfishKey)
     }
 

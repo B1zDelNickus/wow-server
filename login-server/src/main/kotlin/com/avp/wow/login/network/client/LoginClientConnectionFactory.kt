@@ -10,7 +10,7 @@ import kotlin.coroutines.CoroutineContext
 @KtorExperimentalAPI
 class LoginClientConnectionFactory : IKtorConnectionFactory {
 
-    override fun create(socket: Socket, nio: BaseNioService, context: CoroutineContext): KtorConnection =
+    override fun create(socket: Socket, nio: BaseNioService, context: CoroutineContext): KtorConnection<*> =
         LoginClientConnection(socket = socket, nio = nio, context = context)
 
 }

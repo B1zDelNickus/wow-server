@@ -1,9 +1,10 @@
 package com.avp.wow.network.client.login
 
 import com.avp.wow.network.BaseNioService
+import com.avp.wow.network.BaseState
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.client.factories.LoginServerInputPacketFactory
-import com.avp.wow.network.ncrypt.CryptEngine
+import com.avp.wow.network.client.login.LoginServerConnection.Companion.State
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
 import com.avp.wow.network.ncrypt.WowCryptEngine
@@ -13,11 +14,8 @@ import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 import java.io.IOException
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import javax.crypto.SecretKey
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
@@ -25,7 +23,7 @@ class LoginServerConnection(
     socket: Socket,
     nio: BaseNioService,
     context: CoroutineContext
-) : KtorConnection(
+) : KtorConnection<State>(
     socket = socket,
     nio = nio,
     context = context,
@@ -33,7 +31,7 @@ class LoginServerConnection(
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
-    var state = State.DEFAULT
+    override var state = State.DEFAULT
 
     /**
      * Returns unique sessionId of this connection.
@@ -61,6 +59,8 @@ class LoginServerConnection(
      * Scrambled key pair for RSA
      */
     private var encryptedRSAKeyPair: EncryptedRSAKeyPair? = null
+
+    private val inputPacketHandler by lazy { LoginServerInputPacketFactory.packetHandler }
 
     /**
      * Decrypt packet.
@@ -117,7 +117,7 @@ class LoginServerConnection(
             log.error("Received fake packet from: $this")
             return false
         }
-        val pck = LoginServerInputPacketFactory.define(data, this)
+        val pck = inputPacketHandler.handle(data, this)
         /**
          * Execute packet only if packet exist (!= null) and read was ok.
          */
@@ -193,7 +193,7 @@ class LoginServerConnection(
         const val DEFAULT_R_BUFFER_SIZE = 8192 * 2
         const val DEFAULT_W_BUFFER_SIZE = 8192 * 2
 
-        enum class State {
+        enum class State : BaseState {
 
             /**
              * Default state

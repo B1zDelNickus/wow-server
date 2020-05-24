@@ -9,6 +9,10 @@ class OutAuthClientFail(
     private val wrongSessionId: Int
 ) : GameClientOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: GameClientConnection) {
         writeD(wrongSessionId) // session id
     }

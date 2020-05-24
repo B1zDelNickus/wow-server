@@ -10,6 +10,10 @@ class OutClientLoginCheckResponse(
     private val accountName: String
 ) : GameClientOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: GameClientConnection) {
         writeD(con.sessionId) // session id
         writeC(if (result) 1 else 0)

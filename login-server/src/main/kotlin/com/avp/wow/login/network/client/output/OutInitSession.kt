@@ -8,16 +8,17 @@ import javax.crypto.SecretKey
 
 @KtorExperimentalAPI
 class OutInitSession(
-    private val sessionId: Int,
-    private val publicRsaKey: ByteArray,
-    private val blowfishKey: ByteArray
+    client: LoginClientConnection,
+    blowfishKey: SecretKey
 ) : LoginClientOutputPacket() {
 
-    constructor(client: LoginClientConnection, blowfishKey: SecretKey) : this(
-        sessionId = client.sessionId,
-        publicRsaKey = client.encryptedModulus,
-        blowfishKey = blowfishKey.encoded
-    )
+    init {
+        opCode = OP_CODE
+    }
+
+    private val sessionId = client.sessionId
+    private val publicRsaKey = client.encryptedModulus
+    private val blowfishKey = blowfishKey.encoded
 
     override fun writeImpl(con: LoginClientConnection) {
         writeD(sessionId) // session id
@@ -25,7 +26,7 @@ class OutInitSession(
         writeB(blowfishKey) // BlowFish key
     }
 
-    override fun <T : BaseConnection> afterWrite(con: T) {
+    override fun <T : BaseConnection<*>> afterWrite(con: T) {
         con.enableEncryption(blowfishKey)
     }
 

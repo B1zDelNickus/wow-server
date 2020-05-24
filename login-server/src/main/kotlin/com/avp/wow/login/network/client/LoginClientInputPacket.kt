@@ -32,9 +32,10 @@ abstract class LoginClientInputPacket(
             ?: throw IllegalStateException("Connection was not sat properly")
     }
 
-    fun clonePacket(): LoginClientInputPacket? {
+    override fun <InputPacket : BaseInputPacket<LoginClientConnection>> clonePacket(): InputPacket? {
         return try {
-            super.clone() as LoginClientInputPacket
+            @Suppress("UNCHECKED_CAST")
+            super.clone() as InputPacket
         } catch (e: CloneNotSupportedException) {
             null
         }

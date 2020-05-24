@@ -1,23 +1,15 @@
 package com.avp.wow.network.client.login.input
 
-import com.avp.wow.network.client.login.LoginServerConnection
-import com.avp.wow.network.client.login.LoginServerConnection.Companion.State.AUTHED_GG
-import com.avp.wow.network.client.login.LoginServerConnection.Companion.State.AUTHED_LOGIN
+import com.avp.wow.network.client.factories.LoginServerOutputPacketFactory
+import com.avp.wow.network.client.factories.LoginServerOutputPacketFactory.packetHandler
+import com.avp.wow.network.client.login.LoginServerConnection.Companion.State
 import com.avp.wow.network.client.login.LoginServerInputPacket
+import com.avp.wow.network.client.login.output.OutAuthClient
 import com.avp.wow.network.client.login.output.OutEnterGameServer
-import com.avp.wow.network.client.login.output.OutGameServersList
 import io.ktor.util.KtorExperimentalAPI
-import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-class InLoginOk(
-    buffer: ByteBuffer,
-    server: LoginServerConnection
-) : LoginServerInputPacket(
-    opCode = OP_CODE,
-    server = server,
-    buffer = buffer
-) {
+class InLoginOk(vararg states: State) : LoginServerInputPacket(OP_CODE, states.toList()) {
 
     private var accountId: Long = 0
     private var loginOk: Int = 0
@@ -35,8 +27,9 @@ class InLoginOk(
                 sessionId -> {
                     con.accountId = accountId
                     con.loginOk = loginOk
-                    con.state = AUTHED_LOGIN
-                    con.sendPacket(OutEnterGameServer())
+                    con.state = State.AUTHED_LOGIN
+                    packetHandler.handle(OutEnterGameServer.OP_CODE)
+                        ?.let { pck -> con.sendPacket(pck) }
                 }
                 else -> {
                     log.error { "Session doesn't matches: ${con.sessionId} != $sessionId" }

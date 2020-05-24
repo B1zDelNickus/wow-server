@@ -10,6 +10,10 @@ class OutRegisterGsFail(
     private val response: GsRegisterResponse
 ) : LoginGsOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: LoginGsConnection) {
         writeD(con.sessionId) // session id
         writeD(response.code)

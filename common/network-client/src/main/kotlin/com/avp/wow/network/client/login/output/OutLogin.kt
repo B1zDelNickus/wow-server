@@ -17,6 +17,10 @@ class OutLogin(
     server: LoginServerConnection
 ) : LoginServerOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     lateinit var decrypted: ByteArray
 
     init {
@@ -52,7 +56,7 @@ class OutLogin(
     }
 
     companion object {
-        const val OP_CODE = 0x04
+        const val OP_CODE = 4
     }
 
 }

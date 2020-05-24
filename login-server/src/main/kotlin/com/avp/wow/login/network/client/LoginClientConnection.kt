@@ -4,10 +4,13 @@ import com.avp.wow.login.LoginServerConfig.processorMaxThreads
 import com.avp.wow.login.LoginServerConfig.processorMinThreads
 import com.avp.wow.login.LoginServerConfig.processorThreadKillThreshold
 import com.avp.wow.login.LoginServerConfig.processorThreadSpawnThreshold
+import com.avp.wow.login.network.client.LoginClientConnection.Companion.State
 import com.avp.wow.login.network.client.output.OutInitSession
 import com.avp.wow.login.network.factories.LoginClientInputPacketFactory
+import com.avp.wow.login.network.factories.LoginClientOutputPacketFactory
 import com.avp.wow.model.auth.Account
 import com.avp.wow.network.BaseNioService
+import com.avp.wow.network.BaseState
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorPacketProcessor
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
@@ -28,7 +31,7 @@ class LoginClientConnection(
     socket: Socket,
     nio: BaseNioService,
     context: CoroutineContext
-) : KtorConnection(
+) : KtorConnection<State>(
     socket = socket,
     nio = nio,
     context = context,
@@ -36,7 +39,7 @@ class LoginClientConnection(
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
-    var state = State.DEFAULT
+    override var state = State.NONE
 
     /**
      * Returns unique sessionId of this connection.
@@ -170,7 +173,9 @@ class LoginClientConnection(
         /**
          * Send Init packet
          */
-        sendPacket(OutInitSession(client = this, blowfishKey = blowfishKey))
+        LoginClientOutputPacketFactory.packetHandler.handle(OutInitSession.OP_CODE, this, blowfishKey)
+            ?.also { pck -> sendPacket(pck) }
+
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
@@ -250,7 +255,7 @@ class LoginClientConnection(
         const val DEFAULT_R_BUFFER_SIZE = 8192 * 2
         const val DEFAULT_W_BUFFER_SIZE = 8192 * 2
 
-        enum class State {
+        enum class State : BaseState {
 
             /**
              * Default state

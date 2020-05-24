@@ -8,9 +8,9 @@ import java.nio.ByteBuffer
 @KtorExperimentalAPI
 abstract class GameClientOutputPacket : BaseOutputPacket() {
 
-    init {
+    /*init {
         opCode = GameClientOutputPacketsOpcodes.getOpcode(this::class)
-    }
+    }*/
 
     /**
      * Write and encrypt this packet data for given connection, to given buffer.

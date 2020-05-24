@@ -9,7 +9,7 @@ import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
 class GameClientConnectionFactory : IKtorConnectionFactory {
-    override fun create(socket: Socket, nio: BaseNioService, context: CoroutineContext): KtorConnection {
+    override fun create(socket: Socket, nio: BaseNioService, context: CoroutineContext): KtorConnection<*> {
         return GameClientConnection(socket = socket, nio = nio, context = context)
     }
 }

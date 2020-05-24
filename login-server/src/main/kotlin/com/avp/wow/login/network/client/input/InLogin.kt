@@ -7,6 +7,7 @@ import com.avp.wow.login.network.client.LoginClientInputPacket
 import com.avp.wow.login.network.client.SessionKey
 import com.avp.wow.login.network.client.output.OutLoginFail
 import com.avp.wow.login.network.client.output.OutLoginOk
+import com.avp.wow.login.network.factories.LoginClientOutputPacketFactory.packetHandler
 import com.avp.wow.service.auth.AuthConfig.authService
 import com.avp.wow.service.auth.enums.AuthResponse
 import io.ktor.util.KtorExperimentalAPI
@@ -80,11 +81,8 @@ class InLogin(vararg states: State) : LoginClientInputPacket(OP_CODE, states.toL
                     con.state = AUTHED_LOGIN
                     con.sessionKey = SessionKey(account = con.account!!)
                         .also { key ->
-                            con.sendPacket(
-                                OutLoginOk(
-                                    sessionKey = key
-                                )
-                            )
+                            packetHandler.handle(OutLoginOk.OP_CODE, key)
+                                ?.let { pck -> sendPacket(pck) }
                         }
                     log.debug { "User $user authorized to Login Server." }
                 }
@@ -92,10 +90,13 @@ class InLogin(vararg states: State) : LoginClientInputPacket(OP_CODE, states.toL
                     // TODO BRUTE PROTECTION
                     log.debug { "Invalid password for account: $user." }
                     con.sendPacket(packet = OutLoginFail(response = response))
+                    packetHandler.handle(OutLoginFail.OP_CODE, response)
+                        ?.let { pck -> sendPacket(pck) }
                 }
                 else -> {
                     log.debug { "Failed to auth LS for reason: ${response.name}." }
-                    con.close(closePacket = OutLoginFail(response = response), forced = false)
+                    packetHandler.handle(OutLoginFail.OP_CODE, response)
+                        ?.let { pck -> con.close(pck, false) }
                 }
             }
 

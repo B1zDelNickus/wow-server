@@ -12,6 +12,10 @@ class OutAccountCheckResponse(
     private val accessLevel: Byte
 ) : LoginGsOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: LoginGsConnection) {
         writeD(con.sessionId) // session id
         writeQ(accountId)

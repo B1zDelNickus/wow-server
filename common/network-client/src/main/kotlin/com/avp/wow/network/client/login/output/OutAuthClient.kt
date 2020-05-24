@@ -7,6 +7,10 @@ import io.ktor.util.KtorExperimentalAPI
 @KtorExperimentalAPI
 class OutAuthClient : LoginServerOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: LoginServerConnection) {
         writeD(con.sessionId) // session id TODO obfuscate with RSA public key
     }

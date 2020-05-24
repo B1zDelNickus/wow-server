@@ -5,9 +5,11 @@ import com.avp.wow.login.LoginServerConfig.processorMinThreads
 import com.avp.wow.login.LoginServerConfig.processorThreadKillThreshold
 import com.avp.wow.login.LoginServerConfig.processorThreadSpawnThreshold
 import com.avp.wow.login.network.factories.LoginGsInputPacketFactory
+import com.avp.wow.login.network.gs.LoginGsConnection.Companion.State
 import com.avp.wow.login.network.gs.output.OutInitSession
 import com.avp.wow.model.gs.GameServer
 import com.avp.wow.network.BaseNioService
+import com.avp.wow.network.BaseState
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorPacketProcessor
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
@@ -28,7 +30,7 @@ class LoginGsConnection(
     socket: Socket,
     nio: BaseNioService,
     context: CoroutineContext
-) : KtorConnection(
+) : KtorConnection<State>(
     socket = socket,
     nio = nio,
     context = context,
@@ -36,7 +38,7 @@ class LoginGsConnection(
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
-    var state = State.DEFAULT
+    override var state = State.DEFAULT
 
     var gameServerInfo: GameServer? = null
 
@@ -226,7 +228,7 @@ class LoginGsConnection(
         const val DEFAULT_R_BUFFER_SIZE = 8192 * 2
         const val DEFAULT_W_BUFFER_SIZE = 8192 * 2
 
-        enum class State {
+        enum class State : BaseState {
 
             /**
              * Default state

@@ -4,20 +4,12 @@ import com.avp.wow.network.KtorConnectionConfig
 import com.avp.wow.network.client.KtorNioClient
 import com.avp.wow.network.client.game.GameServerConnectionFactory
 import com.avp.wow.network.client.game.SessionKey
-import com.avp.wow.network.client.login.LoginServerConnection
+import com.avp.wow.network.client.login.LoginServerConnection.Companion.State
 import com.avp.wow.network.client.login.LoginServerInputPacket
 import io.ktor.util.KtorExperimentalAPI
-import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-class InEnterGameServerOk(
-    buffer: ByteBuffer,
-    server: LoginServerConnection
-) : LoginServerInputPacket(
-    opCode = OP_CODE,
-    server = server,
-    buffer = buffer
-) {
+class InEnterGameServerOk(vararg states: State) : LoginServerInputPacket(OP_CODE, states.toList()) {
 
     private var sessionId: Int = 0
     private var playOk1: Int = 0

@@ -10,6 +10,10 @@ class OutLoginOk(
     private val sessionKey: SessionKey
 ) : LoginClientOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: LoginClientConnection) {
         writeD(con.sessionId)
         writeQ(sessionKey.accountId)

@@ -8,6 +8,10 @@ import io.ktor.util.KtorExperimentalAPI
 @KtorExperimentalAPI
 class OutRegisterGs : GameLsOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: GameLsConnection) {
         writeD(con.sessionId) // session id TODO obfuscate with RSA public key
         writeC(1) // Server ID from ENV

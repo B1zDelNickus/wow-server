@@ -9,6 +9,10 @@ class OutAuthGsFail(
     private val wrongSessionId: Int
 ) : LoginGsOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: LoginGsConnection) {
         writeD(wrongSessionId) // session id
     }

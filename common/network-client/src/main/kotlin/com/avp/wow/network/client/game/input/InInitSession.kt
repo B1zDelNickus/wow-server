@@ -1,5 +1,6 @@
 package com.avp.wow.network.client.game.input
 
+import com.avp.wow.network.client.factories.GameServerOutputPacketFactory.packetHandler
 import com.avp.wow.network.client.game.GameServerConnection.Companion.State
 import com.avp.wow.network.client.game.GameServerInputPacket
 import com.avp.wow.network.client.game.output.OutAuthClient
@@ -23,7 +24,8 @@ class InInitSession(vararg states: State) : GameServerInputPacket(OP_CODE, state
             con.enableEncryption(blowfishKey!!)
             con.sessionId = sessionId
             con.publicRsa = publicRsaKey
-            con.sendPacket(OutAuthClient())
+            packetHandler.handle(OutAuthClient.OP_CODE)
+                ?.let { pck -> con.sendPacket(pck) }
         }
     }
 

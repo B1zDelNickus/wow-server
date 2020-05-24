@@ -4,12 +4,12 @@ import java.io.IOException
 import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel
 
-abstract class KtxConnection(
+abstract class KtxConnection<State: BaseState>(
     val socketChannel: SocketChannel,
     val dispatcher: Dispatcher,
     readBufferSize: Int,
     writeBufferSize: Int
-) : BaseConnection(readBufferSize = readBufferSize, writeBufferSize = writeBufferSize) {
+) : BaseConnection<State>(readBufferSize = readBufferSize, writeBufferSize = writeBufferSize) {
 
     /**
      * SelectionKey representing this connection.

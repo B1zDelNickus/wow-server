@@ -22,12 +22,12 @@ class LoginNioServer(
     override val scope by lazy { CoroutineScope(SupervisorJob() + context) }
 
     private val servers = CopyOnWriteArrayList<ServerSocket>()
-    private val connections = CopyOnWriteArrayList<KtorConnection>()
+    val connections = CopyOnWriteArrayList<KtorConnection<*>>()
 
     /**
      * List of connections that should be closed by this `Dispatcher` as soon as possible.
      */
-    private val pendingClose = CopyOnWriteArrayList<BaseConnection>()
+    private val pendingClose = CopyOnWriteArrayList<BaseConnection<*>>()
 
     private var processPendingClosing = false
 
@@ -253,13 +253,13 @@ class LoginNioServer(
         }
     }
 
-    override fun closeConnection(connection: BaseConnection) {
+    override fun closeConnection(connection: BaseConnection<*>) {
         synchronized(pendingClose) {
             pendingClose.add(connection)
         }
     }
 
-    override fun removeConnection(connection: BaseConnection) {
+    override fun removeConnection(connection: BaseConnection<*>) {
         connections.remove(connection)
     }
 

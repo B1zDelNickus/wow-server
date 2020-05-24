@@ -7,9 +7,9 @@ import java.nio.ByteBuffer
 @KtorExperimentalAPI
 abstract class LoginGsOutputPacket : BaseOutputPacket() {
 
-    init {
+    /*init {
         opCode = LoginGsOutputPacketsOpcodes.getOpcode(this::class)
-    }
+    }*/
 
     /**
      * Write and encrypt this packet data for given connection, to given buffer.

@@ -26,8 +26,8 @@ class KtorNioClient(
 
     private val selector by lazy { ActorSelectorManager(scope.coroutineContext) }
 
-    private var loginServerConnection: KtorConnection? = null
-    private var gameServerConnection: KtorConnection? = null
+    var loginServerConnection: LoginServerConnection? = null
+    var gameServerConnection: GameServerConnection? = null
     var sessionKey: SessionKey? = null
 
     override val activeConnectionsCount: Int
@@ -64,7 +64,7 @@ class KtorNioClient(
                         socket = socket,
                         nio = this@KtorNioClient,
                         context = scope.coroutineContext
-                    )
+                    ) as LoginServerConnection
 
                 launch {
 
@@ -111,7 +111,7 @@ class KtorNioClient(
                         socket = socket,
                         nio = this@KtorNioClient,
                         context = scope.coroutineContext
-                    )
+                    ) as GameServerConnection
 
                 launch {
 
@@ -153,11 +153,11 @@ class KtorNioClient(
             }
     }
 
-    override fun closeConnection(connection: BaseConnection) {
+    override fun closeConnection(connection: BaseConnection<*>) {
         connection.closeConnectionImpl()
     }
 
-    override fun removeConnection(connection: BaseConnection) {
+    override fun removeConnection(connection: BaseConnection<*>) {
         when (connection) {
             is GameServerConnection -> gameServerConnection = null
             is LoginServerConnection -> loginServerConnection = null

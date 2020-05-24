@@ -1,5 +1,6 @@
 package com.avp.wow.game.network.ls.input
 
+import com.avp.wow.game.network.factories.GameLsOutputPacketFactory.packetHandler
 import com.avp.wow.game.network.ls.GameLsConnection.Companion.State
 import com.avp.wow.game.network.ls.GameLsInputPacket
 import com.avp.wow.game.network.ls.output.OutRegisterGs
@@ -21,7 +22,8 @@ class InAuthGsOk(
             when (con.sessionId) {
                 sessionId -> {
                     con.state = State.AUTHED
-                    sendPacket(OutRegisterGs())
+                    packetHandler.handle(OutRegisterGs.OP_CODE)
+                        ?.let { pck -> sendPacket(pck) }
                 }
                 else -> {
 

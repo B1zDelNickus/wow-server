@@ -8,6 +8,10 @@ import io.ktor.util.KtorExperimentalAPI
 @KtorExperimentalAPI
 class OutGameServersList : LoginClientOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: LoginClientConnection) {
         GameServersConfig.gameServersService.gameServers
     }

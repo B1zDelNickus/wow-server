@@ -7,8 +7,10 @@ import com.avp.wow.game.GameServerConfig.processorThreadSpawnThreshold
 import com.avp.wow.game.network.GameNioServer
 import com.avp.wow.game.network.client.GameClientConnection
 import com.avp.wow.game.network.factories.GameLsInputPacketFactory
+import com.avp.wow.game.network.ls.GameLsConnection.Companion.State
 import com.avp.wow.game.network.ls.output.OutAccountCheck
 import com.avp.wow.network.BaseNioService
+import com.avp.wow.network.BaseState
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorPacketProcessor
 import com.avp.wow.network.ncrypt.WowCryptEngine
@@ -27,7 +29,7 @@ class GameLsConnection(
     socket: Socket,
     nio: BaseNioService,
     context: CoroutineContext
-) : KtorConnection(
+) : KtorConnection<State>(
     socket = socket,
     nio = nio,
     context = context,
@@ -35,7 +37,7 @@ class GameLsConnection(
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
-    var state = State.DEFAULT
+    override var state = State.DEFAULT
 
     /**
      * Returns unique sessionId of this connection.
@@ -221,7 +223,7 @@ class GameLsConnection(
         const val DEFAULT_R_BUFFER_SIZE = 8192 * 2
         const val DEFAULT_W_BUFFER_SIZE = 8192 * 2
 
-        enum class State {
+        enum class State : BaseState {
 
             /**
              * Default state

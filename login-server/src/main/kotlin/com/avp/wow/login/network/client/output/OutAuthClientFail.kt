@@ -8,6 +8,10 @@ import io.ktor.util.KtorExperimentalAPI
 @KtorExperimentalAPI
 class OutAuthClientFail(private val response: AuthResponse) : LoginClientOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: LoginClientConnection) {
         writeD(con.sessionId) // session id
         writeD(response.code)

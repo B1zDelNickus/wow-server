@@ -1,10 +1,10 @@
 package com.avp.wow.network.client.game
 
 import com.avp.wow.network.BaseNioService
+import com.avp.wow.network.BaseState
 import com.avp.wow.network.KtorConnection
-import com.avp.wow.network.client.KtorNioClient
 import com.avp.wow.network.client.factories.GameServerInputPacketFactory
-import com.avp.wow.network.ncrypt.Crypt
+import com.avp.wow.network.client.game.GameServerConnection.Companion.State
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.isClosed
@@ -20,7 +20,7 @@ class GameServerConnection(
     socket: Socket,
     nio: BaseNioService,
     context: CoroutineContext
-) : KtorConnection(
+) : KtorConnection<State>(
     socket = socket,
     nio = nio,
     context = context,
@@ -28,7 +28,7 @@ class GameServerConnection(
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
-    var state = State.DEFAULT
+    override var state = State.DEFAULT
 
     /**
      * Returns unique sessionId of this connection.
@@ -47,7 +47,7 @@ class GameServerConnection(
      */
     private val cryptEngine by lazy { WowCryptEngine() }
 
-    private val inputPacketHandler = GameServerInputPacketFactory.packetHandler
+    private val inputPacketHandler by lazy { GameServerInputPacketFactory.packetHandler }
 
     override fun close(forced: Boolean) {
         synchronized(guard) {
@@ -186,7 +186,7 @@ class GameServerConnection(
         const val DEFAULT_R_BUFFER_SIZE = 8192 * 2
         const val DEFAULT_W_BUFFER_SIZE = 8192 * 2
 
-        enum class State {
+        enum class State : BaseState {
 
             /**
              * Default state
