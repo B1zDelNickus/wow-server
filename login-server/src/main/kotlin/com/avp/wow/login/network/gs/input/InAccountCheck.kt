@@ -2,23 +2,15 @@ package com.avp.wow.login.network.gs.input
 
 import com.avp.wow.login.network.client.LoginClientConnection
 import com.avp.wow.login.network.client.SessionKey
-import com.avp.wow.login.network.gs.LoginGsConnection
+import com.avp.wow.login.network.gs.LoginGsConnection.Companion.State
 import com.avp.wow.login.network.gs.LoginGsInputPacket
 import com.avp.wow.login.network.gs.output.OutAccountCheckResponse
 import com.avp.wow.login.network.gs.output.OutAuthGsFail
 import com.avp.wow.service.auth.AuthConfig.authService
 import io.ktor.util.KtorExperimentalAPI
-import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-class InAccountCheck(
-    buffer: ByteBuffer,
-    client: LoginGsConnection
-) : LoginGsInputPacket(
-    opCode = OP_CODE,
-    client = client,
-    buffer = buffer
-) {
+class InAccountCheck(vararg states: State) : LoginGsInputPacket(OP_CODE, states.toList()) {
 
     private var sessionId = 0
     private var accountId: Long = 0

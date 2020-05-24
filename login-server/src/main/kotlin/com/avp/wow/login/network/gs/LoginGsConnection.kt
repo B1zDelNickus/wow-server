@@ -87,6 +87,8 @@ class LoginGsConnection(
      */
     private val cryptEngine by lazy { WowCryptEngine() }
 
+    private val inputPacketHandler by lazy { LoginGsInputPacketFactory.packetHandler }
+
     override fun close(forced: Boolean) {
         synchronized(guard) {
             if (isWriteDisabled) {
@@ -154,7 +156,7 @@ class LoginGsConnection(
             log.error("Received fake packet from: $this")
             return false
         }
-        val pck = LoginGsInputPacketFactory.define(data, this)
+        val pck = inputPacketHandler.handle(data, this)
         /**
          * Execute packet only if packet exist (!= null) and read was ok.
          */

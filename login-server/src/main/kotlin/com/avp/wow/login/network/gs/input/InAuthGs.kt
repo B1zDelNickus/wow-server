@@ -1,22 +1,13 @@
 package com.avp.wow.login.network.gs.input
 
-import com.avp.wow.login.network.gs.LoginGsConnection
 import com.avp.wow.login.network.gs.LoginGsConnection.Companion.State
 import com.avp.wow.login.network.gs.LoginGsInputPacket
 import com.avp.wow.login.network.gs.output.OutAuthGsFail
 import com.avp.wow.login.network.gs.output.OutAuthGsOk
 import io.ktor.util.KtorExperimentalAPI
-import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-class InAuthGs(
-    buffer: ByteBuffer,
-    client: LoginGsConnection
-) : LoginGsInputPacket(
-    opCode = OP_CODE,
-    client = client,
-    buffer = buffer
-) {
+class InAuthGs(vararg states: State) : LoginGsInputPacket(OP_CODE, states.toList()) {
 
     private var sessionId = 0
 

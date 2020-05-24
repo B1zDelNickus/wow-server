@@ -1,19 +1,11 @@
 package com.avp.wow.login.network.client.input
 
-import com.avp.wow.login.network.client.LoginClientConnection
+import com.avp.wow.login.network.client.LoginClientConnection.Companion.State
 import com.avp.wow.login.network.client.LoginClientInputPacket
 import io.ktor.util.KtorExperimentalAPI
-import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-class InGameServersList(
-    buffer: ByteBuffer,
-    client: LoginClientConnection
-) : LoginClientInputPacket(
-    opCode = OP_CODE,
-    client = client,
-    buffer = buffer
-) {
+class InGameServersList(vararg states: State) : LoginClientInputPacket(OP_CODE, states.toList()) {
 
     override fun readImpl() = Unit
 

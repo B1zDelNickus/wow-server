@@ -85,7 +85,7 @@ class GameClientConnection(
         get() = encryptedRSAKeyPair?.rsaKeyPair?.private
             ?: throw IllegalArgumentException("RSA key was not initialized properly")
 
-    private val inputPacketHandler = GameClientInputPacketFactory.packetHandler
+    private val inputPacketHandler by lazy { GameClientInputPacketFactory.packetHandler }
 
     override fun close(forced: Boolean) {
         synchronized(guard) {

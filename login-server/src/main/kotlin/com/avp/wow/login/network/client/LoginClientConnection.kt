@@ -90,6 +90,8 @@ class LoginClientConnection(
 
     var joinedGs = false
 
+    private val inputPacketHandler by lazy { LoginClientInputPacketFactory.packetHandler }
+
     /**
      * Decrypt packet.
      * @param buf
@@ -132,7 +134,7 @@ class LoginClientConnection(
             log.error("Received fake packet from: $this")
             return false
         }
-        val pck = LoginClientInputPacketFactory.define(data, this)
+        val pck = inputPacketHandler.handle(data, this)
         /**
          * Execute packet only if packet exist (!= null) and read was ok.
          */

@@ -1,26 +1,23 @@
 package com.avp.wow.login.network.gs
 
+import com.avp.wow.login.network.gs.LoginGsConnection.Companion.State
 import com.avp.wow.network.packet.BaseInputPacket
 import io.ktor.util.KtorExperimentalAPI
-import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
 abstract class LoginGsInputPacket(
     opCode: Int,
-    client: LoginGsConnection,
-    buffer: ByteBuffer
-) : BaseInputPacket<LoginGsConnection>(
-    opCode = opCode,
-    buffer = buffer
-) {
+    private var states: List<State>
+) : BaseInputPacket<LoginGsConnection>(opCode = opCode), Cloneable {
 
-    init {
+    /*init {
         connection = client
-    }
+    }*/
 
     override suspend fun run() {
         try {
-            runImpl()
+            if (isValid())
+                runImpl()
         } catch (e: Throwable) {
             log.warn(e) { "error handling ls (${connection?.ip}) message $this" }
         }
@@ -33,6 +30,23 @@ abstract class LoginGsInputPacket(
     protected open fun sendPacket(msg: LoginGsOutputPacket) {
         connection?.sendPacket(msg)
             ?: throw IllegalStateException("Connection was not sat properly")
+    }
+
+    fun clonePacket(): LoginGsInputPacket? {
+        return try {
+            super.clone() as LoginGsInputPacket
+        } catch (e: CloneNotSupportedException) {
+            null
+        }
+    }
+
+    private fun isValid(): Boolean {
+        val state: State = connection!!.state
+        val valid: Boolean = states.contains(state)
+        if (!valid) {
+            log.info("$this wont be processed cuz its valid state don't match current connection state: $state")
+        }
+        return valid
     }
 
 }

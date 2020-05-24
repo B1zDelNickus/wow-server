@@ -1,34 +1,21 @@
 package com.avp.wow.login.network.client.input
 
 import com.avp.wow.login.network.client.LoginClientConnection
+import com.avp.wow.login.network.client.LoginClientConnection.Companion.State
 import com.avp.wow.login.network.client.LoginClientConnection.Companion.State.AUTHED_LOGIN
 import com.avp.wow.login.network.client.LoginClientInputPacket
 import com.avp.wow.login.network.client.SessionKey
 import com.avp.wow.login.network.client.output.OutLoginFail
 import com.avp.wow.login.network.client.output.OutLoginOk
-import com.avp.wow.model.auth.Account
-import com.avp.wow.service.account.AccountConfig.accountService
-import com.avp.wow.service.auth.AccountUtils.encodePassword
-import com.avp.wow.service.auth.AuthConfig.accountAutoCreationEnabled
 import com.avp.wow.service.auth.AuthConfig.authService
 import com.avp.wow.service.auth.enums.AuthResponse
-import com.avp.wow.service.ban.BanConfig.banService
-import com.avp.wow.service.gs.GameServersConfig.gameServersService
 import io.ktor.util.KtorExperimentalAPI
-import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.security.GeneralSecurityException
 import javax.crypto.Cipher
 
 @KtorExperimentalAPI
-class InLogin(
-    buffer: ByteBuffer,
-    client: LoginClientConnection
-) : LoginClientInputPacket(
-    opCode = OP_CODE,
-    client = client,
-    buffer = buffer
-) {
+class InLogin(vararg states: State) : LoginClientInputPacket(OP_CODE, states.toList()) {
 
     private var sessionId: Int = 0
     private var data: ByteArray? = null

@@ -9,21 +9,28 @@ object LoginClientOutputPacketsOpcodes {
 
     private val idSet = mutableSetOf<Int>()
 
-    private val opCodes = mutableMapOf(
-        addPacketOpcode(packetClass = OutInitSession::class, opcode = OutInitSession.OP_CODE),
-        addPacketOpcode(packetClass = OutAuthClientOk::class, opcode = OutAuthClientOk.OP_CODE),
-        addPacketOpcode(packetClass = OutLoginOk::class, opcode = OutLoginOk.OP_CODE),
-        addPacketOpcode(packetClass = OutLoginFail::class, opcode = OutLoginFail.OP_CODE),
-        addPacketOpcode(packetClass = OutEnterGameServerOk::class, opcode = OutEnterGameServerOk.OP_CODE),
+    private val opCodes = mutableMapOf<KClass<out LoginClientOutputPacket>, Int>()
+
+    init {
+        addPacketOpcode(packetClass = OutInitSession::class, opcode = OutInitSession.OP_CODE)
+        addPacketOpcode(packetClass = OutAuthClientOk::class, opcode = OutAuthClientOk.OP_CODE)
+        addPacketOpcode(packetClass = OutLoginOk::class, opcode = OutLoginOk.OP_CODE)
+        addPacketOpcode(packetClass = OutLoginFail::class, opcode = OutLoginFail.OP_CODE)
+        addPacketOpcode(packetClass = OutEnterGameServerOk::class, opcode = OutEnterGameServerOk.OP_CODE)
         addPacketOpcode(packetClass = OutAuthClientFail::class, opcode = OutAuthClientFail.OP_CODE)
-    )
+    }
+
+    fun clearOpcodes() {
+        idSet.clear()
+        opCodes.clear()
+    }
 
     fun getOpcode(packetClass: KClass<out LoginClientOutputPacket>): Int {
         return opCodes[packetClass]
             ?: throw IllegalArgumentException("There is no opcode for $packetClass defined.")
     }
 
-    private fun addPacketOpcode(packetClass: KClass<out LoginClientOutputPacket>, opcode: Int) =
+    fun addPacketOpcode(packetClass: KClass<out LoginClientOutputPacket>, opcode: Int) {
         when {
             opcode < 0 -> throw IllegalArgumentException(
                 String.format(
@@ -39,8 +46,9 @@ object LoginClientOutputPacketsOpcodes {
             )
             else -> {
                 idSet.add(opcode)
-                packetClass to opcode
+                opCodes[packetClass] = opcode
             }
         }
+    }
 
 }

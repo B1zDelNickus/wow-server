@@ -11,18 +11,25 @@ object GameLsOutputPacketsOpcodes {
 
     private val idSet = mutableSetOf<Int>()
 
-    private val opCodes = mutableMapOf(
-        addPacketOpcode(packetClass = OutAuthGs::class, opcode = OutAuthGs.OP_CODE),
-        addPacketOpcode(packetClass = OutRegisterGs::class, opcode = OutRegisterGs.OP_CODE),
+    private val opCodes = mutableMapOf<KClass<out GameLsOutputPacket>, Int>()
+
+    init {
+        addPacketOpcode(packetClass = OutAuthGs::class, opcode = OutAuthGs.OP_CODE)
+        addPacketOpcode(packetClass = OutRegisterGs::class, opcode = OutRegisterGs.OP_CODE)
         addPacketOpcode(packetClass = OutAccountCheck::class, opcode = OutAccountCheck.OP_CODE)
-    )
+    }
+
+    fun clearOpcodes() {
+        idSet.clear()
+        opCodes.clear()
+    }
 
     fun getOpcode(packetClass: KClass<out GameLsOutputPacket>): Int {
         return opCodes[packetClass]
             ?: throw IllegalArgumentException("There is no opcode for $packetClass defined.")
     }
 
-    private fun addPacketOpcode(packetClass: KClass<out GameLsOutputPacket>, opcode: Int) =
+    fun addPacketOpcode(packetClass: KClass<out GameLsOutputPacket>, opcode: Int) {
         when {
             opcode < 0 -> throw IllegalArgumentException(
                 String.format(
@@ -38,8 +45,9 @@ object GameLsOutputPacketsOpcodes {
             )
             else -> {
                 idSet.add(opcode)
-                packetClass to opcode
+                opCodes[packetClass] = opcode
             }
         }
+    }
 
 }

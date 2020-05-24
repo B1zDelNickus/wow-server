@@ -33,6 +33,10 @@ class GameClientInputPacketHandler {
         packetsPrototypes[packetPrototype.opCode] = packetPrototype
     }
 
+    fun clearPrototypes() {
+        packetsPrototypes.clear()
+    }
+
     private fun getPacket(
         state: State,
         id: Int,
@@ -71,7 +75,7 @@ class GameClientInputPacketHandler {
      * @param id
      * @param data
      */
-    private fun unknownPacket(state: State, id: Int, data: ByteBuffer) {
+    fun unknownPacket(state: State, id: Int, data: ByteBuffer) {
         //if (NetworkConfig.DISPLAY_UNKNOWNPACKETS) { TODO add this option
             log.warn {
                 String.format(

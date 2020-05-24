@@ -1,26 +1,23 @@
 package com.avp.wow.game.network.ls
 
+import com.avp.wow.game.network.ls.GameLsConnection.Companion.State
 import com.avp.wow.network.packet.BaseInputPacket
 import io.ktor.util.KtorExperimentalAPI
-import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
 abstract class GameLsInputPacket(
     opCode: Int,
-    client: GameLsConnection,
-    buffer: ByteBuffer
-) : BaseInputPacket<GameLsConnection>(
-    opCode = opCode,
-    buffer = buffer
-) {
+    private var states: List<State>
+) : BaseInputPacket<GameLsConnection>(opCode = opCode), Cloneable {
 
-    init {
+    /*init {
         connection = client
-    }
+    }*/
 
     override suspend fun run() {
         try {
-            runImpl()
+            if (isValid())
+                runImpl()
         } catch (e: Throwable) {
             log.warn(e) { "error handling ls (${connection?.ip}) message $this" }
         }
@@ -33,6 +30,23 @@ abstract class GameLsInputPacket(
     protected open fun sendPacket(msg: GameLsOutputPacket) {
         connection?.sendPacket(msg)
             ?: throw IllegalStateException("Connection was not sat properly")
+    }
+
+    fun clonePacket(): GameLsInputPacket? {
+        return try {
+            super.clone() as GameLsInputPacket
+        } catch (e: CloneNotSupportedException) {
+            null
+        }
+    }
+
+    private fun isValid(): Boolean {
+        val state: State = connection!!.state
+        val valid: Boolean = states.contains(state)
+        if (!valid) {
+            log.info("$this wont be processed cuz its valid state don't match current connection state: $state")
+        }
+        return valid
     }
 
 }

@@ -1,82 +1,31 @@
 package com.avp.wow.login.network.factories
 
-import com.avp.wow.login.network.gs.LoginGsConnection
 import com.avp.wow.login.network.gs.LoginGsConnection.Companion.State
 import com.avp.wow.login.network.gs.LoginGsInputPacket
+import com.avp.wow.login.network.gs.LoginGsInputPacketHandler
 import com.avp.wow.login.network.gs.input.InAccountCheck
 import com.avp.wow.login.network.gs.input.InAuthGs
 import com.avp.wow.login.network.gs.input.InRegisterGs
-import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.util.KtorExperimentalAPI
-import mu.KotlinLogging
-import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
 object LoginGsInputPacketFactory {
 
-    private val log = KotlinLogging.logger(this::class.java.name)
+    val packetHandler = LoginGsInputPacketHandler()
 
-    /**
-     * Reads one packet from given ByteBuffer
-     * @param data
-     * @param client
-     * @return AionClientPacket object from binary data
-     */
-    fun define(data: ByteBuffer, client: LoginGsConnection): LoginGsInputPacket? {
-        var msg: LoginGsInputPacket? = null
-        val state: State = client.state
-        val id: Int = WowCryptEngine.decodeOpCodec(data.short.toInt()) and 0xffff
-        /* Second opcodec. */
-        data.position(data.position() + 3)
-        when (state) {
-            State.CONNECTED -> {
-                when (id) {
-                    InAuthGs.OP_CODE -> {
-                        msg = InAuthGs(data, client)
-                    }
-                    else -> {
-                        unknownPacket(state, id)
-                    }
-                }
-            }
-            State.AUTHED -> {
-                when (id) {
-                    InRegisterGs.OP_CODE -> {
-                        msg = InRegisterGs(data, client)
-                    }
-                    else -> {
-                        unknownPacket(state, id)
-                    }
-                }
-            }
-            State.REGISTERED -> {
-                when (id) {
-                    InAccountCheck.OP_CODE -> {
-                        msg = InAccountCheck(data, client)
-                    }
-                    else -> {
-                        unknownPacket(state, id)
-                    }
-                }
-            }
-            State.NONE -> TODO()
-        }
-        return msg
+    init {
+        /**
+         * Main packets
+         */
+        addPacket(InAuthGs(State.CONNECTED))
+        addPacket(InRegisterGs(State.AUTHED))
+        addPacket(InAccountCheck(State.REGISTERED))
+        //addPacket(CM_L2AUTH_LOGIN_CHECK(0x015F, State.CONNECTED)) // 5.1
+
     }
 
-    /**
-     * Logs unknown packet.
-     * @param state
-     * @param id
-     */
-    private fun unknownPacket(state: State, id: Int) {
-        log.warn {
-            String.format(
-                "Unknown packet recived from Aion client: 0x%02X state=%s",
-                id,
-                state.toString()
-            )
-        }
+    private fun addPacket(prototype: LoginGsInputPacket) {
+        packetHandler.addPacketPrototype(prototype)
     }
 
 }

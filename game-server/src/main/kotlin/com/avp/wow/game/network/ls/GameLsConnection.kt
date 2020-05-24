@@ -8,7 +8,6 @@ import com.avp.wow.game.network.GameNioServer
 import com.avp.wow.game.network.client.GameClientConnection
 import com.avp.wow.game.network.factories.GameLsInputPacketFactory
 import com.avp.wow.game.network.ls.output.OutAccountCheck
-import com.avp.wow.game.network.ls.output.OutAuthGs
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorPacketProcessor
@@ -69,6 +68,8 @@ class GameLsConnection(
      * Crypt to encrypt/decrypt packets
      */
     private val cryptEngine by lazy { WowCryptEngine() }
+
+    private val inputPacketHandler by lazy { GameLsInputPacketFactory.packetHandler }
 
     override fun close(forced: Boolean) {
         synchronized(guard) {
@@ -137,7 +138,7 @@ class GameLsConnection(
             log.error("Received fake packet from: $this")
             return false
         }
-        val pck = GameLsInputPacketFactory.define(data, this)
+        val pck = inputPacketHandler.handle(data, this)
         /**
          * Execute packet only if packet exist (!= null) and read was ok.
          */

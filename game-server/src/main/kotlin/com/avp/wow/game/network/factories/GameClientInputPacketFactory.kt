@@ -16,7 +16,7 @@ object GameClientInputPacketFactory {
 
     init {
         /**
-         * Test activity packets
+         * Test activity packets TODO move to Only tests & remove from main package
          */
         addPacket(InActivity1(State.IN_GAME))
         addPacket(InActivity2(State.IN_GAME))

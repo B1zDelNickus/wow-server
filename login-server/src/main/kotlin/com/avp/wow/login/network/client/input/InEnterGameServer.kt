@@ -1,6 +1,6 @@
 package com.avp.wow.login.network.client.input
 
-import com.avp.wow.login.network.client.LoginClientConnection
+import com.avp.wow.login.network.client.LoginClientConnection.Companion.State
 import com.avp.wow.login.network.client.LoginClientInputPacket
 import com.avp.wow.login.network.client.output.OutAuthClientFail
 import com.avp.wow.login.network.client.output.OutEnterGameServerFail
@@ -8,17 +8,9 @@ import com.avp.wow.login.network.client.output.OutEnterGameServerOk
 import com.avp.wow.service.auth.enums.AuthResponse
 import com.avp.wow.service.gs.GameServersConfig
 import io.ktor.util.KtorExperimentalAPI
-import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
-class InEnterGameServer(
-    buffer: ByteBuffer,
-    client: LoginClientConnection
-) : LoginClientInputPacket(
-    opCode = OP_CODE,
-    client = client,
-    buffer = buffer
-) {
+class InEnterGameServer(vararg states: State) : LoginClientInputPacket(OP_CODE, states.toList()) {
 
     private var accountId = 0L
     private var loginOk = 0
