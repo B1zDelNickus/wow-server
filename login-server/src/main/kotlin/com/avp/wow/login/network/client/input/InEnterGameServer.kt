@@ -2,7 +2,10 @@ package com.avp.wow.login.network.client.input
 
 import com.avp.wow.login.network.client.LoginClientConnection
 import com.avp.wow.login.network.client.LoginClientInputPacket
+import com.avp.wow.login.network.client.output.OutAuthClientFail
+import com.avp.wow.login.network.client.output.OutEnterGameServerFail
 import com.avp.wow.login.network.client.output.OutEnterGameServerOk
+import com.avp.wow.service.auth.enums.AuthResponse
 import com.avp.wow.service.gs.GameServersConfig
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
@@ -34,22 +37,17 @@ class InEnterGameServer(
                     .gameServers[con.account!!.currentServerId]
 
                 when {
-                    null == server || !server.isOnline -> {
-                        // con.sendPacket(new SM_PLAY_FAIL(AionAuthResponse.SERVER_DOWN));
-                    }
-                    /* server.IsFull() */ // con.sendPacket(new SM_PLAY_FAIL(AionAuthResponse.SERVER_FULL));
+                    null == server || !server.isOnline -> con.sendPacket(OutEnterGameServerFail(AuthResponse.SERVER_DOWN))
+                    server.isFull -> con.sendPacket(OutEnterGameServerFail(AuthResponse.SERVER_FULL))
                     else -> {
                         con.joinedGs = true
-                        con.sendPacket(
-                            OutEnterGameServerOk(
-                                server = server
-                            )
-                        )
+                        con.sendPacket(OutEnterGameServerOk(server = server))
                     }
                 }
 
             } else {
-                // con.close(new SM_LOGIN_FAIL(AionAuthResponse.SYSTEM_ERROR), false);
+                log.error { "Sessions keys doesn't match." }
+                con.close(OutAuthClientFail(AuthResponse.SYSTEM_ERROR), false)
             }
         }
     }

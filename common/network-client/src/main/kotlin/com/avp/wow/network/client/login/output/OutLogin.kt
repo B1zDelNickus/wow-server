@@ -45,6 +45,7 @@ class OutLogin(
     }
 
     override fun writeImpl(con: LoginServerConnection) {
+        writeD(con.sessionId)
         writeB(decrypted) // encrypted crdentials id
         //writeS(login)
         //writeS(password)

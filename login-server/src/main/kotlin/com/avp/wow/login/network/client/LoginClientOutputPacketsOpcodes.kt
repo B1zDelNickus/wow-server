@@ -13,6 +13,7 @@ object LoginClientOutputPacketsOpcodes {
         addPacketOpcode(packetClass = OutInitSession::class, opcode = OutInitSession.OP_CODE),
         addPacketOpcode(packetClass = OutAuthClientOk::class, opcode = OutAuthClientOk.OP_CODE),
         addPacketOpcode(packetClass = OutLoginOk::class, opcode = OutLoginOk.OP_CODE),
+        addPacketOpcode(packetClass = OutLoginFail::class, opcode = OutLoginFail.OP_CODE),
         addPacketOpcode(packetClass = OutEnterGameServerOk::class, opcode = OutEnterGameServerOk.OP_CODE),
         addPacketOpcode(packetClass = OutAuthClientFail::class, opcode = OutAuthClientFail.OP_CODE)
     )

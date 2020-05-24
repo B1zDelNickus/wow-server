@@ -10,4 +10,5 @@ data class GameServer(
 ) {
     val accountsOnGs = mutableMapOf<Long, Account>()
     val isOnline = true
+    val isFull = false
 }

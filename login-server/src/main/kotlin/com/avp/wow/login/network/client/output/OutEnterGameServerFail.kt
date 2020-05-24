@@ -2,18 +2,22 @@ package com.avp.wow.login.network.client.output
 
 import com.avp.wow.login.network.client.LoginClientConnection
 import com.avp.wow.login.network.client.LoginClientOutputPacket
-import com.avp.wow.service.gs.GameServersConfig
+import com.avp.wow.model.gs.GameServer
+import com.avp.wow.service.auth.enums.AuthResponse
 import io.ktor.util.KtorExperimentalAPI
 
 @KtorExperimentalAPI
-class OutGameServersList : LoginClientOutputPacket() {
+class OutEnterGameServerFail(
+    private val response: AuthResponse
+) : LoginClientOutputPacket() {
 
     override fun writeImpl(con: LoginClientConnection) {
-        GameServersConfig.gameServersService.gameServers
+        writeD(con.sessionId)
+        writeD(response.code)
     }
 
     companion object {
-        const val OP_CODE = 7
+        const val OP_CODE = 12
     }
 
 }

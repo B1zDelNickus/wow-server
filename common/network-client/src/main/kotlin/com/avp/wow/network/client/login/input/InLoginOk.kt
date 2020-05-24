@@ -21,18 +21,28 @@ class InLoginOk(
 
     private var accountId: Long = 0
     private var loginOk: Int = 0
+    private var sessionId: Int = 0
 
     override fun readImpl() {
+        sessionId = readD()
         accountId = readQ()
         loginOk = readD()
     }
 
     override suspend fun runImpl() {
         connection?.let { con ->
-            con.accountId = accountId
-            con.loginOk = loginOk
-            con.state = AUTHED_LOGIN
-            con.sendPacket(OutEnterGameServer())
+            when (con.sessionId) {
+                sessionId -> {
+                    con.accountId = accountId
+                    con.loginOk = loginOk
+                    con.state = AUTHED_LOGIN
+                    con.sendPacket(OutEnterGameServer())
+                }
+                else -> {
+                    log.error { "Session doesn't matches: ${con.sessionId} != $sessionId" }
+                    // DISCONECT
+                }
+            }
         }
     }
 

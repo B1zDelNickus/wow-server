@@ -19,6 +19,7 @@ class InEnterGameServerOk(
     buffer = buffer
 ) {
 
+    private var sessionId: Int = 0
     private var playOk1: Int = 0
     private var playOk2: Int = 0
     private var serverId: Int = 0
@@ -26,6 +27,7 @@ class InEnterGameServerOk(
     private var serverHostPort: Int = 0
 
     override fun readImpl() {
+        sessionId = readD()
         playOk1 = readD()
         playOk2 = readD()
         serverId = readC()
@@ -36,26 +38,35 @@ class InEnterGameServerOk(
 
     override suspend fun runImpl() {
         connection?.let { con ->
-            con.playOk1 = playOk1
-            con.playOk2 = playOk2
+            when (con.sessionId) {
+                sessionId -> {
+                    con.playOk1 = playOk1
+                    con.playOk2 = playOk2
 
-            log.debug { "Connect to Game Server on host: $serverHostIp:$serverHostPort." }
+                    log.debug { "Connect to Game Server on host: $serverHostIp:$serverHostPort." }
 
-            (con.nio as KtorNioClient).sessionKey = SessionKey(
-                accountId = con.accountId,
-                loginOk = con.loginOk,
-                playOk1 = playOk1,
-                playOk2 = playOk2
-            )
+                    (con.nio as KtorNioClient).sessionKey = SessionKey(
+                        accountId = con.accountId,
+                        loginOk = con.loginOk,
+                        playOk1 = playOk1,
+                        playOk2 = playOk2
+                    )
 
-            con.nio.connectGameServer(
-                gameServerConfig = KtorConnectionConfig(
-                    hostName = serverHostIp,
-                    port = serverHostPort,
-                    connectionName = "[${con}] GS Connection",
-                    factory = GameServerConnectionFactory()
-                )
-            )
+                    con.nio.connectGameServer(
+                        gameServerConfig = KtorConnectionConfig(
+                            hostName = serverHostIp,
+                            port = serverHostPort,
+                            connectionName = "[${con}] GS Connection",
+                            factory = GameServerConnectionFactory()
+                        )
+                    )
+                }
+                else -> {
+                    log.error { "Session doesn't matches: ${con.sessionId} != $sessionId" }
+                    // DISCONECT
+                }
+            }
+
         }
     }
 

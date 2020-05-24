@@ -11,6 +11,7 @@ class OutLoginOk(
 ) : LoginClientOutputPacket() {
 
     override fun writeImpl(con: LoginClientConnection) {
+        writeD(con.sessionId)
         writeQ(sessionKey.accountId)
         writeD(sessionKey.loginOk)
     }

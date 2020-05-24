@@ -30,12 +30,14 @@ class InLogin(
     buffer = buffer
 ) {
 
+    private var sessionId: Int = 0
     private var data: ByteArray? = null
 
     private var user = ""
     private var passwordHash = ""
 
     override fun readImpl() {
+        sessionId = readD()
         if (remainingBytes >= 128) {
             data = readB(128)
         }
