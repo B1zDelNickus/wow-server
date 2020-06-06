@@ -1,5 +1,6 @@
 package com.avp.wow.network.client.game.input
 
+import com.avp.wow.network.client.factories.GameServerOutputPacketFactory.packetHandler
 import com.avp.wow.network.client.game.GameServerConnection.Companion.State
 import com.avp.wow.network.client.game.GameServerInputPacket
 import com.avp.wow.network.client.game.output.OutAuthClient
@@ -19,13 +20,16 @@ class InInitSession(vararg states: State) : GameServerInputPacket(OP_CODE, state
     }
 
     override suspend fun runImpl() {
-        connection?.enableEncryption(blowfishKey!!)
-        connection?.sessionId = sessionId
-        connection?.publicRsa = publicRsaKey
-        connection?.sendPacket(OutAuthClient())
+        connection?.let { con ->
+            con.enableEncryption(blowfishKey!!)
+            con.sessionId = sessionId
+            con.publicRsa = publicRsaKey
+            packetHandler.handle(OutAuthClient.OP_CODE)
+                ?.let { pck -> con.sendPacket(pck) }
+        }
     }
 
     companion object {
-        const val OP_CODE = 0x01
+        const val OP_CODE = 1
     }
 }

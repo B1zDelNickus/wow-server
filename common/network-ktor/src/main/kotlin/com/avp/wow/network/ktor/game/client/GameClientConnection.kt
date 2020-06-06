@@ -1,19 +1,17 @@
 package com.avp.wow.network.ktor.game.client
 
+import com.avp.wow.model.auth.Account
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnection
-import com.avp.wow.network.ktor.game.GameNioServer
 import com.avp.wow.network.ktor.game.client.output.OutInitSession
 import com.avp.wow.network.ktor.game.factories.GameClientInputPacketFactory
-import com.avp.wow.network.ktor.login.client.LoginClientOutputPacket
-import com.avp.wow.network.ncrypt.Crypt
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
 import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
-import java.io.IOException
+import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 import javax.crypto.SecretKey
 import kotlin.coroutines.CoroutineContext
@@ -39,6 +37,7 @@ class GameClientConnection(
      */
     var sessionId = hashCode()
     var publicRsa: ByteArray? = null
+    var account: Account? = null
 
     /**
      * Server Packet "to send" Queue
@@ -138,6 +137,8 @@ class GameClientConnection(
             if (pck.read()) {
                 log.debug { "Received packet $pck from client: $ip" }
                 //processor.executePacket(pck)
+
+                scope.launch { pck.run() }
             }
 
         }
@@ -185,6 +186,18 @@ class GameClientConnection(
         cryptEngine.updateKey(blowfishKey)
     }
 
+    fun close(closePacket: GameClientOutputPacket, forced: Boolean) {
+        synchronized(guard) {
+            if (isWriteDisabled) {
+                return
+            }
+            pendingClose = true
+            isForcedClosing = forced
+            sendMsgQueue.clear()
+            sendMsgQueue.addLast(closePacket)
+        }
+    }
+
     companion object {
 
         const val DEFAULT_R_BUFFER_SIZE = 8192 * 2
@@ -206,7 +219,7 @@ class GameClientConnection(
              */
             AUTHED,
             /**
-             * client entered world.
+             * client is verified on LS
              */
             IN_GAME;
 

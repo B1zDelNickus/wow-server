@@ -1,22 +1,21 @@
 package com.avp.wow.network.client.login
 
 import com.avp.wow.network.BaseNioService
+import com.avp.wow.network.BaseState
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.client.factories.LoginServerInputPacketFactory
-import com.avp.wow.network.ncrypt.CryptEngine
+import com.avp.wow.network.client.login.LoginServerConnection.Companion.State
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
+import io.ktor.network.sockets.isClosed
 import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 import java.io.IOException
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import javax.crypto.SecretKey
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
@@ -24,7 +23,7 @@ class LoginServerConnection(
     socket: Socket,
     nio: BaseNioService,
     context: CoroutineContext
-) : KtorConnection(
+) : KtorConnection<State>(
     socket = socket,
     nio = nio,
     context = context,
@@ -32,7 +31,7 @@ class LoginServerConnection(
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
-    var state = State.DEFAULT
+    override var state = State.DEFAULT
 
     /**
      * Returns unique sessionId of this connection.
@@ -61,6 +60,8 @@ class LoginServerConnection(
      */
     private var encryptedRSAKeyPair: EncryptedRSAKeyPair? = null
 
+    private val inputPacketHandler by lazy { LoginServerInputPacketFactory.packetHandler }
+
     /**
      * Decrypt packet.
      * @param buf
@@ -80,11 +81,32 @@ class LoginServerConnection(
     }
 
     override fun close(forced: Boolean) {
-        TODO("Not yet implemented")
+        synchronized(guard) {
+            if (isWriteDisabled) {
+                return
+            }
+            isForcedClosing = forced
+            nio.closeConnection(this)
+        }
     }
 
     override fun onlyClose(): Boolean {
-        TODO("Not yet implemented")
+        synchronized(guard) {
+            if (closed) {
+                return false
+            }
+            try {
+                if (!socket.isClosed) {
+                    socket.close()
+                    socket.dispose()
+                    nio.removeConnection(this)
+                    log.info { "Connection from $ip was successfully closed: ${socket.isClosed}" }
+                }
+                closed = true
+            } catch (ignored: IOException) {
+            }
+        }
+        return true
     }
 
     override fun processData(data: ByteBuffer): Boolean {
@@ -95,7 +117,7 @@ class LoginServerConnection(
             log.error("Received fake packet from: $this")
             return false
         }
-        val pck = LoginServerInputPacketFactory.define(data, this)
+        val pck = inputPacketHandler.handle(data, this)
         /**
          * Execute packet only if packet exist (!= null) and read was ok.
          */
@@ -159,11 +181,11 @@ class LoginServerConnection(
     override val disconnectionDelay = 0L
 
     override fun onDisconnect() {
-        TODO("Not yet implemented")
+        log.info { "LS connection lost!" }
     }
 
     override fun onServerClose() {
-        TODO("Not yet implemented")
+        close(forced = true)
     }
 
     companion object {
@@ -171,7 +193,7 @@ class LoginServerConnection(
         const val DEFAULT_R_BUFFER_SIZE = 8192 * 2
         const val DEFAULT_W_BUFFER_SIZE = 8192 * 2
 
-        enum class State {
+        enum class State : BaseState {
 
             /**
              * Default state

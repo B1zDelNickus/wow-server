@@ -6,10 +6,12 @@ import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_CLIENT_PORT
 import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_GS_HOST
 import com.avp.wow.network.NetworkConstants.DEFAULT_LOGIN_SERVER_GS_PORT
 import com.avp.wow.network.client.KtorNioClient
+import com.avp.wow.network.client.game.output.activity.OutActivity1
 import com.avp.wow.network.client.login.LoginServerConnectionFactory
 import com.avp.wow.network.ktor.game.GameNioServer
 import com.avp.wow.network.ktor.game.client.GameClientConnectionFactory
 import com.avp.wow.network.ktor.game.ls.GameLsConnectionFactory
+import com.avp.wow.network.ktor.login.LoginNioServer
 import com.avp.wow.network.ktor.login.client.LoginClientConnectionFactory
 import com.avp.wow.network.ktor.login.gs.LoginGsConnectionFactory
 import com.avp.wow.network.ncrypt.KeyGen
@@ -90,6 +92,14 @@ class NioServerRunTests : StringSpec({
             delay(1_000) // wait auth gg operations
 
             login(login = "admin", password = "admin")
+
+            delay(1_000)
+
+            enterGame()
+
+            delay(1_000)
+
+            sendGamePacket(OutActivity1())
 
         }
 

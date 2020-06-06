@@ -12,6 +12,7 @@
     <logger name="io" level="ERROR"/>
     <logger name="com" level="ERROR"/>
 
-    <logger name="com.avp" level="TRACE"/>
+    <!--<logger name="com.avp" level="TRACE"/>-->
+    <logger name="com.avp" level="INFO"/>
 
 </configuration>

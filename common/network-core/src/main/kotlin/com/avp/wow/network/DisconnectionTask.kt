@@ -4,7 +4,7 @@ import com.avp.wow.network.KtxConnection
 import com.avp.wow.network.utils.KtxRunnable
 
 class DisconnectionTask(
-    private val connection: KtxConnection
+    private val connection: KtxConnection<*>
 ): KtxRunnable {
 
     override suspend fun run() {

@@ -82,6 +82,7 @@ allprojects {
         testLogging {
             events = setOf(TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.SKIPPED)
         }
+        maxHeapSize = "512m"
     }
 
 }

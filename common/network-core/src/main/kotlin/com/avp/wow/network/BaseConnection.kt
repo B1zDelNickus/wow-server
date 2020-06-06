@@ -10,7 +10,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.coroutines.CoroutineContext
 
-abstract class BaseConnection(
+abstract class BaseConnection<State: BaseState>(
     context: CoroutineContext = Dispatchers.IO,
     readBufferSize: Int,
     writeBufferSize: Int
@@ -39,6 +39,8 @@ abstract class BaseConnection(
                 order(ByteOrder.BIG_ENDIAN)
             }!!
     }
+
+    abstract var state: State
 
     /**
      * IP address of this Connection.
@@ -157,7 +159,7 @@ abstract class BaseConnection(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
-        other as BaseConnection
+        other as BaseConnection<*>
         if (hash != other.hash) return false
         return true
     }

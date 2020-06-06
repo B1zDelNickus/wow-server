@@ -1,93 +1,33 @@
 package com.avp.wow.network.client.factories
 
-import com.avp.wow.network.client.login.LoginServerConnection
 import com.avp.wow.network.client.login.LoginServerConnection.Companion.State
 import com.avp.wow.network.client.login.LoginServerInputPacket
-import com.avp.wow.network.client.login.input.InAuthClient
+import com.avp.wow.network.client.login.LoginServerInputPacketHandler
+import com.avp.wow.network.client.login.input.InAuthClientOk
 import com.avp.wow.network.client.login.input.InEnterGameServerOk
 import com.avp.wow.network.client.login.input.InInitSession
 import com.avp.wow.network.client.login.input.InLoginOk
-import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.util.KtorExperimentalAPI
-import mu.KotlinLogging
-import java.nio.ByteBuffer
 
 @KtorExperimentalAPI
 object LoginServerInputPacketFactory {
 
-    private val log = KotlinLogging.logger(this::class.java.name)
+    val packetHandler = LoginServerInputPacketHandler()
 
-    /**
-     * Reads one packet from given ByteBuffer
-     * @param data
-     * @param client
-     * @return AionClientPacket object from binary data
-     */
-    fun define(data: ByteBuffer, server: LoginServerConnection): LoginServerInputPacket? {
-        var msg: LoginServerInputPacket? = null
-        val state: State = server.state
-        val id: Int = WowCryptEngine.decodeOpCodec(data.short.toInt()) and 0xffff
-        /* Second opcodec. */
-        data.position(data.position() + 3)
-        when (state) {
-            State.CONNECTED -> {
-                when (id) {
-                    InInitSession.OP_CODE -> { msg = InInitSession(data, server) }
-                    InAuthClient.OP_CODE -> { msg = InAuthClient(data, server) }
-                    0x08 -> {
-                        //msg = CM_UPDATE_SESSION(data, client)
-                    }
-                    else -> {
-                        unknownPacket(
-                            state,
-                            id
-                        )
-                    }
-                }
-            }
-            State.AUTHED_GG -> {
-                when (id) {
-                    InLoginOk.OP_CODE -> { msg = InLoginOk(data, server) }
-                    else -> {
-                        unknownPacket(
-                            state,
-                            id
-                        )
-                    }
-                }
-            }
-            State.AUTHED_LOGIN -> {
-                when (id) {
-                    InEnterGameServerOk.OP_CODE -> { msg = InEnterGameServerOk(data, server) }
-                    0x02 -> {
-                        //msg = CM_PLAY(data, client)
-                    }
-                    else -> {
-                        unknownPacket(
-                            state,
-                            id
-                        )
-                    }
-                }
-            }
-            State.NONE -> TODO()
-        }
-        return msg
+    init {
+        /**
+         * Main packets
+         */
+        addPacket(InInitSession(State.CONNECTED)) // 5.1
+        addPacket(InAuthClientOk(State.CONNECTED)) // 5.1
+        addPacket(InLoginOk(State.AUTHED_GG)) // 5.1
+        addPacket(InEnterGameServerOk(State.AUTHED_LOGIN)) // 5.1
+        //addPacket(CM_L2AUTH_LOGIN_CHECK(0x015F, State.CONNECTED)) // 5.1
+
     }
 
-    /**
-     * Logs unknown packet.
-     * @param state
-     * @param id
-     */
-    private fun unknownPacket(state: State, id: Int) {
-        log.warn {
-            String.format(
-                "Unknown packet recived from Aion client: 0x%02X state=%s",
-                id,
-                state.toString()
-            )
-        }
+    private fun addPacket(prototype: LoginServerInputPacket) {
+        packetHandler.addPacketPrototype(prototype)
     }
 
 }

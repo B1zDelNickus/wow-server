@@ -4,4 +4,8 @@ group = "com.avp.wow.login"
 
 dependencies {
     implementation(project(":jdbc-core"))
+    implementation(project(":network-core"))
+    implementation(project(":service"))
+    testImplementation(project(":network-client"))
+    testImplementation(project(":game-server"))
 }

@@ -1,6 +1,7 @@
 package com.avp.wow.network.ktor.game.client
 
-import com.avp.wow.network.ktor.game.client.output.OutInitSession
+import com.avp.wow.network.ktor.game.client.output.*
+import com.avp.wow.network.ktor.game.client.output.activity.*
 import io.ktor.util.KtorExperimentalAPI
 import kotlin.reflect.KClass
 
@@ -10,7 +11,19 @@ object GameClientOutputPacketsOpcodes {
     private val idSet = mutableSetOf<Int>()
 
     private val opCodes = mutableMapOf(
-        addPacketOpcode(packetClass = OutInitSession::class, opcode = OutInitSession.OP_CODE)
+        /**
+         * Test activity packets
+         */
+        addPacketOpcode(packetClass = OutActivity1::class, opcode = OutActivity1.OP_CODE),
+        addPacketOpcode(packetClass = OutActivity2::class, opcode = OutActivity2.OP_CODE),
+        addPacketOpcode(packetClass = OutActivity3::class, opcode = OutActivity3.OP_CODE),
+        addPacketOpcode(packetClass = OutActivity4::class, opcode = OutActivity4.OP_CODE),
+        addPacketOpcode(packetClass = OutActivity5::class, opcode = OutActivity5.OP_CODE),
+
+        addPacketOpcode(packetClass = OutInitSession::class, opcode = OutInitSession.OP_CODE),
+        addPacketOpcode(packetClass = OutAuthClientOk::class, opcode = OutAuthClientOk.OP_CODE),
+        addPacketOpcode(packetClass = OutClientLoginCheckResponse::class, opcode = OutClientLoginCheckResponse.OP_CODE),
+        addPacketOpcode(packetClass = OutEnterWorldOk::class, opcode = OutEnterWorldOk.OP_CODE)
     )
 
     fun getOpcode(packetClass: KClass<out GameClientOutputPacket>): Int {

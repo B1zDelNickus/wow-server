@@ -68,7 +68,7 @@ abstract class BaseNioService {
 
         log.info { "NIO server was stopped successfully." }
 
-        scope.cancel("shutdown nio")
+        //scope.cancel("shutdown nio")
 
     }
 
@@ -84,8 +84,8 @@ abstract class BaseNioService {
      */
     protected abstract fun closeAll()
 
-    abstract fun closeConnection(connection: BaseConnection)
+    abstract fun closeConnection(connection: BaseConnection<*>)
 
-    abstract fun removeConnection(connection: BaseConnection)
+    abstract fun removeConnection(connection: BaseConnection<*>)
 
 }

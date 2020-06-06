@@ -8,13 +8,13 @@ import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
-abstract class KtorConnection(
+abstract class KtorConnection<State : BaseState>(
     val socket: Socket,
     val nio: BaseNioService,
     context: CoroutineContext,
     readBufferSize: Int,
     writeBufferSize: Int
-) : BaseConnection(context = context, readBufferSize = readBufferSize, writeBufferSize = writeBufferSize) {
+) : BaseConnection<State>(context = context, readBufferSize = readBufferSize, writeBufferSize = writeBufferSize) {
 
     private val isActive get() = !socket.isClosed
 

@@ -7,6 +7,10 @@ import io.ktor.util.KtorExperimentalAPI
 @KtorExperimentalAPI
 class OutGameServersList : LoginServerOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: LoginServerConnection) {
         writeD(con.sessionId) // session id
     }

@@ -1,9 +1,10 @@
 package com.avp.wow.network.client
 
-import com.avp.wow.network.BaseConnection
-import com.avp.wow.network.BaseNioService
-import com.avp.wow.network.KtorConnection
-import com.avp.wow.network.KtorConnectionConfig
+import com.avp.wow.network.*
+import com.avp.wow.network.client.game.GameServerConnection
+import com.avp.wow.network.client.game.GameServerOutputPacket
+import com.avp.wow.network.client.game.SessionKey
+import com.avp.wow.network.client.game.output.OutEnterWorld
 import com.avp.wow.network.client.login.LoginServerConnection
 import com.avp.wow.network.client.login.output.OutLogin
 import io.ktor.network.selector.ActorSelectorManager
@@ -25,11 +26,12 @@ class KtorNioClient(
 
     private val selector by lazy { ActorSelectorManager(scope.coroutineContext) }
 
-    private var loginServerConnection: KtorConnection? = null
-    private var gameServerConnection: KtorConnection? = null
+    var loginServerConnection: LoginServerConnection? = null
+    var gameServerConnection: GameServerConnection? = null
+    var sessionKey: SessionKey? = null
 
     override val activeConnectionsCount: Int
-        get() = listOfNotNull(clientLsConfig, gameServerConnection).size
+        get() = listOfNotNull(loginServerConnection, gameServerConnection).size
 
     /**
      * Open connections to configured servers
@@ -62,7 +64,7 @@ class KtorNioClient(
                         socket = socket,
                         nio = this@KtorNioClient,
                         context = scope.coroutineContext
-                    )
+                    ) as LoginServerConnection
 
                 launch {
 
@@ -109,7 +111,7 @@ class KtorNioClient(
                         socket = socket,
                         nio = this@KtorNioClient,
                         context = scope.coroutineContext
-                    )
+                    ) as GameServerConnection
 
                 launch {
 
@@ -135,30 +137,46 @@ class KtorNioClient(
 
     }
 
-    override fun closeChannels() {
-        TODO("Not yet implemented")
-    }
+    override fun closeChannels() = Unit
 
     override fun notifyClose() {
-        TODO("Not yet implemented")
+        listOfNotNull(gameServerConnection, loginServerConnection)
+            .forEach { conn ->
+                conn.onServerClose()
+            }
     }
 
     override fun closeAll() {
-        TODO("Not yet implemented")
+        listOfNotNull(gameServerConnection, loginServerConnection)
+            .forEach { conn ->
+                conn.close(true)
+            }
     }
 
-    override fun closeConnection(connection: BaseConnection) {
-        TODO("Not yet implemented")
+    override fun closeConnection(connection: BaseConnection<*>) {
+        connection.closeConnectionImpl()
     }
 
-    override fun removeConnection(connection: BaseConnection) {
-        TODO("Not yet implemented")
+    override fun removeConnection(connection: BaseConnection<*>) {
+        when (connection) {
+            is GameServerConnection -> gameServerConnection = null
+            is LoginServerConnection -> loginServerConnection = null
+        }
+        log.info { "Disconnected! Some reconnecting stuff here..." }
     }
 
     fun login(login: String, password: String) {
-        (loginServerConnection as? LoginServerConnection)?.let {
-            it.sendPacket(OutLogin(login = login, password = password, server = it))
+        (loginServerConnection as? LoginServerConnection)?.let { ls ->
+            ls.sendPacket(OutLogin(login = login, password = password, server = ls))
         }
+    }
+
+    fun enterGame() {
+        (gameServerConnection as? GameServerConnection)?.sendPacket(OutEnterWorld())
+    }
+
+    fun sendGamePacket(pck: GameServerOutputPacket) {
+        (gameServerConnection as? GameServerConnection)?.sendPacket(pck)
     }
 
 }

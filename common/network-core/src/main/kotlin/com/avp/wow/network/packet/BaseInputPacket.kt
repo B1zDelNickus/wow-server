@@ -4,7 +4,7 @@ import com.avp.wow.network.BaseConnection
 import com.avp.wow.network.utils.KtxRunnable
 import java.nio.ByteBuffer
 
-abstract class BaseInputPacket<T : BaseConnection> : BasePacket, KtxRunnable {
+abstract class BaseInputPacket<T : BaseConnection<*>> : BasePacket, KtxRunnable {
 
     constructor(buffer: ByteBuffer, opCode: Int) : super(opCode = opCode, type = Companion.PacketType.CLIENT) {
         this.buffer = buffer
@@ -181,5 +181,7 @@ abstract class BaseInputPacket<T : BaseConnection> : BasePacket, KtxRunnable {
      * Execute this packet action.
      */
     protected abstract suspend fun runImpl()
+
+    abstract fun <InputPacket : BaseInputPacket<T>> clonePacket(): InputPacket?
 
 }

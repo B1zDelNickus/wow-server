@@ -12,15 +12,20 @@ import javax.crypto.Cipher
 
 @KtorExperimentalAPI
 class OutLogin(
-    login: String,
-    password: String,
+    private val login: String,
+    private val password: String,
     server: LoginServerConnection
 ) : LoginServerOutputPacket() {
+
+    init {
+        opCode = OP_CODE
+    }
 
     lateinit var decrypted: ByteArray
 
     init {
 
+        // TODO on client side NICK and PASS length max=32
         val data = "$login $password".toByteArray(Charset.defaultCharset())
             .also { b ->
                 b + ByteArray(64 - b.size) { ' '.toByte() }
@@ -29,7 +34,6 @@ class OutLogin(
         try {
             val pubKey = KeyFactory.getInstance("RSA")
                 .generatePublic(X509EncodedKeySpec(server.publicRsa))!!
-                //.generatePublic(RSAPublicKeySpec(server.publicRsa))!!
             val rsaCipher = Cipher.getInstance("RSA/ECB/NoPadding")!!
             rsaCipher.init(Cipher.ENCRYPT_MODE, pubKey)
             val cipherBytes = rsaCipher.doFinal(data)!!//, 0, 64)
@@ -38,18 +42,21 @@ class OutLogin(
             decrypted = Base64.getDecoder().decode(cipherText)
 
         } catch (e: GeneralSecurityException) {
-            //sendPacket(SM_LOGIN_FAIL(AionAuthResponse.SYSTEM_ERROR))
+            // TODO handle ERROR
             log.error(e) { "Encrypting credentials error: ${e.message}." }
         }
 
     }
 
     override fun writeImpl(con: LoginServerConnection) {
+        writeD(con.sessionId)
         writeB(decrypted) // encrypted crdentials id
+        //writeS(login)
+        //writeS(password)
     }
 
     companion object {
-        const val OP_CODE = 0x04
+        const val OP_CODE = 4
     }
 
 }

@@ -4,7 +4,6 @@ import com.avp.wow.network.ktor.login.client.LoginClientOutputPacket
 import com.avp.wow.network.ktor.login.client.LoginClientConnection
 import com.avp.wow.network.ktor.login.client.SessionKey
 import io.ktor.util.KtorExperimentalAPI
-import javax.crypto.SecretKey
 
 @KtorExperimentalAPI
 class OutLoginOk(

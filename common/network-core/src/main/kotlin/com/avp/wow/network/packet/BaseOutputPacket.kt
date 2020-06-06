@@ -88,6 +88,6 @@ abstract class BaseOutputPacket : BasePacket {
     fun flipBuffer() { buffer?.flip() }
     fun sliceBuffer(): ByteBuffer { return buffer?.slice()?:throw IllegalStateException("Buffer must be not null!") }
 
-    open fun <T : BaseConnection> afterWrite(con: T) = Unit
+    open fun <T : BaseConnection<*>> afterWrite(con: T) = Unit
 
 }

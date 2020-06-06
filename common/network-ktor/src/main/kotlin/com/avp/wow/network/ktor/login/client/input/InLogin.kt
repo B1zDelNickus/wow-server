@@ -6,16 +6,19 @@ import com.avp.wow.network.ktor.login.client.LoginClientConnection.Companion.Sta
 import com.avp.wow.network.ktor.login.client.LoginClientInputPacket
 import com.avp.wow.network.ktor.login.client.SessionKey
 import com.avp.wow.network.ktor.login.client.output.OutLoginOk
+import com.avp.wow.service.account.AccountConfig.accountService
 import com.avp.wow.service.auth.AuthConfig
-import com.avp.wow.service.auth.AuthUtils
+import com.avp.wow.service.auth.AccountUtils
+import com.avp.wow.service.auth.AccountUtils.encodePassword
+import com.avp.wow.service.auth.AuthConfig.accountAutoCreationEnabled
+import com.avp.wow.service.auth.AuthConfig.authService
 import com.avp.wow.service.auth.enums.AuthResponse
 import com.avp.wow.service.ban.BanConfig
+import com.avp.wow.service.ban.BanConfig.banService
 import com.avp.wow.service.gs.GameServersConfig
+import com.avp.wow.service.gs.GameServersConfig.gameServersService
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
-import java.nio.charset.Charset
-import java.security.GeneralSecurityException
-import javax.crypto.Cipher
 
 @KtorExperimentalAPI
 class InLogin(
@@ -29,14 +32,19 @@ class InLogin(
 
     private lateinit var data: ByteArray
 
+    private var user = ""
+    private var passwordHash = ""
+
     override fun readImpl() {
-        if (remainingBytes >= 128) {
+        /*if (remainingBytes >= 128) {
             data = readB(128)
-        }
+        }*/
+        user = readS()
+        passwordHash = readS()
     }
 
     override suspend fun runImpl() {
-        try {
+        /*try {
             data
         } catch (e: Exception) {
             return
@@ -56,12 +64,12 @@ class InLogin(
             .toByteArray()
             .toString(Charset.defaultCharset())
             .trim()
-            .split(" ")
+            .split(" ")*/
 
-        val user = resultString[0]
-        val password = resultString[1]
+        val user = user//resultString[0]
+        val password = passwordHash//resultString[1]
 
-        log.debug { "Auth with login: $user and pass: $password" }
+        log.trace { "Auth with login: $user and pass: $password" }
 
         /*val response =
             AuthConfig.authService.login(login = user, rawPassword = password, currentIp = connection!!.ip)
@@ -86,9 +94,9 @@ class InLogin(
         }*/
 
         val response =
-            AuthConfig.authService.login {
+            authService.login {
 
-                if (BanConfig.banService.isBanned(connection!!.ip)) {
+                if (banService.isBanned(connection!!.ip)) {
                     return@login AuthResponse.BAN_IP
                 }
 
@@ -96,8 +104,9 @@ class InLogin(
 
                 if (null == account) {
                     when {
-                        AuthConfig.accountAutoCreationEnabled -> {
-                            account = Account.EMPTY // create
+                        accountAutoCreationEnabled -> {
+                            // TODO place and do beautifully in specific service
+                            account = accountService.createAccount(name = user, password = password)
                         }
                         else -> return@login AuthResponse.INVALID_PASSWORD
                     }
@@ -108,7 +117,7 @@ class InLogin(
                 }*/
 
                 // check for paswords beeing equals
-                if (account.passwordHash != AuthUtils.encodePassword(password)) {
+                if (account.passwordHash != encodePassword(password)) {
                     return@login AuthResponse.INVALID_PASSWORD
                 }
 
@@ -117,20 +126,14 @@ class InLogin(
                 }
 
                 // If account expired
-
-                // If account expired
                 if (AccountTimeController.isAccountExpired(account)) {
                     return AionAuthResponse.TIME_EXPIRED
                 }
 
                 // if account is banned
-
-                // if account is banned
                 if (AccountTimeController.isAccountPenaltyActive(account)) {
                     return AionAuthResponse.BAN_IP
                 }
-
-                // if account is restricted to some ip or mask
 
                 // if account is restricted to some ip or mask
                 if (account.getIpForce() != null) {
@@ -141,8 +144,8 @@ class InLogin(
 
                 synchronized(this) {
 
-                    if (GameServersConfig.gameServersService.isAccountOnAnyGameServer(account = account)) {
-                        GameServersConfig.gameServersService.kickAccountFromGameServer(account = account)
+                    if (gameServersService.isAccountOnAnyGameServer(account = account)) {
+                        gameServersService.kickAccountFromGameServer(account = account)
                         return@login AuthResponse.ALREADY_LOGGED_IN
                     }
 
@@ -184,10 +187,10 @@ class InLogin(
                 log.debug { "User $user authorized to Login Server." }
             }
             AuthResponse.INVALID_PASSWORD -> {
-
+                log.debug { "Invalid password for account: $user." }
             }
             else -> {
-
+                log.debug { "Failed to auth LS for reason: ${response.name}." }
             }
         }
 

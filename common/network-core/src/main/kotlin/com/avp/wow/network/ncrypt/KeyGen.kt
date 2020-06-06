@@ -15,6 +15,9 @@ import kotlin.random.Random
  * @author -Nemesiss-
  */
 object KeyGen {
+
+    private var initialized = false
+
     /**
      * Logger for this class.
      */
@@ -41,26 +44,31 @@ object KeyGen {
      */
     @Throws(GeneralSecurityException::class)
     fun init() {
+        synchronized(initialized) {
+            if (initialized) return
 
-        log.info("Initializing Key Generator...")
+            log.info("Initializing Key Generator...")
 
-        blowfishKeyGen = KeyGenerator.getInstance("Blowfish")
+            blowfishKeyGen = KeyGenerator.getInstance("Blowfish")
 
-        val rsaKeyPairGenerator = KeyPairGenerator.getInstance("RSA")
+            val rsaKeyPairGenerator = KeyPairGenerator.getInstance("RSA")
 
-        val spec = RSAKeyGenParameterSpec(1024, RSAKeyGenParameterSpec.F4)
-        rsaKeyPairGenerator.initialize(spec)
-        encryptedRSAKeyPairs = Array(10) {
-            EncryptedRSAKeyPair(rsaKeyPairGenerator.generateKeyPair())
+            val spec = RSAKeyGenParameterSpec(1024, RSAKeyGenParameterSpec.F4)
+            rsaKeyPairGenerator.initialize(spec)
+            encryptedRSAKeyPairs = Array(10) {
+                EncryptedRSAKeyPair(rsaKeyPairGenerator.generateKeyPair())
+            }
+
+            /*for (i in 0..9) {
+                encryptedRSAKeyPairs[i] = EncryptedRSAKeyPair(rsaKeyPairGenerator.generateKeyPair())
+            }*/
+
+            // Pre-init RSA cipher.. saving about 300ms
+            val rsaCipher = Cipher.getInstance("RSA/ECB/nopadding")
+            rsaCipher.init(Cipher.DECRYPT_MODE, encryptedRSAKeyPairs!![0].rsaKeyPair.private)
+
+            initialized = true
         }
-
-        /*for (i in 0..9) {
-            encryptedRSAKeyPairs[i] = EncryptedRSAKeyPair(rsaKeyPairGenerator.generateKeyPair())
-        }*/
-
-        // Pre-init RSA cipher.. saving about 300ms
-        val rsaCipher = Cipher.getInstance("RSA/ECB/nopadding")
-        rsaCipher.init(Cipher.DECRYPT_MODE, encryptedRSAKeyPairs!![0].rsaKeyPair.private)
     }
 
     /**

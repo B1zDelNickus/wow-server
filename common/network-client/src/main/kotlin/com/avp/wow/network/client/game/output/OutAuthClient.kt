@@ -7,12 +7,16 @@ import io.ktor.util.KtorExperimentalAPI
 @KtorExperimentalAPI
 class OutAuthClient : GameServerOutputPacket() {
 
+    init {
+        opCode = OP_CODE
+    }
+
     override fun writeImpl(con: GameServerConnection) {
         writeD(con.sessionId) // session id
     }
 
     companion object {
-        const val OP_CODE = 0x02
+        const val OP_CODE = 2
     }
 
 }

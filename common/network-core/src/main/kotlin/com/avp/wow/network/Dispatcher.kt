@@ -32,7 +32,7 @@ abstract class Dispatcher(
         }
     }
 
-    fun register(channel: SelectableChannel, ops: Int, connection: KtxConnection) {
+    fun register(channel: SelectableChannel, ops: Int, connection: KtxConnection<*>) {
         synchronized(guard) {
             selector.wakeup()
             connection.key = channel.register(selector, ops, connection)
@@ -67,7 +67,7 @@ abstract class Dispatcher(
      * @param con
      * @see com.aionemu.commons.network.Dispatcher.closeConnection
      */
-    abstract fun closeConnection(con: KtxConnection)
+    abstract fun closeConnection(con: KtxConnection<*>)
 
     /**
      * Read data from socketChannel represented by SelectionKey key. Parse and Process data. Prepare buffer for next read.
@@ -75,7 +75,7 @@ abstract class Dispatcher(
      */
     protected fun read(key: SelectionKey) {
         val socketChannel = key.channel() as SocketChannel
-        val con: KtxConnection = key.attachment() as KtxConnection
+        val con = key.attachment() as KtxConnection<*>
         val rb: ByteBuffer = con.readBuffer
 
         /**
@@ -125,7 +125,7 @@ abstract class Dispatcher(
      * @param buf Buffer with packet data
      * @return True if packet was parsed.
      */
-    private fun parse(con: KtxConnection, buf: ByteBuffer): Boolean {
+    private fun parse(con: KtxConnection<*>, buf: ByteBuffer): Boolean {
         var sz: Short = 0
         return try {
             sz = buf.short
@@ -153,7 +153,7 @@ abstract class Dispatcher(
      */
     protected fun write(key: SelectionKey) {
         val socketChannel = key.channel() as SocketChannel
-        val con: KtxConnection = key.attachment() as KtxConnection
+        val con = key.attachment() as KtxConnection<*>
         var numWrite: Int
         val wb: ByteBuffer = con.writeBuffer
         /**
@@ -220,7 +220,7 @@ abstract class Dispatcher(
      * Connection will be closed [onlyClose()] and onDisconnect() method will be executed on another thread [DisconnectionThreadPool] after getDisconnectionDelay() time in ms. This method may only be called by current Dispatcher Thread.
      * @param con
      */
-    protected fun closeConnectionImpl(con: KtxConnection) {
+    protected fun closeConnectionImpl(con: KtxConnection<*>) {
         if (con.onlyClose()) {
             scope.launch { DisconnectionTask(connection = con).run() }
         }

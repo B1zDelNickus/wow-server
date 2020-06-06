@@ -1,14 +1,16 @@
 package com.avp.wow.network.client.game
 
 import com.avp.wow.network.BaseNioService
+import com.avp.wow.network.BaseState
 import com.avp.wow.network.KtorConnection
-import com.avp.wow.network.client.KtorNioClient
 import com.avp.wow.network.client.factories.GameServerInputPacketFactory
-import com.avp.wow.network.ncrypt.Crypt
+import com.avp.wow.network.client.game.GameServerConnection.Companion.State
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
+import io.ktor.network.sockets.isClosed
 import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
@@ -18,7 +20,7 @@ class GameServerConnection(
     socket: Socket,
     nio: BaseNioService,
     context: CoroutineContext
-) : KtorConnection(
+) : KtorConnection<State>(
     socket = socket,
     nio = nio,
     context = context,
@@ -26,7 +28,7 @@ class GameServerConnection(
     writeBufferSize = DEFAULT_W_BUFFER_SIZE
 ) {
 
-    var state = State.DEFAULT
+    override var state = State.DEFAULT
 
     /**
      * Returns unique sessionId of this connection.
@@ -45,14 +47,35 @@ class GameServerConnection(
      */
     private val cryptEngine by lazy { WowCryptEngine() }
 
-    private val inputPacketHandler = GameServerInputPacketFactory.packetHandler
+    private val inputPacketHandler by lazy { GameServerInputPacketFactory.packetHandler }
 
     override fun close(forced: Boolean) {
-        TODO("Not yet implemented")
+        synchronized(guard) {
+            if (isWriteDisabled) {
+                return
+            }
+            isForcedClosing = forced
+            nio.closeConnection(this)
+        }
     }
 
     override fun onlyClose(): Boolean {
-        TODO("Not yet implemented")
+        synchronized(guard) {
+            if (closed) {
+                return false
+            }
+            try {
+                if (!socket.isClosed) {
+                    socket.close()
+                    socket.dispose()
+                    nio.removeConnection(this)
+                    log.info { "Connection from $ip was successfully closed: ${socket.isClosed}" }
+                }
+                closed = true
+            } catch (ignored: IOException) {
+            }
+        }
+        return true
     }
 
     /**
@@ -112,6 +135,8 @@ class GameServerConnection(
             if (pck.read()) {
                 log.debug { "Received packet $pck from client: $ip" }
                 //processor.executePacket(pck)
+
+                scope.launch { pck.run() }
             }
 
         }
@@ -145,15 +170,15 @@ class GameServerConnection(
         get() = TODO("Not yet implemented")
 
     override fun onDisconnect() {
-        TODO("Not yet implemented")
+        log.info { "Disconnected from from GS: $ip." }
     }
 
     override fun onServerClose() {
-        TODO("Not yet implemented")
+        close(forced = true)
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
-        TODO("Not yet implemented")
+        cryptEngine.updateKey(newKey = blowfishKey)
     }
 
     companion object {
@@ -161,7 +186,7 @@ class GameServerConnection(
         const val DEFAULT_R_BUFFER_SIZE = 8192 * 2
         const val DEFAULT_W_BUFFER_SIZE = 8192 * 2
 
-        enum class State {
+        enum class State : BaseState {
 
             /**
              * Default state

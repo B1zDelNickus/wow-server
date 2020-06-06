@@ -1,6 +1,6 @@
 package com.avp.wow.network.ktor.login.client
 
-import com.avp.wow.network.ktor.login.client.output.OutAuthClient
+import com.avp.wow.network.ktor.login.client.output.OutAuthClientOk
 import com.avp.wow.network.ktor.login.client.output.OutEnterGameServerOk
 import com.avp.wow.network.ktor.login.client.output.OutInitSession
 import com.avp.wow.network.ktor.login.client.output.OutLoginOk
@@ -13,22 +13,10 @@ object LoginClientOutputPacketsOpcodes {
     private val idSet = mutableSetOf<Int>()
 
     private val opCodes = mutableMapOf(
-        addPacketOpcode(
-            packetClass = OutInitSession::class,
-            opcode = OutInitSession.OP_CODE
-        ),
-        addPacketOpcode(
-            packetClass = OutAuthClient::class,
-            opcode = OutAuthClient.OP_CODE
-        ),
-        addPacketOpcode(
-            packetClass = OutLoginOk::class,
-            opcode = OutLoginOk.OP_CODE
-        ),
-        addPacketOpcode(
-            packetClass = OutEnterGameServerOk::class,
-            opcode = OutEnterGameServerOk.OP_CODE
-        )
+        addPacketOpcode(packetClass = OutInitSession::class, opcode = OutInitSession.OP_CODE),
+        addPacketOpcode(packetClass = OutAuthClientOk::class, opcode = OutAuthClientOk.OP_CODE),
+        addPacketOpcode(packetClass = OutLoginOk::class, opcode = OutLoginOk.OP_CODE),
+        addPacketOpcode(packetClass = OutEnterGameServerOk::class, opcode = OutEnterGameServerOk.OP_CODE)
     )
 
     fun getOpcode(packetClass: KClass<out LoginClientOutputPacket>): Int {
