@@ -12,16 +12,13 @@ import com.avp.wow.network.client.factories.LoginServerInputPacketFactory
 import com.avp.wow.network.client.factories.LoginServerOutputPacketFactory
 import com.avp.wow.network.client.login.LoginServerConnection
 import com.avp.wow.network.client.login.LoginServerInputPacket
+import com.avp.wow.network.client.login.input.InAuthClientOk
 import com.avp.wow.network.client.login.input.InInitSession
 import com.avp.wow.network.client.login.output.OutAuthClient
-import com.avp.wow.network.client.login.output.OutLogin
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
 import io.ktor.util.KtorExperimentalAPI
-import io.mockk.mockk
 import kotlinx.coroutines.delay
-import kotlin.reflect.full.createInstance
-import kotlin.reflect.full.primaryConstructor
 
 @KtorExperimentalAPI
 class AcceptClientTests : BaseNioTest({
@@ -92,12 +89,27 @@ class AcceptClientTests : BaseNioTest({
          * Prepare stage
          */
 
+        var receivedSessionId = 0
         var verified = false
 
         val successSessionVerification = object : LoginClientOutputPacket() {
             override fun writeImpl(con: LoginClientConnection) {
                 verified = true
             }
+        }
+
+        val autoOk = object : LoginServerInputPacket(
+            InAuthClientOk.OP_CODE,
+            listOf(LoginServerConnection.Companion.State.CONNECTED)
+        ) {
+            override fun readImpl() {
+                receivedSessionId = readD()
+            }
+
+            override suspend fun runImpl(){
+                verified = true
+            }
+
         }
 
         /**
@@ -108,13 +120,14 @@ class AcceptClientTests : BaseNioTest({
             .apply {
                 clearPrototypes()
                 addPacketPrototype(packetClass = OutInitSession::class, opcode = OutInitSession.OP_CODE)
-                //addPacketPrototype(packetClass = successSessionVerification::class, opcode = OutAuthClientOk.OP_CODE)
+                addPacketPrototype(packetClass = OutAuthClientOk::class, opcode = OutAuthClientOk.OP_CODE)
             }
 
         LoginServerInputPacketFactory.packetHandler
             .apply {
                 clearPrototypes()
                 addPacketPrototype(InInitSession(LoginServerConnection.Companion.State.CONNECTED))
+                addPacketPrototype(autoOk)
             }
 
         LoginServerOutputPacketFactory.packetHandler
@@ -143,7 +156,8 @@ class AcceptClientTests : BaseNioTest({
          */
 
         loginServer.activeConnectionsCount shouldBe 1
-        client.loginServerConnection?.sessionId shouldBe (loginServer.connections.first() as LoginClientConnection).sessionId
+        receivedSessionId shouldBe (loginServer.connections.first() as LoginClientConnection).sessionId
+        verified shouldBe true
 
     }
 
