@@ -39,7 +39,7 @@ class LoginClientConnection(
      */
     var sessionId = hashCode()
 
-    private val processor = KtxPacketProcessor<LoginClientConnection>()
+    private val processor = KtxPacketProcessor<LoginClientConnection>(context = context, id = "LC Connection")
 
     /**
      * Server Packet "to send" Queue

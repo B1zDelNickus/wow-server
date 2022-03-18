@@ -48,12 +48,10 @@ class KtxNioClient(
 
                 log.info { "Connecting to Login Server - $clientLsConfig" }
 
-                val socket = aSocket(selector = selector)
-                    .tcp()
-                    .connect(
-                        hostname = clientLsConfig.hostName,
-                        port = clientLsConfig.port
-                    )
+                val socket = openSocket(
+                    host = clientLsConfig.hostName,
+                    port = clientLsConfig.port
+                )
 
                 log.info { "Connected to ${socket.remoteAddress}" }
 
@@ -95,12 +93,10 @@ class KtxNioClient(
 
                 log.info { "Connecting to Game Server - $gameServerConfig" }
 
-                val socket = aSocket(selector = selector)
-                    .tcp()
-                    .connect(
-                        hostname = gameServerConfig.hostName,
-                        port = gameServerConfig.port
-                    )
+                val socket = openSocket(
+                    host = gameServerConfig.hostName,
+                    port = gameServerConfig.port
+                )
 
                 log.info { "Connected to ${socket.remoteAddress}" }
 
@@ -160,5 +156,12 @@ class KtxNioClient(
             it.sendPacket(OutLogin(login = login, password = password, server = it))
         }
     }
+
+    private suspend fun openSocket(host: String, port: Int) = aSocket(selector = selector)
+        .tcp()
+        .connect(
+            hostname = host,
+            port = port
+        )
 
 }

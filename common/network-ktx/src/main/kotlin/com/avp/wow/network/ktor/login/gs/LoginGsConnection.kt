@@ -36,7 +36,7 @@ class LoginGsConnection(
      */
     var sessionId = hashCode()
 
-    private val processor = KtxPacketProcessor<LoginGsConnection>()
+    private val processor = KtxPacketProcessor<LoginGsConnection>(context = context, id = "L GS Connection")
 
     /**
      * Server Packet "to send" Queue

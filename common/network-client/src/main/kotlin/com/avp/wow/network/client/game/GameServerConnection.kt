@@ -2,6 +2,7 @@ package com.avp.wow.network.client.game
 
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtxConnection
+import com.avp.wow.network.KtxPacketProcessor
 import com.avp.wow.network.client.factories.GameServerInputPacketFactory
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
@@ -44,6 +45,8 @@ class GameServerConnection(
 
     private val inputPacketHandler = GameServerInputPacketFactory.packetHandler
 
+    private val processor = KtxPacketProcessor<GameServerConnection>(context = context, id = "Client GS Connection")
+
     override fun close(forced: Boolean) {
         TODO("Not yet implemented")
     }
@@ -84,7 +87,7 @@ class GameServerConnection(
 
     override fun processData(data: ByteBuffer): Boolean {
         try {
-            if (!cryptEngine.decrypt(data)) {
+            if (!decrypt(data)) {
                 log.debug { "Decrypt fail, server packet passed..." }
                 return true
             }
@@ -108,7 +111,7 @@ class GameServerConnection(
 
             if (pck.read()) {
                 log.debug { "Received packet $pck from client: $ip" }
-                //processor.executePacket(pck)
+                processor.executePacket(pck)
             }
 
         }
@@ -150,7 +153,7 @@ class GameServerConnection(
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
-        TODO("Not yet implemented")
+        cryptEngine.updateKey(newKey = blowfishKey)
     }
 
     companion object {

@@ -2,6 +2,7 @@ package com.avp.wow.network.client.login
 
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtxConnection
+import com.avp.wow.network.KtxPacketProcessor
 import com.avp.wow.network.client.factories.LoginServerInputPacketFactory
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
@@ -56,6 +57,8 @@ class LoginServerConnection(
      */
     private var encryptedRSAKeyPair: EncryptedRSAKeyPair? = null
 
+    private val processor = KtxPacketProcessor<LoginServerConnection>(context = context, id = "Client LS Connection")
+
     /**
      * Decrypt packet.
      * @param buf
@@ -96,23 +99,7 @@ class LoginServerConnection(
          */
         if (pck != null && pck.read()) {
             log.debug { "Received packet $pck from login server." }
-            //processor.executePacket(pck)
-
-            // run sync for now ? fixme
-            /*suspend {
-
-                try {
-                    withTimeout(1_000) {
-                        pck.run()
-                    }
-                } catch (e: Exception) {
-                    log.error(e) { "Too long packet execution" }
-                }
-
-            }*/
-
-            GlobalScope.launch { pck.run() }
-
+            processor.executePacket(pck)
         }
 
         return true
@@ -189,10 +176,7 @@ class LoginServerConnection(
             AUTHED_LOGIN;
 
             companion object {
-
-                val DEFAULT =
-                    NONE
-
+                val DEFAULT = NONE
             }
 
         }

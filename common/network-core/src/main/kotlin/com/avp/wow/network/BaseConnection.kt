@@ -99,7 +99,7 @@ abstract class BaseConnection(
      */
     open fun tryLockConnection() = when {
         locked -> false
-        else -> true.also { locked = it }
+        else -> true.also { locked = true }
     }
 
     /**

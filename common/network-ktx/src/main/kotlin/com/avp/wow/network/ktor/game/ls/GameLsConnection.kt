@@ -34,7 +34,7 @@ class GameLsConnection(
     var sessionId = 0
     var publicRsa: ByteArray? = null
 
-    private val processor = KtxPacketProcessor<GameLsConnection>()
+    private val processor = KtxPacketProcessor<GameLsConnection>(context = context, id = "GS LS Connection")
 
     /**
      * Server Packet "to send" Queue

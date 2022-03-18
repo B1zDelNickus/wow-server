@@ -2,7 +2,7 @@ package com.avp.wow.network
 
 import com.avp.wow.network.packet.BaseInputPacket
 import com.avp.wow.network.utils.KtxRunnable
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import mu.KotlinLogging
 import java.util.*
@@ -11,11 +11,12 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
-class KtxPacketProcessor<T: KtxConnection>(
-    private val minThreads: Int,
-    private val maxThreads: Int,
-    private val threadSpawnThreshold: Int,
-    private val threadKillThreshold: Int,
+class KtxPacketProcessor<T : KtxConnection>(
+    private val id: String,
+    private val minThreads: Int = 2,
+    private val maxThreads: Int = 16,
+    private val threadSpawnThreshold: Int = 1000,
+    private val threadKillThreshold: Int = 1000,
     context: CoroutineContext = Dispatchers.IO
 ) {
 
@@ -23,18 +24,6 @@ class KtxPacketProcessor<T: KtxConnection>(
      * Working threads.
      */
     private val jobs: MutableList<Pair<Job, PacketProcessorTask>> = ArrayList()
-
-    init {
-
-        if (minThreads != maxThreads) {
-            startCheckerThread()
-        }
-
-        for (i in 0 until minThreads) {
-            newJob()
-        }
-
-    }
 
     private val log = KotlinLogging.logger(this::class.java.name)
 
@@ -55,6 +44,18 @@ class KtxPacketProcessor<T: KtxConnection>(
      */
     val packets = LinkedList<BaseInputPacket<T>>()
 
+    init {
+
+        if (minThreads != maxThreads) {
+            startCheckerThread()
+        }
+
+        for (i in 0 until minThreads) {
+            newJob()
+        }
+
+    }
+
     /**
      * Start Checker Thread. Checker is responsible for increasing / reducing PacketProcessor Thread count based on Runtime needs.
      */
@@ -71,7 +72,7 @@ class KtxPacketProcessor<T: KtxConnection>(
             return false
         }
         val name = "PacketProcessor:" + jobs.size
-        log.debug("Creating new PacketProcessor Thread: $name")
+        log.debug("Creating new PacketProcessor Thread: $name by $id")
         val task = PacketProcessorTask(name = name)
         val job = scope.launch(start = CoroutineStart.LAZY) { task.run() }
         task.ownJob = job
@@ -128,7 +129,6 @@ class KtxPacketProcessor<T: KtxConnection>(
 
     /**
      * Packet Processor Task that will execute packet with respecting rules: - 1 packet / client at one time. - execute packets in received order.
-     * @author -Nemesiss-
      */
     private inner class PacketProcessorTask(val name: String) : KtxRunnable {
 
@@ -152,7 +152,6 @@ class KtxPacketProcessor<T: KtxConnection>(
 
     /**
      * Checking if PacketProcessor is busy or idle and increasing / reducing numbers of threads.
-     * @author -Nemesiss-
      */
     private inner class CheckerTask : KtxRunnable {
 
@@ -174,7 +173,7 @@ class KtxPacketProcessor<T: KtxConnection>(
             /* Number of packets waiting for execution */
             val packetsToExecute: Int = packets.size
             if (packetsToExecute < lastSize && packetsToExecute < threadKillThreshold) {
-                // too much threads
+                // too many threads
                 killThread()
             } else if (packetsToExecute > lastSize && packetsToExecute > threadSpawnThreshold) {
                 // too small amount of threads

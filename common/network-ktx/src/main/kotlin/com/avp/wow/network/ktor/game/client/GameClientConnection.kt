@@ -2,6 +2,7 @@ package com.avp.wow.network.ktor.game.client
 
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtxConnection
+import com.avp.wow.network.KtxPacketProcessor
 import com.avp.wow.network.ktor.game.client.output.OutInitSession
 import com.avp.wow.network.ktor.game.factories.GameClientInputPacketFactory
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
@@ -34,7 +35,6 @@ class GameClientConnection(
      * @return SessionId
      */
     var sessionId = hashCode()
-    var publicRsa: ByteArray? = null
 
     /**
      * Server Packet "to send" Queue
@@ -58,15 +58,10 @@ class GameClientConnection(
         get() = encryptedRSAKeyPair?.rsaKeyPair?.public?.encoded
             ?: throw IllegalArgumentException("RSA key was not initialized properly")
 
-    /**
-     * Return RSA private key
-     * @return rsa private key
-     */
-    val rsaPrivateKey
-        get() = encryptedRSAKeyPair?.rsaKeyPair?.private
-            ?: throw IllegalArgumentException("RSA key was not initialized properly")
 
     private val inputPacketHandler = GameClientInputPacketFactory.packetHandler
+
+    private val processor = KtxPacketProcessor<GameClientConnection>(context = context, id = "GC Connection")
 
     override fun close(forced: Boolean) {
         TODO("Not yet implemented")
@@ -109,7 +104,7 @@ class GameClientConnection(
 
     override fun processData(data: ByteBuffer): Boolean {
         try {
-            if (!cryptEngine.decrypt(data)) {
+            if (!decrypt(data)) {
                 log.debug { "Decrypt fail, client packet passed..." }
                 return true
             }
@@ -133,7 +128,7 @@ class GameClientConnection(
 
             if (pck.read()) {
                 log.debug { "Received packet $pck from client: $ip" }
-                //processor.executePacket(pck)
+                processor.executePacket(pck)
             }
 
         }
