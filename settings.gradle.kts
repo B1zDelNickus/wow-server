@@ -22,9 +22,9 @@ include(
     "repository",
     "service",
 
+    "network-model",
     "network-core",
     "network-ktor",
-    //"network-ktx",
     "network-client",
 
     "login-server",
@@ -38,9 +38,9 @@ project(":jdbc-core").projectDir = file("common/jdbc-core")
 project(":model").projectDir = file("common/model")
 project(":repository").projectDir = file("common/repository")
 project(":service").projectDir = file("common/service")
+project(":network-model").projectDir = file("common/network-model")
 project(":network-core").projectDir = file("common/network-core")
 project(":network-ktor").projectDir = file("common/network-ktor")
-//project(":network-ktx").projectDir = file("common/network-ktx")
 project(":network-client").projectDir = file("common/network-client")
 
 project(":login-server-app").projectDir = file("dockers/login-server-app")
