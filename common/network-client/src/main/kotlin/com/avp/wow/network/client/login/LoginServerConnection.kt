@@ -1,9 +1,8 @@
 package com.avp.wow.network.client.login
 
 import com.avp.wow.network.BaseNioService
-import com.avp.wow.network.KtorConnection
+import com.avp.wow.network.KtxConnection
 import com.avp.wow.network.client.factories.LoginServerInputPacketFactory
-import com.avp.wow.network.ncrypt.CryptEngine
 import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
 import com.avp.wow.network.ncrypt.WowCryptEngine
@@ -12,11 +11,7 @@ import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
-import java.io.IOException
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import javax.crypto.SecretKey
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
@@ -24,7 +19,7 @@ class LoginServerConnection(
     socket: Socket,
     nio: BaseNioService,
     context: CoroutineContext
-) : KtorConnection(
+) : KtxConnection(
     socket = socket,
     nio = nio,
     context = context,

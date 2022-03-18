@@ -1,8 +1,10 @@
-package com.avp.wow.network.client.game
+package com.avp.wow.network.ktor.game.ls
 
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtxConnection
-import com.avp.wow.network.client.factories.GameServerInputPacketFactory
+import com.avp.wow.network.KtxPacketProcessor
+import com.avp.wow.network.ktor.game.factories.GameLsInputPacketFactory
+import com.avp.wow.network.ktor.game.ls.output.OutAuthGs
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
 import io.ktor.util.KtorExperimentalAPI
@@ -11,7 +13,7 @@ import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
-class GameServerConnection(
+class GameLsConnection(
     socket: Socket,
     nio: BaseNioService,
     context: CoroutineContext
@@ -32,17 +34,17 @@ class GameServerConnection(
     var sessionId = 0
     var publicRsa: ByteArray? = null
 
+    private val processor = KtxPacketProcessor<GameLsConnection>()
+
     /**
      * Server Packet "to send" Queue
      */
-    private val sendMsgQueue = FastList<GameServerOutputPacket>()
+    private val sendMsgQueue = FastList<GameLsOutputPacket>()
 
     /**
      * Crypt to encrypt/decrypt packets
      */
     private val cryptEngine by lazy { WowCryptEngine() }
-
-    private val inputPacketHandler = GameServerInputPacketFactory.packetHandler
 
     override fun close(forced: Boolean) {
         TODO("Not yet implemented")
@@ -70,7 +72,7 @@ class GameServerConnection(
         cryptEngine.encrypt(data = buf)
     }
 
-    fun sendPacket(packet: GameServerOutputPacket) {
+    fun sendPacket(packet: GameLsOutputPacket) {
         synchronized(guard) {
             /**
              * Connection is already closed or waiting for last (close packet) to be sent
@@ -83,59 +85,43 @@ class GameServerConnection(
     }
 
     override fun processData(data: ByteBuffer): Boolean {
-        try {
-            if (!cryptEngine.decrypt(data)) {
-                log.debug { "Decrypt fail, server packet passed..." }
-                return true
-            }
-        } catch (e: Exception) {
-            log.error(e) { "Exception caught during decrypt - ${e.message}" }
+        if (!decrypt(data)) {
             return false
         }
-
         if (data.remaining() < 5) { // op + static code + op == 5 bytes
             log.error("Received fake packet from: $this")
             return false
         }
-
-        val pck = inputPacketHandler.handle(data, this)
+        val pck = GameLsInputPacketFactory.define(data, this)
         /**
          * Execute packet only if packet exist (!= null) and read was ok.
          */
-        if (pck != null) {
-
-            /// TODO flood protection
-
-            if (pck.read()) {
-                log.debug { "Received packet $pck from client: $ip" }
-                //processor.executePacket(pck)
-            }
-
+        if (pck != null && pck.read()) {
+            log.debug { "Received packet $pck from login server: $ip" }
+            processor.executePacket(pck)
         }
         return true
     }
 
     override fun writeData(data: ByteBuffer): Boolean {
         synchronized(guard) {
-            val begin = System.nanoTime()
-            try {
-                val packet = try {
-                    sendMsgQueue.removeFirst()
-                } catch (ignored: Exception) {
-                    return false
-                }
-                log.debug { "Send packet $packet to client: $ip" }
-                packet.write(this, data)
-                return true
-            } finally {
-                //RunnableStatsManager.handleStats(packet.getClass(), "runImpl()", System.nanoTime() - begin)
+            val packet = try {
+                sendMsgQueue.removeFirst()
+            } catch (ignored: Exception) {
+                return false
             }
+            log.debug { "Send packet $packet to login server: $ip" }
+            packet.write(this, data)
+            return true
         }
     }
 
     override fun initialized() {
-        log.debug { "Connected to game server: [$ip]." }
         state = State.CONNECTED
+        /**
+         * send first packet - authentication.
+         */
+        sendPacket(OutAuthGs())
     }
 
     override val disconnectionDelay: Long
@@ -150,7 +136,7 @@ class GameServerConnection(
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
-        TODO("Not yet implemented")
+        cryptEngine.updateKey(newKey = blowfishKey)
     }
 
     companion object {
@@ -166,19 +152,14 @@ class GameServerConnection(
             NONE,
 
             /**
-             * client just connect
+             * Means that GameServer just connect, but is not authenticated yet
              */
             CONNECTED,
 
             /**
-             * client is authenticated
+             * GameServer is authenticated
              */
-            AUTHED,
-
-            /**
-             * client entered world.
-             */
-            IN_GAME;
+            AUTHED;
 
             companion object {
 
@@ -190,5 +171,4 @@ class GameServerConnection(
         }
 
     }
-
 }

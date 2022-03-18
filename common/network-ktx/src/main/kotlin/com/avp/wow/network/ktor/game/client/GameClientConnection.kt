@@ -1,17 +1,21 @@
-package com.avp.wow.network.client.game
+package com.avp.wow.network.ktor.game.client
 
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtxConnection
-import com.avp.wow.network.client.factories.GameServerInputPacketFactory
+import com.avp.wow.network.ktor.game.client.output.OutInitSession
+import com.avp.wow.network.ktor.game.factories.GameClientInputPacketFactory
+import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
+import com.avp.wow.network.ncrypt.KeyGen
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
 import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
 import java.nio.ByteBuffer
+import javax.crypto.SecretKey
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
-class GameServerConnection(
+class GameClientConnection(
     socket: Socket,
     nio: BaseNioService,
     context: CoroutineContext
@@ -29,20 +33,40 @@ class GameServerConnection(
      * Returns unique sessionId of this connection.
      * @return SessionId
      */
-    var sessionId = 0
+    var sessionId = hashCode()
     var publicRsa: ByteArray? = null
 
     /**
      * Server Packet "to send" Queue
      */
-    private val sendMsgQueue = FastList<GameServerOutputPacket>()
+    private val sendMsgQueue = FastList<GameClientOutputPacket>()
 
     /**
      * Crypt to encrypt/decrypt packets
      */
     private val cryptEngine by lazy { WowCryptEngine() }
 
-    private val inputPacketHandler = GameServerInputPacketFactory.packetHandler
+    /**
+     * Scrambled key pair for RSA
+     */
+    private var encryptedRSAKeyPair: EncryptedRSAKeyPair? = null
+    /**
+     * Return Scrambled modulus
+     * @return Scrambled modulus
+     */
+    val encryptedModulus
+        get() = encryptedRSAKeyPair?.rsaKeyPair?.public?.encoded
+            ?: throw IllegalArgumentException("RSA key was not initialized properly")
+
+    /**
+     * Return RSA private key
+     * @return rsa private key
+     */
+    val rsaPrivateKey
+        get() = encryptedRSAKeyPair?.rsaKeyPair?.private
+            ?: throw IllegalArgumentException("RSA key was not initialized properly")
+
+    private val inputPacketHandler = GameClientInputPacketFactory.packetHandler
 
     override fun close(forced: Boolean) {
         TODO("Not yet implemented")
@@ -70,7 +94,8 @@ class GameServerConnection(
         cryptEngine.encrypt(data = buf)
     }
 
-    fun sendPacket(packet: GameServerOutputPacket) {
+    fun sendPacket(packet: GameClientOutputPacket) {
+        log.debug { "Sending $packet" }
         synchronized(guard) {
             /**
              * Connection is already closed or waiting for last (close packet) to be sent
@@ -85,7 +110,7 @@ class GameServerConnection(
     override fun processData(data: ByteBuffer): Boolean {
         try {
             if (!cryptEngine.decrypt(data)) {
-                log.debug { "Decrypt fail, server packet passed..." }
+                log.debug { "Decrypt fail, client packet passed..." }
                 return true
             }
         } catch (e: Exception) {
@@ -134,8 +159,11 @@ class GameServerConnection(
     }
 
     override fun initialized() {
-        log.debug { "Connected to game server: [$ip]." }
+        log.debug { "Accepted client from: [$ip]." }
         state = State.CONNECTED
+        encryptedRSAKeyPair = KeyGen.encryptedRSAKeyPair
+        val blowfishKey: SecretKey = KeyGen.generateBlowfishKey()
+        sendPacket(OutInitSession(client = this, blowfishKey = blowfishKey))
     }
 
     override val disconnectionDelay: Long
@@ -150,7 +178,7 @@ class GameServerConnection(
     }
 
     override fun enableEncryption(blowfishKey: ByteArray) {
-        TODO("Not yet implemented")
+        cryptEngine.updateKey(blowfishKey)
     }
 
     companion object {
@@ -169,12 +197,10 @@ class GameServerConnection(
              * client just connect
              */
             CONNECTED,
-
             /**
              * client is authenticated
              */
             AUTHED,
-
             /**
              * client entered world.
              */

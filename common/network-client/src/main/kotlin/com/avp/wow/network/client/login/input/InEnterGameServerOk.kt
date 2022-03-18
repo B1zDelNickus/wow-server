@@ -1,12 +1,10 @@
 package com.avp.wow.network.client.login.input
 
-import com.avp.wow.network.KtorConnectionConfig
-import com.avp.wow.network.client.KtorNioClient
+import com.avp.wow.network.KtxConnectionConfig
+import com.avp.wow.network.client.KtxNioClient
 import com.avp.wow.network.client.game.GameServerConnectionFactory
 import com.avp.wow.network.client.login.LoginServerConnection
-import com.avp.wow.network.client.login.LoginServerConnection.Companion.State.AUTHED_GG
 import com.avp.wow.network.client.login.LoginServerInputPacket
-import com.avp.wow.network.client.login.output.OutGameServersList
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
 
@@ -42,8 +40,8 @@ class InEnterGameServerOk(
 
             log.debug { "Connect to Game Server on host: $serverHostIp:$serverHostPort." }
 
-            (con.nio as KtorNioClient).connectGameServer(
-                gameServerConfig = KtorConnectionConfig(
+            (con.nio as KtxNioClient).connectGameServer(
+                gameServerConfig = KtxConnectionConfig(
                     hostName = serverHostIp,
                     port = serverHostPort,
                     connectionName = "[${con}] GS Connection",
