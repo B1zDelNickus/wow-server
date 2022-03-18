@@ -65,7 +65,6 @@ abstract class Dispatcher(
     /**
      * Add connection to pendingClose list, so this connection will be closed by this `Dispatcher` as soon as possible.
      * @param con
-     * @see com.aionemu.commons.network.Dispatcher.closeConnection
      */
     abstract fun closeConnection(con: KtxConnection)
 

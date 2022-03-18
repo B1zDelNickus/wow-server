@@ -6,6 +6,9 @@ import java.net.InetSocketAddress
 import java.nio.channels.SelectionKey
 import java.nio.channels.ServerSocketChannel
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 class KtxNioServer(
     private val serverConfigs: List<KtxConnectionConfig> = emptyList(),
@@ -38,7 +41,7 @@ class KtxNioServer(
     @Throws(Error::class)
     override fun start() {
 
-        //scope.launch {
+        scope.launch {
 
             log.info { "Starting NIO server..." }
 
@@ -46,8 +49,15 @@ class KtxNioServer(
 
                 initDispatchers()
 
-                val serverChannel = ServerSocketChannel.open()
-                    .apply { configureBlocking(false) }
+                val serverChannel = suspendCancellableCoroutine<ServerSocketChannel> { cont ->
+                    try {
+                        cont.resume(
+                            ServerSocketChannel.open().apply { configureBlocking(false) }
+                        )
+                    } catch (e: Throwable) {
+                        if (!cont.isCompleted) cont.resumeWithException(e)
+                    }
+                }
 
                 serverConfigs.forEach { cfg ->
 
@@ -82,7 +92,7 @@ class KtxNioServer(
             isUp = true
 
             log.info { "NIO server was started successfully." }
-        //}
+        }
 
     }
 
@@ -148,7 +158,7 @@ class KtxNioServer(
     /**
      * Calls onServerClose method for all active connections.
      */
-    override fun notifyServerClose() {
+    override fun notifyClose() {
         if (readWriteDispatchers != null) {
             for (d in readWriteDispatchers!!) {
                 for (key in d.selector.keys()) {
@@ -177,6 +187,14 @@ class KtxNioServer(
                 (key.attachment() as? KtxConnection)?.close(true)
             }
         }
+    }
+
+    override fun closeConnection(connection: BaseConnection) {
+        TODO("Not yet implemented")
+    }
+
+    override fun removeConnection(connection: BaseConnection) {
+        TODO("Not yet implemented")
     }
 
 }

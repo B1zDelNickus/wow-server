@@ -25,11 +25,6 @@ class LoginClientConnection(
 ) {
 
     /**
-     * Time based hash to provide uniqueness to hashCode
-     */
-    private val hash = Generators.timeBasedGenerator().generate().toString()
-
-    /**
      * PacketProcessor for executing packets.
      */
     private val processor by lazy {
@@ -121,6 +116,14 @@ class LoginClientConnection(
             packet.write(this, data)
             return true
         }
+    }
+
+    override suspend fun write() {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun read() {
+        TODO("Not yet implemented")
     }
 
     /**

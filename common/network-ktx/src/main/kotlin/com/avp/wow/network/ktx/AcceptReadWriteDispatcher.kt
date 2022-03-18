@@ -51,7 +51,6 @@ class AcceptReadWriteDispatcher(
 
     /**
      * Add connection to pendingClose list, so this connection will be closed by this `Dispatcher` as soon as possible.
-     * @see com.aionemu.commons.network.Dispatcher.closeConnection
      */
     override fun closeConnection(con: KtxConnection) {
         synchronized(pendingClose) { pendingClose.add(con) }
