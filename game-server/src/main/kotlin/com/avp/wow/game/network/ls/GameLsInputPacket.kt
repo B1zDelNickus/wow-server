@@ -10,10 +10,6 @@ abstract class GameLsInputPacket(
     private var states: List<State>
 ) : BaseInputPacket<GameLsConnection>(opCode = opCode), Cloneable {
 
-    /*init {
-        connection = client
-    }*/
-
     override suspend fun run() {
         try {
             if (isValid())
@@ -24,7 +20,7 @@ abstract class GameLsInputPacket(
     }
 
     /**
-     * Send new AionServerPacket to connection that is owner of this packet. This method is equvalent to: getConnection().sendPacket(msg);
+     * Send new GameLsOutputPacket to connection that is owner of this packet. This method is equivalent to: getConnection().sendPacket(msg);
      * @param msg
      */
     protected open fun sendPacket(msg: GameLsOutputPacket) {

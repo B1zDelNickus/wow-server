@@ -44,7 +44,6 @@ class GameClientConnection(
      * @return SessionId
      */
     var sessionId = hashCode()
-    var publicRsa: ByteArray? = null
     var account: Account? = null
 
     private val processor by lazy {
@@ -77,14 +76,6 @@ class GameClientConnection(
      */
     val encryptedModulus
         get() = encryptedRSAKeyPair?.rsaKeyPair?.public?.encoded
-            ?: throw IllegalArgumentException("RSA key was not initialized properly")
-
-    /**
-     * Return RSA private key
-     * @return rsa private key
-     */
-    val rsaPrivateKey
-        get() = encryptedRSAKeyPair?.rsaKeyPair?.private
             ?: throw IllegalArgumentException("RSA key was not initialized properly")
 
     private val inputPacketHandler by lazy { GameClientInputPacketFactory.packetHandler }

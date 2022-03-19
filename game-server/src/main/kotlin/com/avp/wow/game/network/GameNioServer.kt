@@ -170,7 +170,7 @@ class GameNioServer(
 
     }
 
-    fun startClientListener() {
+    private fun startClientListener() {
 
         scope.launch {
 
@@ -191,7 +191,7 @@ class GameNioServer(
                 .tcp()
                 .bind(isa)
 
-            while (!pendingShutdown) { // TODO replace with syncronized guard
+            while (!pendingShutdown) { // TODO replace with synchronized guard
 
                 try {
 

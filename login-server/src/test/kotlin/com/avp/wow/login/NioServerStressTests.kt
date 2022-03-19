@@ -96,7 +96,7 @@ class NioServerStressTests : StringSpec({
             if (ind % 100 == 0)
                 delay(3_000)*/
 
-            async {
+            this.async {
 
                 println("Starting client #$ind")
 
