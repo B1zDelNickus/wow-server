@@ -14,7 +14,7 @@ abstract class BaseInputPacketHandler<Connection: BaseConnection<*>, InputPacket
     protected val log = KotlinLogging.logger(this::class.java.name)
 
     private val idSet = mutableSetOf<Int>()
-    protected val packetsPrototypes: MutableMap<Int, InputPacket> = HashMap()
+    private val packetsPrototypes: MutableMap<Int, InputPacket> = HashMap()
 
     /**
      * Reads one packet from given ByteBuffer
@@ -56,7 +56,7 @@ abstract class BaseInputPacketHandler<Connection: BaseConnection<*>, InputPacket
         packetsPrototypes.clear()
     }
 
-    open protected fun getPacket(
+    protected open fun getPacket(
         state: BaseState,
         id: Int,
         buf: ByteBuffer,
@@ -94,11 +94,11 @@ abstract class BaseInputPacketHandler<Connection: BaseConnection<*>, InputPacket
      * @param id
      * @param data
      */
-    fun unknownPacket(state: BaseState, id: Int, data: ByteBuffer) {
+    private fun unknownPacket(state: BaseState, id: Int, data: ByteBuffer) {
         //if (NetworkConfig.DISPLAY_UNKNOWNPACKETS) { TODO add this option
         log.warn {
             String.format(
-                "Unknown packet recived from Aion client: 0x%04X, state=%s %n%s",
+                "Unknown packet received from WOW client: 0x%04X, state=%s %n%s",
                 id,
                 state.toString(),
                 Util.toHex(data)

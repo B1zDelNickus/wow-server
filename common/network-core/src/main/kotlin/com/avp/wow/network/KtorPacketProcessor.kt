@@ -174,12 +174,12 @@ class KtorPacketProcessor<T: KtorConnection<*>>(
             /* Number of packets waiting for execution */
             val packetsToExecute: Int = packets.size
             if (packetsToExecute < lastSize && packetsToExecute < threadKillThreshold) {
-                // too much threads
+                // too many threads
                 killThread()
             } else if (packetsToExecute > lastSize && packetsToExecute > threadSpawnThreshold) {
                 // too small amount of threads
                 if (!newJob() && packetsToExecute >= threadSpawnThreshold * 3) {
-                    log.info("Lagg detected! [$packetsToExecute client packets are waiting for execution]. You should consider increasing PacketProcessor maxThreads or hardware upgrade.")
+                    log.info("Lag detected! [$packetsToExecute client packets are waiting for execution]. You should consider increasing PacketProcessor maxThreads or hardware upgrade.")
                 }
             }
             lastSize = packetsToExecute

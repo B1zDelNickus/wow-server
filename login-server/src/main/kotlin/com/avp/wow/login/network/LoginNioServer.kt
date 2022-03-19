@@ -4,10 +4,9 @@ import com.avp.wow.network.BaseConnection
 import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorConnectionConfig
-import io.ktor.network.selector.ActorSelectorManager
-import io.ktor.network.sockets.ServerSocket
-import io.ktor.network.sockets.aSocket
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.network.selector.*
+import io.ktor.network.sockets.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.net.InetSocketAddress
 import java.util.concurrent.CopyOnWriteArrayList
@@ -75,7 +74,7 @@ class LoginNioServer(
                      */
                     launch {
 
-                        while (true) { // TODO replace with syncronized guard
+                        while (true) { // TODO replace with synchronized guard
 
                             /**
                              * Accept socket connection from clients
@@ -150,76 +149,74 @@ class LoginNioServer(
 
     override fun closeChannels() = Unit
 
-    /*override fun shutdown() {
-
-        log.info { "Stopping NIO server..." }
-
-        */
-    /**
-     * Sending DC packets for active clients
-     *//*
-        log.info { "Sending DC packets to clients and close connections..." }
-        notifyServerClose()
-
-        */
-    /**
-     * Wait 1s for coroutines to execute close operations
-     *//*
-        try {
-            Thread.sleep(1000)
-        } catch (t: Throwable) {
-            log.warn(t) { "Nio thread was interrupted during shutdown" }
-        }
-
-        log.info { "Active connections: $getActiveConnections" }
-
-        */
-    /**
-     * DC all
-     *//*
-        log.info { "Forced Disconnecting all connections..." }
-        closeAll()
-
-        */
-    /**
-     * Wait 1s for coroutines to execute close operations
-     *//*
-        try {
-            Thread.sleep(1000)
-        } catch (t: Throwable) {
-            log.warn(t) { "Nio thread was interrupted during shutdown" }
-        }
-
-        log.info { "Active connections: $getActiveConnections" }
-
-        servers.forEach { srv ->
-            srv.close()
-            srv.dispose()
-        }
-        servers.clear()
-
-        connections.forEach { conn ->
-            conn.socket.close()
-            conn.socket.dispose()
-        }
-        connections.clear()
-
-        processPendingClosing = false
-
-        */
-    /**
-     * Wait 1s for coroutines to execute close operations
-     *//*
-        try {
-            Thread.sleep(1000)
-        } catch (t: Throwable) {
-            log.warn(t) { "Nio thread was interrupted during shutdown" }
-        }
-
-        log.info { "NIO server has been stopped." }
-
-        localScope.cancel()
-    }*/
+//    override fun shutdown() {
+//
+//        log.info { "Stopping NIO server..." }
+//
+//        /**
+//         * Sending DC packets for active clients
+//         */
+//        log.info { "Sending DC packets to clients and close connections..." }
+//        notifyServerClose()
+//
+//        /**
+//         * Wait 1s for coroutines to execute close operations
+//         */
+//        try {
+//            Thread.sleep(1000)
+//        } catch (t: Throwable) {
+//            log.warn(t) { "Nio thread was interrupted during shutdown" }
+//        }
+//
+//        log.info { "Active connections: $getActiveConnections" }
+//
+//
+//        /**
+//         * DC all
+//         */
+//        log.info { "Forced Disconnecting all connections..." }
+//        closeAll()
+//
+//
+//        /**
+//         * Wait 1s for coroutines to execute close operations
+//         */
+//        try {
+//            Thread.sleep(1000)
+//        } catch (t: Throwable) {
+//            log.warn(t) { "Nio thread was interrupted during shutdown" }
+//        }
+//
+//        log.info { "Active connections: $getActiveConnections" }
+//
+//        servers.forEach { srv ->
+//            srv.close()
+//            srv.dispose()
+//        }
+//        servers.clear()
+//
+//        connections.forEach { conn ->
+//            conn.socket.close()
+//            conn.socket.dispose()
+//        }
+//        connections.clear()
+//
+//        processPendingClosing = false
+//
+//
+//        /**
+//         * Wait 1s for coroutines to execute close operations
+//         */
+//        try {
+//            Thread.sleep(1000)
+//        } catch (t: Throwable) {
+//            log.warn(t) { "Nio thread was interrupted during shutdown" }
+//        }
+//
+//        log.info { "NIO server has been stopped." }
+//
+//        localScope.cancel()
+//    }
 
     /**
      * Calls onServerClose method for all active connections.

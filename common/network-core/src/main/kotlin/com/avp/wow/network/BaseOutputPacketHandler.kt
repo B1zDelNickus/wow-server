@@ -46,7 +46,7 @@ class BaseOutputPacketHandler<OutputPacket: BaseOutputPacket> {
         }
     }
 
-    fun unknownPacket(id: Int) {
+    private fun unknownPacket(id: Int) {
         //if (NetworkConfig.DISPLAY_UNKNOWNPACKETS) { TODO add this option
         log.warn { String.format("Unknown packet requested: 0x%04X", id) }
         //}

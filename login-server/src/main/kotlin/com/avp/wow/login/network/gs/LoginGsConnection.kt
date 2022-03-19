@@ -77,14 +77,6 @@ class LoginGsConnection(
             ?: throw IllegalArgumentException("RSA key was not initialized properly")
 
     /**
-     * Return RSA private key
-     * @return rsa private key
-     */
-    val rsaPrivateKey
-        get() = encryptedRSAKeyPair?.rsaKeyPair?.private
-            ?: throw IllegalArgumentException("RSA key was not initialized properly")
-
-    /**
      * Crypt to encrypt/decrypt packets
      */
     private val cryptEngine by lazy { WowCryptEngine() }

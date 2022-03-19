@@ -14,9 +14,8 @@ import com.avp.wow.network.BaseState
 import com.avp.wow.network.KtorConnection
 import com.avp.wow.network.KtorPacketProcessor
 import com.avp.wow.network.ncrypt.WowCryptEngine
-import io.ktor.network.sockets.Socket
-import io.ktor.network.sockets.isClosed
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.network.sockets.*
+import io.ktor.util.*
 import javolution.util.FastList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -246,10 +245,7 @@ class GameLsConnection(
             REGISTERED;
 
             companion object {
-
-                val DEFAULT =
-                    NONE
-
+                val DEFAULT = NONE
             }
 
         }

@@ -5,7 +5,7 @@ import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel
 
 abstract class KtxConnection<State: BaseState>(
-    val socketChannel: SocketChannel,
+    private val socketChannel: SocketChannel,
     val dispatcher: Dispatcher,
     readBufferSize: Int,
     writeBufferSize: Int

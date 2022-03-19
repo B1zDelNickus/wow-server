@@ -114,8 +114,8 @@ class LoginClientConnection(
     }
 
     /**
-     * Sends AionServerPacket to this client.
-     * @param packet AionServerPacket to be sent.
+     * Sends LoginClientOutputPacket to this client.
+     * @param packet LoginClientOutputPacket to be sent.
      */
     fun sendPacket(packet: LoginClientOutputPacket) {
         synchronized(guard) {
@@ -278,10 +278,7 @@ class LoginClientConnection(
             AUTHED_LOGIN;
 
             companion object {
-
-                val DEFAULT =
-                    NONE
-
+                val DEFAULT = NONE
             }
 
         }

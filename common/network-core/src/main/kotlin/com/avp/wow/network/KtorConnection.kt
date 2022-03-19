@@ -132,7 +132,7 @@ abstract class KtorConnection<State : BaseState>(
         }
 
         /**
-         * We wrote all data so we can close connection that is "PandingClose"
+         * We wrote all data, so we can close connection that is "PendingClose"
          */
         if (isPendingClose) {
             closeConnectionImpl()
@@ -185,7 +185,6 @@ abstract class KtorConnection<State : BaseState>(
 
     /**
      * Parse data from buffer and prepare buffer for reading just one packet - call processData(ByteBuffer b).
-     * @param con Connection
      * @param buf Buffer with packet data
      * @return True if packet was parsed.
      */

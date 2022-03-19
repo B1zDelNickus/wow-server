@@ -10,10 +10,6 @@ abstract class LoginGsInputPacket(
     private var states: List<State>
 ) : BaseInputPacket<LoginGsConnection>(opCode = opCode), Cloneable {
 
-    /*init {
-        connection = client
-    }*/
-
     override suspend fun run() {
         try {
             if (isValid())
@@ -24,7 +20,7 @@ abstract class LoginGsInputPacket(
     }
 
     /**
-     * Send new AionServerPacket to connection that is owner of this packet. This method is equvalent to: getConnection().sendPacket(msg);
+     * Send new LoginGsOutputPacket to connection that is owner of this packet. This method is equivalent to: getConnection().sendPacket(msg);
      * @param msg
      */
     protected open fun sendPacket(msg: LoginGsOutputPacket) {

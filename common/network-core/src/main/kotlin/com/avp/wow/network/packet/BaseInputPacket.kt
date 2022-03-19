@@ -26,7 +26,7 @@ abstract class BaseInputPacket<T : BaseConnection<*>> : BasePacket, KtxRunnable 
         return try {
             readImpl()
             if (remainingBytes > 0) {
-                log.debug("Packet $this not fully readed!")
+                log.debug("Packet $this not fully read!")
             }
             true
         } catch (re: Exception) {
