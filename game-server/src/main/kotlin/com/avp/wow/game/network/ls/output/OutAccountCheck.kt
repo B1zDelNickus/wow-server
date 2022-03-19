@@ -2,9 +2,7 @@ package com.avp.wow.game.network.ls.output
 
 import com.avp.wow.game.network.ls.GameLsConnection
 import com.avp.wow.game.network.ls.GameLsOutputPacket
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 class OutAccountCheck(
     private val accountId: Long,
     private val loginOk: Int,

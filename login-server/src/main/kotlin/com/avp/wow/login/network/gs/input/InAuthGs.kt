@@ -5,9 +5,7 @@ import com.avp.wow.login.network.gs.LoginGsConnection.Companion.State
 import com.avp.wow.login.network.gs.LoginGsInputPacket
 import com.avp.wow.login.network.gs.output.OutAuthGsFail
 import com.avp.wow.login.network.gs.output.OutAuthGsOk
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 class InAuthGs(vararg states: State) : LoginGsInputPacket(OP_CODE, states.toList()) {
 
     private var sessionId = 0

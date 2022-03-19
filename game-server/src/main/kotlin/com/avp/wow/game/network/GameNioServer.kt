@@ -8,13 +8,11 @@ import com.avp.wow.network.BaseNioService
 import com.avp.wow.network.KtorConnectionConfig
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.aSocket
-import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.*
 import java.net.InetSocketAddress
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.CoroutineContext
 
-@KtorExperimentalAPI
 class GameNioServer(
     private val gameLsConfig: KtorConnectionConfig,
     private val gameClientConfig: KtorConnectionConfig,

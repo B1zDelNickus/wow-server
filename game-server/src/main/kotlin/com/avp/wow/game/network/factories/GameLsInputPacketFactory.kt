@@ -7,9 +7,7 @@ import com.avp.wow.game.network.ls.input.InAccountCheckResponse
 import com.avp.wow.game.network.ls.input.InAuthGsOk
 import com.avp.wow.game.network.ls.input.InInitSession
 import com.avp.wow.game.network.ls.input.InRegisterGsOk
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 object GameLsInputPacketFactory {
 
     val packetHandler = GameLsInputPacketHandler()

@@ -6,10 +6,9 @@ import com.avp.wow.game.network.client.GameClientInputPacket
 import com.avp.wow.game.network.client.output.OutAuthClientFail
 import com.avp.wow.game.network.factories.GameClientOutputPacketFactory.packetHandler
 import com.avp.wow.game.network.ls.GameLsConnection.Companion.State
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
-class InClientLoginCheck(vararg states: GameClientConnection.Companion.State) : GameClientInputPacket(OP_CODE, states.toList()) {
+class InClientLoginCheck(vararg states: GameClientConnection.Companion.State) :
+    GameClientInputPacket(OP_CODE, states.toList()) {
 
     private var sessionId = 0
     private var accountId = 0L

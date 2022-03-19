@@ -1,8 +1,5 @@
 package com.avp.wow.network
 
-import io.ktor.util.KtorExperimentalAPI
-
-@KtorExperimentalAPI
 data class KtorConnectionConfig(
     override val hostName: String,
     override val port: Int,

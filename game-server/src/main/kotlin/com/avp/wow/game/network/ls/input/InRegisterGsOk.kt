@@ -2,9 +2,7 @@ package com.avp.wow.game.network.ls.input
 
 import com.avp.wow.game.network.ls.GameLsConnection.Companion.State
 import com.avp.wow.game.network.ls.GameLsInputPacket
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 class InRegisterGsOk(
     vararg states: State
 ) : GameLsInputPacket(opCode = OP_CODE, states = states.toList()) {

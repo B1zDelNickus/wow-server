@@ -3,10 +3,8 @@ package com.avp.wow.login.network.gs.output
 import com.avp.wow.login.network.gs.LoginGsConnection
 import com.avp.wow.login.network.gs.LoginGsOutputPacket
 import com.avp.wow.network.BaseConnection
-import io.ktor.util.KtorExperimentalAPI
 import javax.crypto.SecretKey
 
-@KtorExperimentalAPI
 class OutInitSession(
     private val sessionId: Int,
     private val publicRsaKey: ByteArray,

@@ -3,9 +3,7 @@ package com.avp.wow.login.network.client.output
 import com.avp.wow.login.network.client.LoginClientConnection
 import com.avp.wow.login.network.client.LoginClientOutputPacket
 import com.avp.wow.model.gs.GameServer
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 class OutEnterGameServerOk(
     private val server: GameServer
 ) : LoginClientOutputPacket() {

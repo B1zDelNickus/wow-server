@@ -1,7 +1,7 @@
-val ktor_version: String by project
-val koin_version: String by project
-val logback_version: String by project
-val mu_logging_version: String by project
+val ktorVersion: String by project
+val koinVersion: String by project
+val logbackVersion: String by project
+val muLoggingVersion: String by project
 
 plugins {
     application
@@ -26,14 +26,14 @@ dependencies {
 
     implementation(project(":login-server"))
 
-    implementation("io.ktor:ktor-server-core:$ktor_version")
-    implementation("io.ktor:ktor-server-netty:$ktor_version")
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
 
-    implementation("org.koin:koin-ktor:$koin_version")
-    implementation("org.koin:koin-logger-slf4j:$koin_version")
-    implementation("org.koin:koin-ktor:$koin_version")
+    implementation("org.koin:koin-ktor:$koinVersion")
+    implementation("org.koin:koin-logger-slf4j:$koinVersion")
+    implementation("org.koin:koin-ktor:$koinVersion")
 
-    implementation("ch.qos.logback:logback-classic:$logback_version")
-    implementation("io.github.microutils:kotlin-logging:$mu_logging_version")
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+    implementation("io.github.microutils:kotlin-logging:$muLoggingVersion")
 
 }

@@ -2,9 +2,7 @@ package com.avp.wow.login.network.gs
 
 import com.avp.wow.login.network.gs.LoginGsConnection.Companion.State
 import com.avp.wow.network.packet.BaseInputPacket
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 abstract class LoginGsInputPacket(
     opCode: Int,
     private var states: List<State>

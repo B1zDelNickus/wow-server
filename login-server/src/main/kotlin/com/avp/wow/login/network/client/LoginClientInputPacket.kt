@@ -2,9 +2,7 @@ package com.avp.wow.login.network.client
 
 import com.avp.wow.login.network.client.LoginClientConnection.Companion.State
 import com.avp.wow.network.packet.BaseInputPacket
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 abstract class LoginClientInputPacket(
     opCode: Int,
     private var states: List<State>

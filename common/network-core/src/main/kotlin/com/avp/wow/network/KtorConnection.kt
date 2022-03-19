@@ -7,7 +7,6 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 
-@KtorExperimentalAPI
 abstract class KtorConnection<State : BaseState>(
     val socket: Socket,
     val nio: BaseNioService,

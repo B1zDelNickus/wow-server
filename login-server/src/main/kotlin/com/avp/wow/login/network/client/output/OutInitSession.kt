@@ -3,10 +3,8 @@ package com.avp.wow.login.network.client.output
 import com.avp.wow.login.network.client.LoginClientConnection
 import com.avp.wow.login.network.client.LoginClientOutputPacket
 import com.avp.wow.network.BaseConnection
-import io.ktor.util.KtorExperimentalAPI
 import javax.crypto.SecretKey
 
-@KtorExperimentalAPI
 class OutInitSession(
     client: LoginClientConnection,
     blowfishKey: SecretKey
