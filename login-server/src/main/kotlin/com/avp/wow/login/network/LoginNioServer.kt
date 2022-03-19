@@ -8,6 +8,7 @@ import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import mu.KotlinLogging
 import java.net.InetSocketAddress
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.CoroutineContext
@@ -17,6 +18,8 @@ class LoginNioServer(
     private val serverConfigs: List<KtorConnectionConfig> = emptyList(),
     context: CoroutineContext = Dispatchers.IO
 ) : BaseNioService() {
+
+    override val log = KotlinLogging.logger(this::class.java.name)
 
     override val scope by lazy { CoroutineScope(SupervisorJob() + context) }
 
@@ -29,6 +32,8 @@ class LoginNioServer(
     private val pendingClose = CopyOnWriteArrayList<BaseConnection<*>>()
 
     private var processPendingClosing = false
+
+    private var listenerJob: Job? = null
 
     /**
      * Open connections to configured servers
@@ -46,7 +51,7 @@ class LoginNioServer(
             /**
              * Main connect coroutine
              */
-            scope.launch {
+            listenerJob = scope.launch {
 
                 /**
                  * Bind the server socket to the specified address and port
@@ -147,76 +152,10 @@ class LoginNioServer(
         }
     }
 
-    override fun closeChannels() = Unit
-
-//    override fun shutdown() {
-//
-//        log.info { "Stopping NIO server..." }
-//
-//        /**
-//         * Sending DC packets for active clients
-//         */
-//        log.info { "Sending DC packets to clients and close connections..." }
-//        notifyServerClose()
-//
-//        /**
-//         * Wait 1s for coroutines to execute close operations
-//         */
-//        try {
-//            Thread.sleep(1000)
-//        } catch (t: Throwable) {
-//            log.warn(t) { "Nio thread was interrupted during shutdown" }
-//        }
-//
-//        log.info { "Active connections: $getActiveConnections" }
-//
-//
-//        /**
-//         * DC all
-//         */
-//        log.info { "Forced Disconnecting all connections..." }
-//        closeAll()
-//
-//
-//        /**
-//         * Wait 1s for coroutines to execute close operations
-//         */
-//        try {
-//            Thread.sleep(1000)
-//        } catch (t: Throwable) {
-//            log.warn(t) { "Nio thread was interrupted during shutdown" }
-//        }
-//
-//        log.info { "Active connections: $getActiveConnections" }
-//
-//        servers.forEach { srv ->
-//            srv.close()
-//            srv.dispose()
-//        }
-//        servers.clear()
-//
-//        connections.forEach { conn ->
-//            conn.socket.close()
-//            conn.socket.dispose()
-//        }
-//        connections.clear()
-//
-//        processPendingClosing = false
-//
-//
-//        /**
-//         * Wait 1s for coroutines to execute close operations
-//         */
-//        try {
-//            Thread.sleep(1000)
-//        } catch (t: Throwable) {
-//            log.warn(t) { "Nio thread was interrupted during shutdown" }
-//        }
-//
-//        log.info { "NIO server has been stopped." }
-//
-//        localScope.cancel()
-//    }
+    override fun closeChannels() {
+        listenerJob?.cancel()
+        listenerJob = null
+    }
 
     /**
      * Calls onServerClose method for all active connections.

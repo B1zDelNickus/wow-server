@@ -13,9 +13,10 @@ import io.kotlintest.specs.StringSpec
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import mu.KotlinLogging
 
 @KtorExperimentalAPI
-class LsGsCorrectShutdown : StringSpec({
+class LsGsCorrectShutdownTests : StringSpec({
 
     KeyGen.init()
 
@@ -47,6 +48,8 @@ class LsGsCorrectShutdown : StringSpec({
 
         delay(1_000)
 
+        log.info { "Active connections on Ls: ${loginServer.activeConnectionsCount}" }
+
         val gameServerClientConfig = KtorConnectionConfig(
             hostName = "*",
             port = 2323,
@@ -70,9 +73,13 @@ class LsGsCorrectShutdown : StringSpec({
 
         delay(3_000)
 
+        log.info { "Active connections on Ls: ${loginServer.activeConnectionsCount}" }
+
         loginServer.shutdown()
 
         delay(15_000)
+
+        log.info { "Active connections on Ls: ${loginServer.activeConnectionsCount}" }
 
     }
 
@@ -133,4 +140,10 @@ class LsGsCorrectShutdown : StringSpec({
 
     }
 
-})
+}) {
+
+    companion object {
+        private val log = KotlinLogging.logger("com.avp.test-logger")
+    }
+
+}

@@ -197,7 +197,7 @@ class GameClientConnection(
         // TODO stop ping checker
         log.info { "Disconnecting $account from GS." }
         account?.let { acc ->
-            // send diconnect packets to loginserver
+            // send disconnect packets to login-server
         }
         // same for active player
     }
