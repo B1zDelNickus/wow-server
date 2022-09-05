@@ -37,21 +37,25 @@ class InEnterGameServerOk(vararg states: State) : LoginServerInputPacket(OP_CODE
 
                     log.debug { "Connect to Game Server on host: $serverHostIp:$serverHostPort." }
 
-                    (con.nio as KtorNioClient).sessionKey = SessionKey(
-                        accountId = con.accountId,
-                        loginOk = con.loginOk,
-                        playOk1 = playOk1,
-                        playOk2 = playOk2
-                    )
+                    (con.nio as KtorNioClient)
+                        .apply {
 
-                    con.nio.connectGameServer(
-                        gameServerConfig = KtorConnectionConfig(
-                            hostName = serverHostIp,
-                            port = serverHostPort,
-                            connectionName = "[${con}] GS Connection",
-                            factory = GameServerConnectionFactory()
-                        )
-                    )
+                            sessionKey = SessionKey(
+                                accountId = con.accountId,
+                                loginOk = con.loginOk,
+                                playOk1 = playOk1,
+                                playOk2 = playOk2
+                            )
+
+                            connectGameServer(
+                                gameServerConfig = KtorConnectionConfig(
+                                    hostName = serverHostIp,
+                                    port = serverHostPort,
+                                    connectionName = "[${con}] GS Connection",
+                                    factory = GameServerConnectionFactory()
+                                )
+                            )
+                        }
                 }
                 else -> {
                     log.error { "Session doesn't matches: ${con.sessionId} != $sessionId" }

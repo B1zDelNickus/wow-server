@@ -47,12 +47,12 @@ class SimpleTcpClient(
         }
     }*/
 
-    suspend fun connect() {
+    /*suspend fun connect() {
         client = aSocket(ActorSelectorManager(scope.coroutineContext)).tcp().connect(InetSocketAddress(host, port))
         initiated = true
-    }
+    }*/
 
-    suspend fun send(msg: Any) {
+    /*suspend fun send(msg: Any) {
         if (!initiated) throw IllegalStateException("Client not connected to server")
         when (msg) {
             is String -> scope.launch { output.write("$msg\r\n") }
@@ -60,7 +60,7 @@ class SimpleTcpClient(
 
             }
         }
-    }
+    }*/
 
     suspend fun <T> sendPkt(msg: T) {
         if (!initiated) throw IllegalStateException("Client not connected to server")

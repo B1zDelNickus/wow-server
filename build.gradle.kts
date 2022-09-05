@@ -19,6 +19,7 @@ val apacheServerVersion: String by project
 plugins {
     base
     kotlin("jvm") version "1.7.10"
+    `maven-publish`
 }
 
 allprojects {
@@ -80,7 +81,7 @@ allprojects {
         testLogging {
             events = setOf(TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.SKIPPED)
         }
-        maxHeapSize = "512m"
+        maxHeapSize = "2g"
     }
 
 }
