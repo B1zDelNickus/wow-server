@@ -38,7 +38,7 @@ class GameNioServer(
         get() = connections.size + listOfNotNull(loginServerConnection).size
 
     var clientPort = 0
-    var connectedToLs = false
+    private var connectedToLs = false
 
     override fun start() {
 

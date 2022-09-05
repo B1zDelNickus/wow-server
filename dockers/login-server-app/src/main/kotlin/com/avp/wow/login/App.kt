@@ -1,6 +1,6 @@
 package com.avp.wow.login
 
-import io.ktor.application.Application
+import io.ktor.server.application.Application
 import mu.KotlinLogging
 import java.time.Duration
 import java.time.Instant

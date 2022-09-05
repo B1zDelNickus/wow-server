@@ -25,9 +25,11 @@ class PostgresBuilderTests : BaseJdbcTest({
 
         builder.tx {
             SchemaUtils.create(Test)
+            //commit()
             Test.insert {
                 it[name] = "Andrei"
             }
+            //rollback()
             Test.selectAll()
                 .map { Test.toModel(it) }
                 .single()
@@ -36,6 +38,38 @@ class PostgresBuilderTests : BaseJdbcTest({
                     id shouldNotBe null
                 }
         }
+
+    }
+
+    "f:fool around" {
+
+        class Fun(var name: String = "", block: Fun.() -> Unit = {}) {
+            init {
+                block()
+            }
+        }
+
+        class MoreFun(var name: String = "") {
+            operator fun invoke(newName: String? = null, block: MoreFun.() -> Unit) {
+                block()
+            }
+        }
+
+        val f = Fun {
+            name = "Andrei"
+        }
+
+        println(f.name)
+
+        val mf = MoreFun()
+
+        mf(newName = "Bill") {
+            name = "Andrei again"
+        }
+
+        println(mf.name)
+
+        val (a, b) = "1" to "2"
 
     }
 

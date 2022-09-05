@@ -26,14 +26,19 @@ dependencies {
 
     implementation(project(":login-server"))
 
-    implementation("io.ktor:ktor-server-core:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-
     implementation("org.koin:koin-ktor:$koinVersion")
     implementation("org.koin:koin-logger-slf4j:$koinVersion")
     implementation("org.koin:koin-ktor:$koinVersion")
 
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("io.github.microutils:kotlin-logging:$muLoggingVersion")
+    implementation("io.ktor:ktor-server-core-jvm:2.0.0-eap-256")
+    implementation("io.ktor:ktor-server-netty-jvm:2.0.0-eap-256")
 
+}
+repositories {
+    maven {
+        url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
+        name = "ktor-eap"
+    }
 }
