@@ -2,9 +2,7 @@ package com.avp.wow.game.network.ls
 
 import com.avp.wow.game.network.ls.GameLsConnection.Companion.State
 import com.avp.wow.network.packet.BaseInputPacket
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 abstract class GameLsInputPacket(
     opCode: Int,
     private var states: List<State>

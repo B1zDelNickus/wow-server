@@ -23,7 +23,6 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 
-@KtorExperimentalAPI
 class GameLsConnection(
     socket: Socket,
     nio: BaseNioService,

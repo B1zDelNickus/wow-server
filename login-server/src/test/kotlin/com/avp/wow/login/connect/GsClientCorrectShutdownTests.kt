@@ -9,7 +9,6 @@ import com.avp.wow.login.network.gs.LoginGsConnectionFactory
 import com.avp.wow.network.KtorConnectionConfig
 import com.avp.wow.network.NetworkConstants
 import com.avp.wow.network.client.KtorNioClient
-import com.avp.wow.network.client.game.output.activity.OutActivity1
 import com.avp.wow.network.client.login.LoginServerConnectionFactory
 import com.avp.wow.network.ncrypt.KeyGen
 import io.kotlintest.specs.StringSpec
@@ -18,7 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 
 @KtorExperimentalAPI
-class GsClientCorrectShutdown : StringSpec({
+class GsClientCorrectShutdownTests : StringSpec({
 
     KeyGen.init()
 

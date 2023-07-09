@@ -1,6 +1,5 @@
 package com.avp.wow.login.network.gs.input
 
-import com.avp.wow.login.network.factories.LoginGsOutputPacketFactory
 import com.avp.wow.login.network.factories.LoginGsOutputPacketFactory.packetHandler
 import com.avp.wow.login.network.gs.LoginGsConnection.Companion.State
 import com.avp.wow.login.network.gs.LoginGsInputPacket
@@ -9,9 +8,7 @@ import com.avp.wow.login.network.gs.output.OutRegisterGsFail
 import com.avp.wow.login.network.gs.output.OutRegisterGsOk
 import com.avp.wow.service.gs.GameServersConfig
 import com.avp.wow.service.gs.enums.GsRegisterResponse
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 class InRegisterGs(vararg states: State) : LoginGsInputPacket(OP_CODE, states.toList()) {
 
     private var sessionId = 0

@@ -4,9 +4,7 @@ import com.avp.wow.game.network.factories.GameLsOutputPacketFactory.packetHandle
 import com.avp.wow.game.network.ls.GameLsConnection.Companion.State
 import com.avp.wow.game.network.ls.GameLsInputPacket
 import com.avp.wow.game.network.ls.output.OutRegisterGs
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 class InAuthGsOk(
     vararg states: State
 ) : GameLsInputPacket(opCode = OP_CODE, states = states.toList()) {

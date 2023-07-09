@@ -1,8 +1,8 @@
-val commons_codec_version: String by project
+val commonsCodecVersion: String by project
 
 dependencies {
 
     api(project(":model"))
-    api("commons-codec:commons-codec:$commons_codec_version")
+    api("commons-codec:commons-codec:$commonsCodecVersion")
 
 }

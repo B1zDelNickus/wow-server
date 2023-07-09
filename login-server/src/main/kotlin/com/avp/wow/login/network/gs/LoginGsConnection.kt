@@ -16,16 +16,13 @@ import com.avp.wow.network.ncrypt.EncryptedRSAKeyPair
 import com.avp.wow.network.ncrypt.KeyGen
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import com.avp.wow.service.gs.GameServersConfig.gameServersService
-import io.ktor.network.sockets.Socket
-import io.ktor.network.sockets.isClosed
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.network.sockets.*
 import javolution.util.FastList
 import java.io.IOException
 import java.nio.ByteBuffer
 import javax.crypto.SecretKey
 import kotlin.coroutines.CoroutineContext
 
-@KtorExperimentalAPI
 class LoginGsConnection(
     socket: Socket,
     nio: BaseNioService,

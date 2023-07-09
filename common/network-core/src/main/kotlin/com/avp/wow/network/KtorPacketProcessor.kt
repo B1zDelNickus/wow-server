@@ -2,7 +2,6 @@ package com.avp.wow.network
 
 import com.avp.wow.network.packet.BaseInputPacket
 import com.avp.wow.network.utils.KtxRunnable
-import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.*
 import mu.KotlinLogging
 import java.util.*
@@ -10,7 +9,6 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.coroutines.CoroutineContext
 
-@KtorExperimentalAPI
 class KtorPacketProcessor<T: KtorConnection<*>>(
     private val minThreads: Int,
     private val maxThreads: Int,

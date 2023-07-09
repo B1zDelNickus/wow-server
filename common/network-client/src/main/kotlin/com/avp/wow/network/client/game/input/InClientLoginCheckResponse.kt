@@ -33,7 +33,7 @@ class InClientLoginCheckResponse(vararg states: State) : GameServerInputPacket(O
                 }
                 else -> {
                     log.error { "Session doesn't matches: ${con.sessionId} != $sessionId" }
-                    // DISCONECT
+                    // DISCONNECT
                 }
             }
         }

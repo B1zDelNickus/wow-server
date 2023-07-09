@@ -8,9 +8,7 @@ import com.avp.wow.login.network.gs.LoginGsInputPacket
 import com.avp.wow.login.network.gs.output.OutAccountCheckResponse
 import com.avp.wow.login.network.gs.output.OutAuthGsFail
 import com.avp.wow.service.auth.AuthConfig.authService
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 class InAccountCheck(vararg states: State) : LoginGsInputPacket(OP_CODE, states.toList()) {
 
     private var sessionId = 0
@@ -60,7 +58,13 @@ class InAccountCheck(vararg states: State) : LoginGsInputPacket(OP_CODE, states.
 
                                 // updateLastServer() TODO needed ? probably not
 
-                                packetHandler.handle(OutAccountCheckResponse.OP_CODE, accountId, true, acc.name, acc.accessLevel)
+                                packetHandler.handle(
+                                    OutAccountCheckResponse.OP_CODE,
+                                    accountId,
+                                    true,
+                                    acc.name,
+                                    acc.accessLevel
+                                )
                                     ?.let { pck -> sendPacket(pck) }
 
                             }
@@ -74,7 +78,7 @@ class InAccountCheck(vararg states: State) : LoginGsInputPacket(OP_CODE, states.
                 else -> {
                     log.error { "Sessions doesnt match: ${con.sessionId} != $sessionId" }
                     packetHandler.handle(OutAuthGsFail.OP_CODE, sessionId)
-                        ?.let { pck -> con.close(pck,true) }
+                        ?.let { pck -> con.close(pck, true) }
                 }
             }
         }

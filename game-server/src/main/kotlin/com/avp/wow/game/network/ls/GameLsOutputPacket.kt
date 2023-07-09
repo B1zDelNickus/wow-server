@@ -4,7 +4,6 @@ import com.avp.wow.network.packet.BaseOutputPacket
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.ByteBuffer
 
-@KtorExperimentalAPI
 abstract class GameLsOutputPacket : BaseOutputPacket() {
 
     /**

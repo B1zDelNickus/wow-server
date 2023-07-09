@@ -6,7 +6,7 @@ import mu.KotlinLogging
 
 abstract class BaseNioService {
 
-    protected val log = KotlinLogging.logger(this::class.java.name)
+    protected open val log = KotlinLogging.logger(this::class.java.name)
 
     protected abstract val scope: CoroutineScope
 
@@ -20,6 +20,8 @@ abstract class BaseNioService {
     fun shutdown() {
 
         log.info { "Stopping NIO server..." }
+
+        log.info { "Active connections: $activeConnectionsCount" }
 
         closeChannels()
 
@@ -37,8 +39,6 @@ abstract class BaseNioService {
         } catch (t: Throwable) {
             log.warn(t) { "Nio thread was interrupted during shutdown" }
         }
-
-        log.info { "Active connections: $activeConnectionsCount" }
 
         /**
          * DC all

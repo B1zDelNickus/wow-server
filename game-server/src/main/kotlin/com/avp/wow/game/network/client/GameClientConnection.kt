@@ -17,14 +17,12 @@ import com.avp.wow.network.ncrypt.KeyGen
 import com.avp.wow.network.ncrypt.WowCryptEngine
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.isClosed
-import io.ktor.util.KtorExperimentalAPI
 import javolution.util.FastList
 import java.io.IOException
 import java.nio.ByteBuffer
 import javax.crypto.SecretKey
 import kotlin.coroutines.CoroutineContext
 
-@KtorExperimentalAPI
 class GameClientConnection(
     socket: Socket,
     nio: BaseNioService,
@@ -197,7 +195,7 @@ class GameClientConnection(
         // TODO stop ping checker
         log.info { "Disconnecting $account from GS." }
         account?.let { acc ->
-            // send diconnect packets to loginserver
+            // send disconnect packets to login-server
         }
         // same for active player
     }

@@ -4,11 +4,8 @@ import com.avp.wow.game.network.client.GameClientConnection.Companion.State
 import com.avp.wow.game.network.client.GameClientInputPacket
 import com.avp.wow.game.network.client.output.OutAuthClientFail
 import com.avp.wow.game.network.client.output.OutEnterWorldOk
-import com.avp.wow.game.network.factories.GameClientOutputPacketFactory
 import com.avp.wow.game.network.factories.GameClientOutputPacketFactory.packetHandler
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 class InEnterWorld(vararg states: State) : GameClientInputPacket(OP_CODE, states.toList()) {
 
     private var sessionId = 0

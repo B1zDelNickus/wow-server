@@ -2,9 +2,7 @@ package com.avp.wow.login.network.gs.output
 
 import com.avp.wow.login.network.gs.LoginGsConnection
 import com.avp.wow.login.network.gs.LoginGsOutputPacket
-import io.ktor.util.KtorExperimentalAPI
 
-@KtorExperimentalAPI
 class OutAccountCheckResponse(
     private val accountId: Long,
     private val result: Boolean,

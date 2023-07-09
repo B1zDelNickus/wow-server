@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalAPI
@@ -21,6 +22,8 @@ class KtorNioClient(
     private val clientLsConfig: KtorConnectionConfig,
     context: CoroutineContext = Dispatchers.IO
 ) : BaseNioService() {
+
+    override val log = KotlinLogging.logger(this::class.java.name)
 
     override val scope by lazy { CoroutineScope(SupervisorJob() + context) }
 
@@ -166,17 +169,17 @@ class KtorNioClient(
     }
 
     fun login(login: String, password: String) {
-        (loginServerConnection as? LoginServerConnection)?.let { ls ->
+        loginServerConnection?.let { ls ->
             ls.sendPacket(OutLogin(login = login, password = password, server = ls))
         }
     }
 
     fun enterGame() {
-        (gameServerConnection as? GameServerConnection)?.sendPacket(OutEnterWorld())
+        gameServerConnection?.sendPacket(OutEnterWorld())
     }
 
     fun sendGamePacket(pck: GameServerOutputPacket) {
-        (gameServerConnection as? GameServerConnection)?.sendPacket(pck)
+        gameServerConnection?.sendPacket(pck)
     }
 
 }

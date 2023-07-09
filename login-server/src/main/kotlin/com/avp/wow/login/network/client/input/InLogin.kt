@@ -10,12 +10,10 @@ import com.avp.wow.login.network.client.output.OutLoginOk
 import com.avp.wow.login.network.factories.LoginClientOutputPacketFactory.packetHandler
 import com.avp.wow.service.auth.AuthConfig.authService
 import com.avp.wow.service.auth.enums.AuthResponse
-import io.ktor.util.KtorExperimentalAPI
 import java.nio.charset.Charset
 import java.security.GeneralSecurityException
 import javax.crypto.Cipher
 
-@KtorExperimentalAPI
 class InLogin(vararg states: State) : LoginClientInputPacket(OP_CODE, states.toList()) {
 
     private var sessionId: Int = 0
