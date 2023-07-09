@@ -24,7 +24,7 @@ publishing {
             artifactId = "network-client"
             //version = "1.1"
 
-            from(components["java"])
+            from(components["kotlin"])
         }
     }
 }

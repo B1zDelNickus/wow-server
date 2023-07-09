@@ -5,12 +5,12 @@ val muLoggingVersion: String by project
 
 plugins {
     application
-    id("com.github.johnrengelman.shadow") version "4.0.1"
-    id("com.bmuschko.docker-java-application") version "6.1.3"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.bmuschko.docker-java-application") version "9.0.1"
 }
 
 application {
-    mainClassName = "io.ktor.server.netty.EngineMain"
+    mainClass.value("io.ktor.server.netty.EngineMain")
 }
 
 docker {
@@ -32,8 +32,8 @@ dependencies {
 
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("io.github.microutils:kotlin-logging:$muLoggingVersion")
-    implementation("io.ktor:ktor-server-core-jvm:2.0.0-eap-256")
-    implementation("io.ktor:ktor-server-netty-jvm:2.0.0-eap-256")
+    implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
 
 }
 repositories {
